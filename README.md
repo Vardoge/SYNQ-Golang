@@ -1,2 +1,2 @@
-# SYNQ-golang
-Golang SDK for Synq APIs
+# SYNQ-Golang
+

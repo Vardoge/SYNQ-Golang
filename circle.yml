@@ -1,0 +1,22 @@
+machine:
+  services:
+    - docker
+  environment:
+    version: "latest"
+
+dependencies:
+  override:
+    - go get github.com/stretchr/testify/assert
+    - sudo rm -rf ${HOME}/.go_workspace/src/github.com/${CIRCLE_PROJECT_USERNAME}
+    - mkdir -p ~/.go_workspace/src/github.com/${CIRCLE_PROJECT_USERNAME}
+    - sudo mv ${HOME}/${CIRCLE_PROJECT_REPONAME} ${HOME}/.go_workspace/src/github.com/${CIRCLE_PROJECT_USERNAME}
+    - ln -s ${HOME}/.go_workspace/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} ${HOME}/${CIRCLE_PROJECT_REPONAME}
+
+test:
+  pre:
+    - go get github.com/mattn/goveralls
+    - go get github.com/go-playground/overalls
+  override:
+    - /home/ubuntu/.go_workspace/bin/overalls -project=github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} -covermode=count -debug
+  post:
+     - /home/ubuntu/.go_workspace/bin/goveralls -coverprofile=${HOME}/.go_workspace/src/github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/overalls.coverprofile -service circle-ci -repotoken $COVERALLS_TOKEN
