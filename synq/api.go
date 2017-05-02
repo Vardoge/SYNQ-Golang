@@ -91,12 +91,12 @@ func (a *Api) handlePost(action string, form url.Values) (video Video, err error
 	return v, nil
 }
 
-func (a *Api) createVideo() (Video, error) {
+func (a *Api) CreateVideo() (Video, error) {
 	form := url.Values{}
 	return a.handlePost("create", form)
 }
 
-func (a *Api) getVideo(videoId string) (Video, error) {
+func (a *Api) GetVideo(videoId string) (Video, error) {
 	form := url.Values{}
 	form.Add("video_id", videoId)
 	return a.handlePost("details", form)

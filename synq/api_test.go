@@ -102,17 +102,17 @@ func TestNew(t *testing.T) {
 func TestGetVideo(t *testing.T) {
 	assert := assert.New(t)
 	api := setupTestApi("fake_key")
-	_, e := api.getVideo(VIDEO_ID)
+	_, e := api.GetVideo(VIDEO_ID)
 	assert.NotNil(e)
 	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", e.Error())
 	api.Key = API_KEY
-	_, e = api.getVideo("fake")
+	_, e = api.GetVideo("fake")
 	assert.NotNil(e)
 	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", e.Error())
-	v, e := api.getVideo(VIDEO_ID2)
+	v, e := api.GetVideo(VIDEO_ID2)
 	assert.NotNil(e)
 	assert.Equal("Video not found.", e.Error())
-	v, e = api.getVideo(VIDEO_ID)
+	v, e = api.GetVideo(VIDEO_ID)
 	assert.Nil(e)
 	assert.Equal(VIDEO_ID, v.Id)
 }
