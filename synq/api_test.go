@@ -1,13 +1,13 @@
 package synq
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -26,93 +26,71 @@ const (
 	HTTP_NOT_FOUND    = `{"url": "http://docs.synq.fm/api/v1/errors/http_not_found","name": "http_not_found","message": "Not found."}`
 )
 
-func validKey(key string) string {
-	if len(key) != 32 {
-		return INVALID_UUID
-	} else if key != API_KEY {
-		return API_KEY_NOT_FOUND
-	}
-	return ""
-}
-
-func validVideo(id string) string {
-	if len(id) != 32 {
-		return INVALID_UUID
-	} else if id != VIDEO_ID {
-		return VIDEO_NOT_FOUND
-	}
-	return ""
-}
-
-func SynqStub() *httptest.Server {
-	var resp []byte
+func ServerStub() *httptest.Server {
+	var resp string
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("here in synq response", r.RequestURI)
+		log.Println("here in req", r.RequestURI)
 		testReqs = append(testReqs, r)
-		if r.Method == "POST" {
-			bytes, _ := ioutil.ReadAll(r.Body)
-			//Parse response body
-			v, _ := url.ParseQuery(string(bytes))
-			key := v.Get("api_key")
-			ke := validKey(key)
-			if ke != "" {
-				w.WriteHeader(http.StatusBadRequest)
-				resp = []byte(ke)
-			} else {
-				switch r.RequestURI {
-				case "/v1/video/details":
-					video_id := v.Get("video_id")
-					ke = validVideo(video_id)
-					if ke != "" {
-						w.WriteHeader(http.StatusBadRequest)
-						resp = []byte(ke)
-					} else {
-						vResp := new(Video)
-						vResp.Id = VIDEO_ID
-						resp, _ = json.Marshal(vResp)
-					}
-				default:
-					w.WriteHeader(http.StatusBadRequest)
-					resp = []byte(HTTP_NOT_FOUND)
-				}
-			}
+		if strings.Contains(r.RequestURI, "fail") {
+			resp = `{"message":"fail error"}`
+			w.WriteHeader(http.StatusBadRequest)
+		} else {
+			w.WriteHeader(http.StatusOK)
+			resp = `{"created_at": "2017-02-15T03:01:16.767Z","updated_at": "2017-02-16T03:06:31.794Z", "state":"uploaded"}`
 		}
-		w.Write(resp)
+		w.Write([]byte(resp))
 	}))
 }
 
-func setupTestApi(key string) Api {
+func setupTestServer() {
 	if testServer != nil {
 		testServer.Close()
 	}
 	testReqs = testReqs[:0]
-	testServer = SynqStub()
-	api := New(key)
+	testServer = ServerStub()
+}
+
+func setupTestApi(key string) Api {
+	api := Api{Key: key}
 	api.Url = testServer.URL
 	return api
 }
 
-func TestNew(t *testing.T) {
+func TestHandleReqFail(t *testing.T) {
+	video := Video{}
 	assert := assert.New(t)
-	api := Api{Key: "key"}
-	assert.NotNil(api)
-	assert.Equal("key", api.Key)
+	setupTestServer()
+	form := url.Values{}
+	form.Set("test", "value")
+	api := Api{}
+	req, err := http.NewRequest("POST", testServer.URL+"/fake/fail", strings.NewReader(form.Encode()))
+	assert.Nil(err)
+	err = api.handleReq(req, &video)
+	assert.NotNil(err)
+	assert.Equal("fail error", err.Error())
 }
 
-func TestGetVideo(t *testing.T) {
+func TestHandleReq(t *testing.T) {
+	api := Api{}
+	video := Video{}
 	assert := assert.New(t)
-	api := setupTestApi("fake_key")
-	_, e := api.GetVideo(VIDEO_ID)
-	assert.NotNil(e)
-	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", e.Error())
-	api.Key = API_KEY
-	_, e = api.GetVideo("fake")
-	assert.NotNil(e)
-	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", e.Error())
-	v, e := api.GetVideo(VIDEO_ID2)
-	assert.NotNil(e)
-	assert.Equal("Video not found.", e.Error())
-	v, e = api.GetVideo(VIDEO_ID)
-	assert.Nil(e)
-	assert.Equal(VIDEO_ID, v.Id)
+	setupTestServer()
+	form := url.Values{}
+	form.Set("test", "value")
+	req, err := http.NewRequest("POST", testServer.URL+"/fake/path", strings.NewReader(form.Encode()))
+	assert.Nil(err)
+	err = api.handleReq(req, &video)
+	assert.Nil(err)
+	assert.Len(testReqs, 1)
+	r := testReqs[0]
+	assert.Equal("/fake/path", r.RequestURI)
+	assert.Equal("uploaded", video.State)
+	assert.Equal(time.February, video.CreatedAt.Month())
+	assert.Equal(15, video.CreatedAt.Day())
+	assert.Equal(2017, video.CreatedAt.Year())
+	assert.Equal(16, video.UpdatedAt.Day())
+}
+
+func TestHandlePost(t *testing.T) {
+
 }

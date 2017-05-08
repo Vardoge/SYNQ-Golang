@@ -13,10 +13,14 @@ func main() {
 		video_id = flag.String("video_id", "", "pass in the video id to get data about")
 	)
 	flag.Parse()
-	api := synq.New(*api_key)
+	video := synq.New(*api_key)
 	if *video_id != "" {
 		log.Printf("getting video %s\n", video_id)
-		video, _ := api.GetVideo(*video_id)
+		video.Id = *video_id
+		err := video.Details()
+		if err != nil {
+			log.Fatalln("error getting video details", err.Error())
+		}
 		log.Println("video %v\n", video)
 	}
 }

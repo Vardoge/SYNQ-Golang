@@ -31,57 +31,48 @@ type ErrorResp struct {
 	Message string
 }
 
-func New(key string) Api {
-	api := Api{Key: key}
-	api.Url = DEFAULT_URL
-	api.Timeout = DEFAULT_TIMEOUT_MS
-	return api
-}
-
 func (a *Api) addHeaders(req *http.Request) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 }
 
-func (a *Api) handleReq(req *http.Request) (video Video, eResp ErrorResp) {
+func (a *Api) handleReq(req *http.Request, video *Video) error {
 	httpClient := &http.Client{Timeout: time.Duration(a.Timeout) * time.Millisecond}
 	resp, err := httpClient.Do(req)
 	if err != nil {
 		log.Println("could not DO request")
-		return video, ErrorResp{Message: err.Error()}
+		return err
 	}
 	responseAsBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("could not parse resp body")
-		return video, ErrorResp{Message: err.Error()}
+		return err
 	}
 
 	if resp.StatusCode != 200 {
+		var eResp ErrorResp
 		err = json.Unmarshal(responseAsBytes, &eResp)
 		if err != nil {
 			log.Println("could not parse error response")
-			return video, ErrorResp{Message: err.Error()}
+			return err
 		}
-		return video, eResp
+		log.Printf("Received %v\n", eResp)
+		return errors.New(eResp.Message)
 	}
 	err = json.Unmarshal(responseAsBytes, &video)
 	if err != nil {
 		log.Println("could not parse video response")
-		return video, ErrorResp{Message: err.Error()}
+		return err
 	}
-	return video, eResp
+	return nil
 }
 
-func (a *Api) handlePost(action string, form url.Values) (video Video, err error) {
+func (a *Api) handlePost(action string, form url.Values, video *Video) error {
 	urlString := a.Url + "/v1/video/" + action
 	form.Set("api_key", a.Key)
 	req, err := http.NewRequest("POST", urlString, strings.NewReader(form.Encode()))
 	if err != nil {
 		log.Println("error creating the new request")
-		return video, err
+		return err
 	}
-	v, e := a.handleReq(req)
-	if e.Message != "" {
-		return v, errors.New(e.Message)
-	}
-	return v, nil
+	return a.handleReq(req, video)
 }
