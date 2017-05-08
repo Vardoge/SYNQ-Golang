@@ -65,6 +65,8 @@ func SynqStub() *httptest.Server {
 					} else {
 						resp, _ = ioutil.ReadFile("../sample.json")
 					}
+				case "/v1/video/create":
+					resp, _ = ioutil.ReadFile("../sample2.json")
 				default:
 					w.WriteHeader(http.StatusBadRequest)
 					resp = []byte(HTTP_NOT_FOUND)
@@ -97,4 +99,20 @@ func TestGetVideo(t *testing.T) {
 	assert.Equal(float64(1280), video.Input["height"].(float64))
 	assert.NotEmpty(video.Outputs)
 	assert.Len(video.Outputs, 5)
+}
+
+func TestCreate(t *testing.T) {
+	assert := assert.New(t)
+	api := setupTestApi("fake", false)
+	assert.NotNil(api)
+	_, e := api.Create()
+	assert.NotNil(e)
+	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", e.Error())
+	api.Key = API_KEY
+	v, e := api.Create()
+	assert.Nil(e)
+	assert.Equal("created", v.State)
+	assert.NotNil(v.CreatedAt)
+	assert.NotNil(v.UpdatedAt)
+	assert.Equal(VIDEO_ID2, v.Id)
 }
