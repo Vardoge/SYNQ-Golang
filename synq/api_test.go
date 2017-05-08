@@ -25,7 +25,10 @@ func ServerStub() *httptest.Server {
 		bytes, _ := ioutil.ReadAll(r.Body)
 		v, _ := url.ParseQuery(string(bytes))
 		testValues = append(testValues, v)
-		if strings.Contains(r.RequestURI, "fail") {
+		if strings.Contains(r.RequestURI, "fail_parse") {
+			resp = ``
+			w.WriteHeader(http.StatusBadRequest)
+		} else if strings.Contains(r.RequestURI, "fail") {
 			resp = `{"message":"fail error"}`
 			w.WriteHeader(http.StatusBadRequest)
 		} else {
@@ -43,9 +46,9 @@ func setupTestServer(generic bool) {
 	testReqs = testReqs[:0]
 	testValues = testValues[:0]
 	if generic {
-	  testServer = ServerStub()
+		testServer = ServerStub()
 	} else {
-	  testServer = SynqStub()
+		testServer = SynqStub()
 	}
 }
 
@@ -74,6 +77,11 @@ func TestHandleReqFail(t *testing.T) {
 	err = api.handleReq(req, &video)
 	assert.NotNil(err)
 	assert.Equal("fail error", err.Error())
+	req, err = http.NewRequest("POST", testServer.URL+"/fake/fail_parse", strings.NewReader(form.Encode()))
+	assert.Nil(err)
+	err = api.handleReq(req, &video)
+	assert.NotNil(err)
+	assert.Equal("unexpected end of JSON input", err.Error())
 }
 
 func TestHandleReq(t *testing.T) {
