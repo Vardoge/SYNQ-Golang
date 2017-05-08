@@ -36,26 +36,37 @@ func ServerStub() *httptest.Server {
 	}))
 }
 
-func setupTestServer() {
+func setupTestServer(generic bool) {
 	if testServer != nil {
 		testServer.Close()
 	}
 	testReqs = testReqs[:0]
 	testValues = testValues[:0]
-	testServer = ServerStub()
+	if generic {
+	  testServer = ServerStub()
+	} else {
+	  testServer = SynqStub()
+	}
 }
 
-func setupTestApi(key string) Api {
+func setupTestApi(key string, generic bool) Api {
 	api := Api{Key: key}
-	setupTestServer()
+	setupTestServer(generic)
 	api.Url = testServer.URL
 	return api
+}
+
+func TestNew(t *testing.T) {
+	assert := assert.New(t)
+	api := New("key")
+	assert.NotNil(api)
+	assert.Equal("key", api.Key)
 }
 
 func TestHandleReqFail(t *testing.T) {
 	video := Video{}
 	assert := assert.New(t)
-	setupTestServer()
+	setupTestServer(true)
 	form := url.Values{}
 	api := Api{}
 	req, err := http.NewRequest("POST", testServer.URL+"/fake/fail", strings.NewReader(form.Encode()))
@@ -69,7 +80,7 @@ func TestHandleReq(t *testing.T) {
 	api := Api{}
 	video := Video{}
 	assert := assert.New(t)
-	setupTestServer()
+	setupTestServer(true)
 	form := url.Values{}
 	req, err := http.NewRequest("POST", testServer.URL+"/fake/path", strings.NewReader(form.Encode()))
 	assert.Nil(err)
@@ -86,7 +97,7 @@ func TestHandleReq(t *testing.T) {
 }
 
 func TestHandlePost(t *testing.T) {
-	api := setupTestApi("fake")
+	api := setupTestApi("fake", true)
 	assert := assert.New(t)
 	form := url.Values{}
 	video := Video{}

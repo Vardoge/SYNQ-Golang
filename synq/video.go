@@ -1,7 +1,6 @@
 package synq
 
 import (
-	"errors"
 	"net/url"
 	"time"
 )
@@ -60,29 +59,25 @@ type Video struct {
 	Userdata  map[string]interface{} `json:"userdata"`
 	CreatedAt time.Time              `json:"created_at"`
 	UpdatedAt time.Time              `json:"updated_at"`
-	Api       Api
 }
 
-func New(key string) Video {
-	api := Api{Key: key}
-	api.Url = DEFAULT_URL
-	api.Timeout = DEFAULT_TIMEOUT_MS
-	return Video{Api: api}
+func (a *Api) GetVideo(id string) (Video, error) {
+  form := url.Values{}
+  form.Add("video_id", id)
+  video := Video{}
+  err := a.handlePost("details", form, &video)
+  if err != nil {
+    return video, err
+  }
+  return video, nil
 }
 
-func (v *Video) Create() error {
-	if v.Id != "" {
-		return errors.New("This video already has an Id (" + v.Id + "), can not create")
-	}
-	form := url.Values{}
-	return v.Api.handlePost("create", form, v)
-}
-
-func (v *Video) Details() error {
-	if v.Id == "" {
-		return errors.New("There is no id associated with this video object")
-	}
-	form := url.Values{}
-	form.Add("video_id", v.Id)
-	return v.Api.handlePost("details", form, v)
+func (a *Api) Create() (Video, error) {
+  video := Video{}
+  form := url.Values{}
+	err := a.handlePost("create", form, &video)
+  if err != nil {
+    return video, err
+  }
+  return video, nil
 }

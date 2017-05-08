@@ -31,6 +31,13 @@ type ErrorResp struct {
 	Message string
 }
 
+func New(key string) Api {
+	api := Api{Key: key}
+	api.Url = DEFAULT_URL
+	api.Timeout = DEFAULT_TIMEOUT_MS
+	return api
+}
+
 func (a *Api) addHeaders(req *http.Request) {
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 }

@@ -75,45 +75,21 @@ func SynqStub() *httptest.Server {
 	}))
 }
 
-func setupTestVideo(key string) Video {
-	if testServer != nil {
-		testServer.Close()
-	}
-	testReqs = testReqs[:0]
-	testServer = SynqStub()
-	api := Api{Key: key}
-	api.Url = testServer.URL
-	return Video{Api: api}
-}
-
-func TestNew(t *testing.T) {
-	assert := assert.New(t)
-	video := New("key")
-	assert.NotNil(video)
-	assert.Equal("key", video.Api.Key)
-	assert.Equal("", video.Id)
-}
-
 func TestGetVideo(t *testing.T) {
 	assert := assert.New(t)
-	video := setupTestVideo("fake_key")
-	assert.NotNil(video)
-	video.Id = VIDEO_ID
-	e := video.Details()
+	api := setupTestApi("fake", false)
+	assert.NotNil(api)
+	_, e := api.GetVideo(VIDEO_ID)
 	assert.NotNil(e)
 	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", e.Error())
-	video.Api.Key = API_KEY
-	video.Id = "fake"
-	e = video.Details()
+	api.Key = API_KEY
+	_, e = api.GetVideo("fake")
 	assert.NotNil(e)
 	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", e.Error())
-	video.Id = VIDEO_ID2
-	e = video.Details()
+	_, e = api.GetVideo(VIDEO_ID2)
 	assert.NotNil(e)
 	assert.Equal("Video not found.", e.Error())
-	video.Id = VIDEO_ID
-	assert.Equal("", video.State)
-	e = video.Details()
+	video, e := api.GetVideo(VIDEO_ID)
 	assert.Nil(e)
 	assert.Equal("uploaded", video.State)
 	assert.NotEmpty(video.Input)
