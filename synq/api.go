@@ -38,10 +38,6 @@ func New(key string) Api {
 	return api
 }
 
-func (a *Api) addHeaders(req *http.Request) {
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-}
-
 func (a *Api) handleReq(req *http.Request, video *Video) error {
 	httpClient := &http.Client{Timeout: time.Duration(a.Timeout) * time.Millisecond}
 	resp, err := httpClient.Do(req)
