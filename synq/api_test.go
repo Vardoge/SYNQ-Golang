@@ -116,6 +116,17 @@ func TestHandleReq(t *testing.T) {
 	assert.Equal(16, video.UpdatedAt.Day())
 }
 
+func TestHandlePostFail(t *testing.T) {
+	api := setupTestApi("fake", true)
+	assert := assert.New(t)
+	form := url.Values{}
+	video := Video{}
+	form.Set("test", "value")
+	err := api.handlePost("path_missing", form, &video)
+	assert.NotNil(err)
+	assert.Equal("unexpected end of JSON input", err.Error())
+}
+
 func TestHandlePost(t *testing.T) {
 	api := setupTestApi("fake", true)
 	assert := assert.New(t)
