@@ -1,6 +1,7 @@
 package synq
 
 import (
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -13,24 +14,17 @@ import (
 )
 
 var testReqs []*http.Request
+var testValues []url.Values
 var testServer *httptest.Server
-
-const (
-	VIDEO_ID          = "45d4062f99454c9fb21e5186a09c2119"
-	VIDEO_ID2         = "55d4062f99454c9fb21e5186a09c2115"
-	API_KEY           = "aba179c14ab349e0bb0d12b7eca5fa24"
-	API_KEY2          = "cba179c14ab349e0bb0d12b7eca5fa25"
-	INVALID_UUID      = `{"url": "http://docs.synq.fm/api/v1/errors/invalid_uuid","name": "invalid_uuid","message": "Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'."}`
-	VIDEO_NOT_FOUND   = `{"url": "http://docs.synq.fm/api/v1/errors/not_found_video","name": "not_found_video","message": "Video not found."}`
-	API_KEY_NOT_FOUND = `{"url": "http://docs.synq.fm/api/v1/errors/not_found_api_key","name": "not_found_api_key","message": "API key not found."}`
-	HTTP_NOT_FOUND    = `{"url": "http://docs.synq.fm/api/v1/errors/http_not_found","name": "http_not_found","message": "Not found."}`
-)
 
 func ServerStub() *httptest.Server {
 	var resp string
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println("here in req", r.RequestURI)
 		testReqs = append(testReqs, r)
+		bytes, _ := ioutil.ReadAll(r.Body)
+		v, _ := url.ParseQuery(string(bytes))
+		testValues = append(testValues, v)
 		if strings.Contains(r.RequestURI, "fail") {
 			resp = `{"message":"fail error"}`
 			w.WriteHeader(http.StatusBadRequest)
@@ -47,11 +41,13 @@ func setupTestServer() {
 		testServer.Close()
 	}
 	testReqs = testReqs[:0]
+	testValues = testValues[:0]
 	testServer = ServerStub()
 }
 
 func setupTestApi(key string) Api {
 	api := Api{Key: key}
+	setupTestServer()
 	api.Url = testServer.URL
 	return api
 }
@@ -61,7 +57,6 @@ func TestHandleReqFail(t *testing.T) {
 	assert := assert.New(t)
 	setupTestServer()
 	form := url.Values{}
-	form.Set("test", "value")
 	api := Api{}
 	req, err := http.NewRequest("POST", testServer.URL+"/fake/fail", strings.NewReader(form.Encode()))
 	assert.Nil(err)
@@ -76,7 +71,6 @@ func TestHandleReq(t *testing.T) {
 	assert := assert.New(t)
 	setupTestServer()
 	form := url.Values{}
-	form.Set("test", "value")
 	req, err := http.NewRequest("POST", testServer.URL+"/fake/path", strings.NewReader(form.Encode()))
 	assert.Nil(err)
 	err = api.handleReq(req, &video)
@@ -92,5 +86,17 @@ func TestHandleReq(t *testing.T) {
 }
 
 func TestHandlePost(t *testing.T) {
-
+	api := setupTestApi("fake")
+	assert := assert.New(t)
+	form := url.Values{}
+	video := Video{}
+	form.Set("test", "value")
+	err := api.handlePost("create", form, &video)
+	assert.Nil(err)
+	assert.Len(testReqs, 1)
+	r := testReqs[0]
+	v := testValues[0]
+	assert.Equal("/v1/video/create", r.RequestURI)
+	assert.Equal("value", v.Get("test"))
+	assert.Equal("fake", v.Get("api_key"))
 }

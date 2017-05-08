@@ -55,7 +55,7 @@ type Video struct {
 	Id        string                 `json:"video_id"`
 	Outputs   map[string]interface{} `json:"outputs"`
 	Player    map[string]interface{} `json:"player"`
-	Input     map[string]interface{} `json:"intput"`
+	Input     map[string]interface{} `json:"input"`
 	State     string                 `json:"state"`
 	Userdata  map[string]interface{} `json:"userdata"`
 	CreatedAt time.Time              `json:"created_at"`
