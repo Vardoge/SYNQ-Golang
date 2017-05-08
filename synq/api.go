@@ -22,11 +22,6 @@ type Api struct {
 	Timeout int
 }
 
-type Video struct {
-	Id  string
-	Api Api
-}
-
 type ErrorResp struct {
 	//"url": "http://docs.synq.fm/api/v1/error/some_error_code",
 	//"name": "Some error occurred.",
@@ -89,15 +84,4 @@ func (a *Api) handlePost(action string, form url.Values) (video Video, err error
 		return v, errors.New(e.Message)
 	}
 	return v, nil
-}
-
-func (a *Api) CreateVideo() (Video, error) {
-	form := url.Values{}
-	return a.handlePost("create", form)
-}
-
-func (a *Api) GetVideo(videoId string) (Video, error) {
-	form := url.Values{}
-	form.Add("video_id", videoId)
-	return a.handlePost("details", form)
 }
