@@ -125,6 +125,10 @@ func TestHandlePostFail(t *testing.T) {
 	err := api.handlePost("path_missing", form, &video)
 	assert.NotNil(err)
 	assert.Equal("unexpected end of JSON input", err.Error())
+	api.Url = ":://noprotocol.com"
+	err = api.handlePost("path", form, &video)
+	assert.NotNil(err)
+	assert.Equal("parse :://noprotocol.com/v1/video/path: missing protocol scheme", err.Error())
 }
 
 func TestHandlePost(t *testing.T) {
