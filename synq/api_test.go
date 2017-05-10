@@ -105,6 +105,7 @@ func TestHandleReq(t *testing.T) {
 	assert.Equal(15, video.CreatedAt.Day())
 	assert.Equal(2017, video.CreatedAt.Year())
 	assert.Equal(16, video.UpdatedAt.Day())
+	assert.Equal("application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
 }
 
 func TestHandlePostFail(t *testing.T) {
