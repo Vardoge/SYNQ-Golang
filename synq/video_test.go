@@ -63,10 +63,10 @@ func SynqStub() *httptest.Server {
 						w.WriteHeader(http.StatusBadRequest)
 						resp = []byte(ke)
 					} else {
-						resp, _ = ioutil.ReadFile("../sample.json")
+						resp, _ = ioutil.ReadFile("../sample/video.json")
 					}
 				case "/v1/video/create":
-					resp, _ = ioutil.ReadFile("../sample2.json")
+					resp, _ = ioutil.ReadFile("../sample/new_video.json")
 				default:
 					w.WriteHeader(http.StatusBadRequest)
 					resp = []byte(HTTP_NOT_FOUND)

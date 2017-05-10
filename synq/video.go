@@ -95,5 +95,11 @@ func (v *Video) GetVideo() error {
 }
 
 func (v *Video) Upload() error {
+	form := url.Values{}
+	form.Add("video_id", v.Id)
+	err := v.Api.handlePost("details", form, v)
+	if err != nil {
+		return err
+	}
 	return nil
 }
