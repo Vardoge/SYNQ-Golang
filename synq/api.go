@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 )
 
@@ -38,9 +37,10 @@ func New(key string) Api {
 	return api
 }
 
-func (a *Api) handleReq(req *http.Request, video *Video) error {
+//func (a *Api) handleReq(req *http.Request, video *Video) error {
+func (a *Api) handleReq(url string, data url.Values, video *Video) error {
 	httpClient := &http.Client{Timeout: time.Duration(a.Timeout) * time.Millisecond}
-	resp, err := httpClient.Do(req)
+	resp, err := httpClient.PostForm(url, data)
 	if err != nil {
 		log.Println("could not DO request")
 		return err
@@ -72,10 +72,5 @@ func (a *Api) handleReq(req *http.Request, video *Video) error {
 func (a *Api) handlePost(action string, form url.Values, video *Video) error {
 	urlString := a.Url + "/v1/video/" + action
 	form.Set("api_key", a.Key)
-	req, err := http.NewRequest("POST", urlString, strings.NewReader(form.Encode()))
-	if err != nil {
-		log.Println("error creating the new request")
-		return err
-	}
-	return a.handleReq(req, video)
+	return a.handleReq(urlString, form, video)
 }

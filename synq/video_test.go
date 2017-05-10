@@ -63,10 +63,10 @@ func SynqStub() *httptest.Server {
 						w.WriteHeader(http.StatusBadRequest)
 						resp = []byte(ke)
 					} else {
-						resp, _ = ioutil.ReadFile("../sample.json")
+						resp, _ = ioutil.ReadFile("../sample/video.json")
 					}
 				case "/v1/video/create":
-					resp, _ = ioutil.ReadFile("../sample2.json")
+					resp, _ = ioutil.ReadFile("../sample/new_video.json")
 				default:
 					w.WriteHeader(http.StatusBadRequest)
 					resp = []byte(HTTP_NOT_FOUND)
@@ -75,6 +75,20 @@ func SynqStub() *httptest.Server {
 		}
 		w.Write(resp)
 	}))
+}
+
+func TestDisplay(t *testing.T) {
+	assert := assert.New(t)
+	p := Player{EmbedUrl: "url", ThumbnailUrl: "url2"}
+	v := Video{}
+	assert.Equal("Empty Video\n", v.Display())
+	v.State = "created"
+	assert.Equal("Empty Video\n", v.Display())
+	v.Id = "abc123"
+	assert.Equal("Video abc123\n\tState : created\n", v.Display())
+	v.State = "uploaded"
+	v.Player = p
+	assert.Equal("Video abc123\n\tState : uploaded\n\tEmbed URL : url\n\tThumbnail : url2\n", v.Display())
 }
 
 func TestGetVideo(t *testing.T) {
@@ -97,6 +111,9 @@ func TestGetVideo(t *testing.T) {
 	assert.NotEmpty(video.Input)
 	assert.Equal(float64(720), video.Input["width"].(float64))
 	assert.Equal(float64(1280), video.Input["height"].(float64))
+	assert.Equal("https://player.synq.fm/embed/45d4063d00454c9fb21e5186a09c3115", video.Player.EmbedUrl)
+	assert.Equal("https://multicdn.synq.fm/projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/derivatives/thumbnails/45/d4/45d4063d00454c9fb21e5186a09c3115/0000360.jpg", video.Player.ThumbnailUrl)
+	assert.Equal(0, video.Player.Views)
 	assert.NotEmpty(video.Outputs)
 	assert.Len(video.Outputs, 5)
 }
