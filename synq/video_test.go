@@ -111,6 +111,9 @@ func TestGetVideo(t *testing.T) {
 	assert.NotEmpty(video.Input)
 	assert.Equal(float64(720), video.Input["width"].(float64))
 	assert.Equal(float64(1280), video.Input["height"].(float64))
+	assert.Equal("https://player.synq.fm/embed/45d4063d00454c9fb21e5186a09c3115", video.Player.EmbedUrl)
+	assert.Equal("https://multicdn.synq.fm/projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/derivatives/thumbnails/45/d4/45d4063d00454c9fb21e5186a09c3115/0000360.jpg", video.Player.ThumbnailUrl)
+	assert.Equal(0, video.Player.Views)
 	assert.NotEmpty(video.Outputs)
 	assert.Len(video.Outputs, 5)
 }
