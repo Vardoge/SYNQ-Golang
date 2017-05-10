@@ -77,6 +77,20 @@ func SynqStub() *httptest.Server {
 	}))
 }
 
+func TestDisplay(t *testing.T) {
+	assert := assert.New(t)
+	p := Player{EmbedUrl: "url", ThumbnailUrl: "url2"}
+	v := Video{}
+	assert.Equal("Empty Video\n", v.Display())
+	v.State = "created"
+	assert.Equal("Empty Video\n", v.Display())
+	v.Id = "abc123"
+	assert.Equal("Video abc123\n\tState : created\n", v.Display())
+	v.State = "uploaded"
+	v.Player = p
+	assert.Equal("Video abc123\n\tState : uploaded\n\tEmbed URL : url\n\tThumbnail : url2\n", v.Display())
+}
+
 func TestGetVideo(t *testing.T) {
 	assert := assert.New(t)
 	api := setupTestApi("fake", false)

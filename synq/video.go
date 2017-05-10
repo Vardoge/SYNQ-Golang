@@ -51,10 +51,17 @@ import (
   "updated_at": "2017-02-15T03:06:31.794Z"
 }
 */
+
+type Player struct {
+	Views        int    `json:"views"`
+	EmbedUrl     string `json:"embed_url"`
+	ThumbnailUrl string `json:"thumbnail_url"`
+}
+
 type Video struct {
 	Id        string                 `json:"video_id"`
 	Outputs   map[string]interface{} `json:"outputs"`
-	Player    map[string]interface{} `json:"player"`
+	Player    Player                 `json:"player"`
 	Input     map[string]interface{} `json:"input"`
 	State     string                 `json:"state"`
 	Userdata  map[string]interface{} `json:"userdata"`
@@ -106,14 +113,14 @@ func (v *Video) Upload() error {
 }
 
 func (v *Video) Display() (str string) {
-	switch v.State {
-	case "uploaded":
-		str = fmt.Sprintf("Video %s\n\tState : %s\n\tEmbed URL : %s\n\tThumbnail : %s\n", v.Id, v.State, v.Player["embed_url"].(string), v.Player["thumbnail_url"].(string))
-	default:
-		if v.Id != "" {
+	if v.Id == "" {
+		str = fmt.Sprintf("Empty Video\n")
+	} else {
+		switch v.State {
+		case "uploaded":
+			str = fmt.Sprintf("Video %s\n\tState : %s\n\tEmbed URL : %s\n\tThumbnail : %s\n", v.Id, v.State, v.Player.EmbedUrl, v.Player.ThumbnailUrl)
+		default:
 			str = fmt.Sprintf("Video %s\n\tState : %s\n", v.Id, v.State)
-		} else {
-			str = fmt.Sprintf("Empty Video\n")
 		}
 	}
 	return str
