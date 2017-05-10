@@ -75,23 +75,16 @@ func TestHandleReqFail(t *testing.T) {
 	setupTestServer(true)
 	form := url.Values{}
 	api := Api{}
-	req, err := http.NewRequest("POST", "/fake/fail", strings.NewReader(form.Encode()))
-	assert.Nil(err)
-	err = api.handleReq(req, &video)
+	err := api.handleReq("/fake/fail", form, &video)
 	assert.NotNil(err)
 	assert.Equal("Post /fake/fail: unsupported protocol scheme \"\"", err.Error())
-	req, err = http.NewRequest("POST", testServer.URL+"/fake/fail", strings.NewReader(form.Encode()))
-	assert.Nil(err)
-	err = api.handleReq(req, &video)
+	err = api.handleReq(testServer.URL+"/fake/fail", form, &video)
 	assert.NotNil(err)
 	assert.Equal("fail error", err.Error())
-	req, err = http.NewRequest("POST", testServer.URL+"/fake/fail_parse", strings.NewReader(form.Encode()))
-	assert.Nil(err)
-	err = api.handleReq(req, &video)
+	err = api.handleReq(testServer.URL+"/fake/fail_parse", form, &video)
 	assert.NotNil(err)
 	assert.Equal("unexpected end of JSON input", err.Error())
-	req, _ = http.NewRequest("POST", testServer.URL+"/fake/path_missing", strings.NewReader(form.Encode()))
-	err = api.handleReq(req, &video)
+	err = api.handleReq(testServer.URL+"/fake/path_missing", form, &video)
 	assert.NotNil(err)
 	assert.Equal("unexpected end of JSON input", err.Error())
 }
@@ -102,9 +95,7 @@ func TestHandleReq(t *testing.T) {
 	assert := assert.New(t)
 	setupTestServer(true)
 	form := url.Values{}
-	req, err := http.NewRequest("POST", testServer.URL+"/fake/path", strings.NewReader(form.Encode()))
-	assert.Nil(err)
-	err = api.handleReq(req, &video)
+	err := api.handleReq(testServer.URL+"/fake/path", form, &video)
 	assert.Nil(err)
 	assert.Len(testReqs, 1)
 	r := testReqs[0]
