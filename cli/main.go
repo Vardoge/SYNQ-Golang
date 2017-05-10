@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log"
 	"os"
@@ -9,6 +10,8 @@ import (
 )
 
 func main() {
+	var err error
+	var video synq.Video
 	var (
 		c = flag.String("command", "details", "pass in command")
 		a = flag.String("api_key", "", "pass the synq api key")
@@ -30,14 +33,16 @@ func main() {
 			os.Exit(-1)
 		}
 		log.Printf("getting video %s\n", vid)
-		video, err := api.GetVideo(vid)
-		if err != nil {
-			log.Println("error getting video details", err.Error())
-			os.Exit(-1)
-		}
-		log.Printf("video %v\n", video)
+		video, err = api.GetVideo(vid)
+	case "create":
+		log.Printf("Creating new video")
+		video, err = api.Create()
 	default:
-		log.Println("unknown command " + cmd)
+		err = errors.New("unknown command " + cmd)
+	}
+	if err != nil {
+		log.Println(err.Error())
 		os.Exit(-1)
 	}
+	log.Printf(video.Display())
 }

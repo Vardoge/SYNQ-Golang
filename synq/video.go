@@ -1,6 +1,7 @@
 package synq
 
 import (
+	"fmt"
 	"net/url"
 	"time"
 )
@@ -102,4 +103,18 @@ func (v *Video) Upload() error {
 		return err
 	}
 	return nil
+}
+
+func (v *Video) Display() (str string) {
+	switch v.State {
+	case "uploaded":
+		str = fmt.Sprintf("Video %s\n\tState : %s\n\tEmbed URL : %s\n\tThumbnail : %s\n", v.Id, v.State, v.Player["embed_url"].(string), v.Player["thumbnail_url"].(string))
+	default:
+		if v.Id != "" {
+			str = fmt.Sprintf("Video %s\n\tState : %s\n", v.Id, v.State)
+		} else {
+			str = fmt.Sprintf("Empty Video\n")
+		}
+	}
+	return str
 }
