@@ -155,3 +155,12 @@ func TestGetUploadInfo(t *testing.T) {
 	assert.Equal("https://synqfm.s3.amazonaws.com", video.UploadInfo.Action)
 	assert.Equal("video/mp4", video.UploadInfo.ContentType)
 }
+
+func TestUploadFile(t *testing.T) {
+	assert := assert.New(t)
+	api := setupTestApi("fake", false)
+	video := Video{Id: VIDEO_ID2, Api: &api}
+	err := video.UploadFile("myfile.mp4")
+	assert.NotNil(err)
+	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", err.Error())
+}

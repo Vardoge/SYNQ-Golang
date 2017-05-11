@@ -84,7 +84,10 @@ func (v *Video) GetUploadInfo() error {
 func (v *Video) UploadFile(fileName string) error {
 	var empty Upload
 	if v.UploadInfo == empty {
-		v.GetUploadInfo()
+		err := v.GetUploadInfo()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
