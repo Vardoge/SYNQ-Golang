@@ -164,6 +164,6 @@ func TestUploadFile(t *testing.T) {
 	assert.NotNil(err)
 	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", err.Error())
 	api.Key = API_KEY
-	err = video.UploadFile(fileName)
+	err = video.UploadFile("myfile.mp4")
 	assert.Nil(err)
 }
