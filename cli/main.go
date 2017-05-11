@@ -34,6 +34,12 @@ func main() {
 		}
 		log.Printf("getting video %s\n", vid)
 		video, err = api.GetVideo(vid)
+	case "upload":
+		log.Printf("Calling Upload")
+		video, err = api.GetVideo(vid)
+		if err == nil {
+			video.Upload()
+		}
 	case "create":
 		log.Printf("Creating new video")
 		video, err = api.Create()

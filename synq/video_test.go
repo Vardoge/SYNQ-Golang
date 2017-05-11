@@ -67,6 +67,8 @@ func SynqStub() *httptest.Server {
 					}
 				case "/v1/video/create":
 					resp, _ = ioutil.ReadFile("../sample/new_video.json")
+				case "/v1/video/upload":
+					resp, _ = ioutil.ReadFile("../sample/upload.json")
 				default:
 					w.WriteHeader(http.StatusBadRequest)
 					resp = []byte(HTTP_NOT_FOUND)
@@ -132,4 +134,8 @@ func TestCreate(t *testing.T) {
 	assert.NotNil(v.CreatedAt)
 	assert.NotNil(v.UpdatedAt)
 	assert.Equal(VIDEO_ID2, v.Id)
+}
+
+func TestGetUploadInfo(t *testing.T) {
+
 }

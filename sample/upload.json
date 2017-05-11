@@ -1,0 +1,9 @@
+{
+  "acl": "public-read",
+  "key": "projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/uploads/videos/55/d4/55d4062f99454c9fb21e5186a09c2115.mp4",
+  "Policy": "eyJjb25kaXRpb25zIjogW3siYnVja2V0IjogInN5bnFmbSJ9LCB7ImFjbCI6ICJwdWJsaWMtcmVhZCJ9LCB7ImtleSI6ICJwcm9qZWN0cy8wYS9iZi8wYWJmZTFiODQ5MTU0MDgyOTkzZjJmY2U3N2ExNmZkOS91cGxvYWRzL3ZpZGVvcy9mOS83OS9mOTc5M2QzOGYyMzU0YzU1OTUwYTFmZTBjOWEwNjVlNy5tcDQifSwgeyJDb250ZW50LVR5cGUiOiAidmlkZW8vbXA0In0sIFsiY29udGVudC1sZW5ndGgtcmFuZ2UiLCAwLCAxMDk5NTExNjI3Nzc2XV0sICJleHBpcmF0aW9uIjogIjIwMTctMDUtMTFUMjI6Mjg6NTUuMDUzWiJ9",
+  "action": "https://synqfm.s3.amazonaws.com",
+  "Signature": "b8DYSU38765mDN4qnievhIkgf45=",
+  "Content-Type": "video/mp4",
+  "AWSAccessKeyId": "AKIAIP77Y7MMX3ITZMFA"
+}
