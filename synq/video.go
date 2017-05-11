@@ -12,6 +12,7 @@ type Player struct {
 	ThumbnailUrl string `json:"thumbnail_url"`
 }
 
+// Structure for Upload information needed to upload a file to Synq
 type Upload struct {
 	Acl         string `json:"acl"`
 	Key         string `json:"key"`
@@ -45,7 +46,7 @@ func (a *Api) GetVideo(id string) (Video, error) {
 	return video, err
 }
 
-// Creates a new video
+// Calls the /v1/video/create API to create a new video object
 func (a *Api) Create() (Video, error) {
 	video := Video{}
 	form := url.Values{}
@@ -57,7 +58,7 @@ func (a *Api) Create() (Video, error) {
 	return video, nil
 }
 
-// get details for the video in question
+// Calls the /v1/video/details API to load Video object information
 func (v *Video) GetVideo() error {
 	form := url.Values{}
 	form.Add("video_id", v.Id)
@@ -68,6 +69,7 @@ func (v *Video) GetVideo() error {
 	return nil
 }
 
+// Calls the /v1/video/upload API to load the UploadInfo struct for the video object
 func (v *Video) GetUploadInfo() error {
 	form := url.Values{}
 	form.Add("video_id", v.Id)
@@ -78,6 +80,7 @@ func (v *Video) GetUploadInfo() error {
 	return nil
 }
 
+// Uploads a file to the designated Upload location, this will call GetUploadInfo() if needed
 func (v *Video) UploadFile(fileName string) error {
 	var empty Upload
 	if v.UploadInfo == empty {
@@ -86,6 +89,7 @@ func (v *Video) UploadFile(fileName string) error {
 	return nil
 }
 
+// Helper function to display information about a file
 func (v *Video) Display() (str string) {
 	if v.Id == "" {
 		str = fmt.Sprintf("Empty Video\n")
