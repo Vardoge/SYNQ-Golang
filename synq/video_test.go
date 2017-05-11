@@ -89,6 +89,8 @@ func TestDisplay(t *testing.T) {
 	assert.Equal("Empty Video\n", v.Display())
 	v.Id = "abc123"
 	assert.Equal("Video abc123\n\tState : created\n", v.Display())
+	v.State = "uploading"
+	assert.Equal("Video abc123\n\tState : uploading\n", v.Display())
 	v.State = "uploaded"
 	v.Player = p
 	assert.Equal("Video abc123\n\tState : uploaded\n\tEmbed URL : url\n\tThumbnail : url2\n", v.Display())
@@ -139,9 +141,13 @@ func TestCreate(t *testing.T) {
 
 func TestGetUploadInfo(t *testing.T) {
 	assert := assert.New(t)
-	api := setupTestApi(API_KEY, false)
+	api := setupTestApi("fake", false)
 	video := Video{Id: VIDEO_ID2, Api: &api}
 	err := video.GetUploadInfo()
+	assert.NotNil(err)
+	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", err.Error())
+	api.Key = API_KEY
+	err = video.GetUploadInfo()
 	assert.Nil(err)
 	assert.NotEmpty(video.UploadInfo)
 	assert.Equal(UPLOAD_KEY, video.UploadInfo.Key)

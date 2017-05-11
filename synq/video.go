@@ -97,7 +97,7 @@ func (v *Video) Display() (str string) {
 		base := "Video %s\n\tState : %s\n"
 		switch v.State {
 		case "uploading":
-			str = fmt.Sprintf(base+"\tUpload Key : %s\n", v.UploadInfo.Key)
+			str = fmt.Sprintf(base, v.Id, v.State)
 		case "uploaded":
 			str = fmt.Sprintf(base+"\tEmbed URL : %s\n\tThumbnail : %s\n", v.Id, v.State, v.Player.EmbedUrl, v.Player.ThumbnailUrl)
 		default:
