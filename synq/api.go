@@ -37,12 +37,9 @@ func New(key string) Api {
 	return api
 }
 
-//func (a *Api) handleReq(req *http.Request, video *Video) error {
-func (a *Api) handleReq(url string, data url.Values, v interface{}) error {
-	httpClient := &http.Client{Timeout: time.Duration(a.Timeout) * time.Millisecond}
-	resp, err := httpClient.PostForm(url, data)
+func parseResp(resp *http.Response, err error, v interface{}) error {
 	if err != nil {
-		log.Println("could not PostForm")
+		log.Println("could not make http request")
 		return err
 	}
 	responseAsBytes, err := ioutil.ReadAll(resp.Body)
@@ -63,14 +60,26 @@ func (a *Api) handleReq(url string, data url.Values, v interface{}) error {
 	}
 	err = json.Unmarshal(responseAsBytes, &v)
 	if err != nil {
-		log.Println("could not parse video response")
+		log.Println("could not parse response")
 		return err
 	}
 	return nil
 }
 
+func (a *Api) handleReq(req *http.Request, v interface{}) error {
+	httpClient := &http.Client{Timeout: time.Duration(a.Timeout) * time.Millisecond}
+	resp, err := httpClient.Do(req)
+	return parseResp(resp, err, v)
+}
+
+func (a *Api) postForm(url string, data url.Values, v interface{}) error {
+	httpClient := &http.Client{Timeout: time.Duration(a.Timeout) * time.Millisecond}
+	resp, err := httpClient.PostForm(url, data)
+	return parseResp(resp, err, v)
+}
+
 func (a *Api) handlePost(action string, form url.Values, v interface{}) error {
 	urlString := a.Url + "/v1/video/" + action
 	form.Set("api_key", a.Key)
-	return a.handleReq(urlString, form, v)
+	return a.postForm(urlString, form, v)
 }

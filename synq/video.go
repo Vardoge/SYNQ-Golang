@@ -1,8 +1,10 @@
 package synq
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"time"
 )
 
@@ -82,6 +84,9 @@ func (v *Video) GetUploadInfo() error {
 
 // Uploads a file to the designated Upload location, this will call GetUploadInfo() if needed
 func (v *Video) UploadFile(fileName string) error {
+	if _, err := os.Stat(fileName); os.IsNotExist(err) {
+		return errors.New("file '" + fileName + "' does not exist")
+	}
 	var empty Upload
 	if v.UploadInfo == empty {
 		err := v.GetUploadInfo()
@@ -89,6 +94,7 @@ func (v *Video) UploadFile(fileName string) error {
 			return err
 		}
 	}
+	// now use the UploadInfo to upload the specific file
 	return nil
 }
 
