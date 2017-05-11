@@ -6,68 +6,35 @@ import (
 	"time"
 )
 
-/*
-{
-  "input": {
-    "url": "https://multicdn.synq.fm/projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/uploads/videos/45/d4/45d4063d00454c9fb21e5186a09c3115.mp4",
-    "width": 720,
-    "height": 1280,
-    "duration": 17.48,
-    "file_size": 16706384,
-    "framerate": 29.97,
-    "uploaded_at": "2017-02-15T03:05:17.978Z"
-  },
-  "state": "uploaded",
-  "player": {
-    "views": 0,
-    "embed_url": "https://player.synq.fm/embed/45d4063d00454c9fb21e5186a09c3115",
-    "thumbnail_url": "https://multicdn.synq.fm/projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/derivatives/thumbnails/45/d4/45d4063d00454c9fb21e5186a09c3115/0000360.jpg"
-  },
-  "outputs": {
-    "hls": {
-      "url": "https://multicdn.synq.fm/projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/derivatives/videos/45/d4/45d4063d00454c9fb21e5186a09c3115/hls/45d4063d00454c9fb21e5186a09c3115_hls.m3u8",
-      "state": "complete"
-    },
-    "mp4_360": {
-      "url": "https://multicdn.synq.fm/projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/derivatives/videos/45/d4/45d4063d00454c9fb21e5186a09c3115/mp4_360/45d4063d00454c9fb21e5186a09c3115_mp4_360.mp4",
-      "state": "complete"
-    },
-    "mp4_720": {
-      "url": "https://multicdn.synq.fm/projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/derivatives/videos/45/d4/45d4063d00454c9fb21e5186a09c3115/mp4_720/45d4063d00454c9fb21e5186a09c3115_mp4_720.mp4",
-      "state": "complete"
-    },
-    "mp4_1080": {
-      "url": "https://multicdn.synq.fm/projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/derivatives/videos/45/d4/45d4063d00454c9fb21e5186a09c3115/mp4_1080/45d4063d00454c9fb21e5186a09c3115_mp4_1080.mp4",
-      "state": "complete"
-    },
-    "webm_720": {
-      "url": "https://multicdn.synq.fm/projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/derivatives/videos/45/d4/45d4063d00454c9fb21e5186a09c3115/webm_720/45d4063d00454c9fb21e5186a09c3115_webm_720.webm",
-      "state": "complete"
-    }
-  },
-  "userdata": {},
-  "video_id": "45d4063d00454c9fb21e5186a09c3115",
-  "created_at": "2017-02-15T03:01:16.767Z",
-  "updated_at": "2017-02-15T03:06:31.794Z"
-}
-*/
-
 type Player struct {
 	Views        int    `json:"views"`
 	EmbedUrl     string `json:"embed_url"`
 	ThumbnailUrl string `json:"thumbnail_url"`
 }
 
+// Structure for Upload information needed to upload a file to Synq
+type Upload struct {
+	Acl         string `json:"acl"`
+	Key         string `json:"key"`
+	Policy      string `json:"Policy"`
+	Action      string `json:"action"`
+	Signature   string `json:"Signature"`
+	ContentType string `json:"Content-Type"`
+	AwsKey      string `json:"AWSAccessKeyId"`
+}
+
+// Sample of the video structure is located in sample/video.json
 type Video struct {
-	Id        string                 `json:"video_id"`
-	Outputs   map[string]interface{} `json:"outputs"`
-	Player    Player                 `json:"player"`
-	Input     map[string]interface{} `json:"input"`
-	State     string                 `json:"state"`
-	Userdata  map[string]interface{} `json:"userdata"`
-	CreatedAt time.Time              `json:"created_at"`
-	UpdatedAt time.Time              `json:"updated_at"`
-	Api       *Api
+	Id         string                 `json:"video_id"`
+	Outputs    map[string]interface{} `json:"outputs"`
+	Player     Player                 `json:"player"`
+	Input      map[string]interface{} `json:"input"`
+	State      string                 `json:"state"`
+	Userdata   map[string]interface{} `json:"userdata"`
+	CreatedAt  time.Time              `json:"created_at"`
+	UpdatedAt  time.Time              `json:"updated_at"`
+	Api        *Api
+	UploadInfo Upload
 }
 
 // Helper function to get details for a video, will create video object
@@ -79,7 +46,7 @@ func (a *Api) GetVideo(id string) (Video, error) {
 	return video, err
 }
 
-// Creates a new video
+// Calls the /v1/video/create API to create a new video object
 func (a *Api) Create() (Video, error) {
 	video := Video{}
 	form := url.Values{}
@@ -91,7 +58,7 @@ func (a *Api) Create() (Video, error) {
 	return video, nil
 }
 
-// get details for the video in question
+// Calls the /v1/video/details API to load Video object information
 func (v *Video) GetVideo() error {
 	form := url.Values{}
 	form.Add("video_id", v.Id)
@@ -102,25 +69,42 @@ func (v *Video) GetVideo() error {
 	return nil
 }
 
-func (v *Video) Upload() error {
+// Calls the /v1/video/upload API to load the UploadInfo struct for the video object
+func (v *Video) GetUploadInfo() error {
 	form := url.Values{}
 	form.Add("video_id", v.Id)
-	err := v.Api.handlePost("details", form, v)
+	err := v.Api.handlePost("upload", form, &v.UploadInfo)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
+// Uploads a file to the designated Upload location, this will call GetUploadInfo() if needed
+func (v *Video) UploadFile(fileName string) error {
+	var empty Upload
+	if v.UploadInfo == empty {
+		err := v.GetUploadInfo()
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Helper function to display information about a file
 func (v *Video) Display() (str string) {
 	if v.Id == "" {
 		str = fmt.Sprintf("Empty Video\n")
 	} else {
+		base := "Video %s\n\tState : %s\n"
 		switch v.State {
+		case "uploading":
+			str = fmt.Sprintf(base, v.Id, v.State)
 		case "uploaded":
-			str = fmt.Sprintf("Video %s\n\tState : %s\n\tEmbed URL : %s\n\tThumbnail : %s\n", v.Id, v.State, v.Player.EmbedUrl, v.Player.ThumbnailUrl)
+			str = fmt.Sprintf(base+"\tEmbed URL : %s\n\tThumbnail : %s\n", v.Id, v.State, v.Player.EmbedUrl, v.Player.ThumbnailUrl)
 		default:
-			str = fmt.Sprintf("Video %s\n\tState : %s\n", v.Id, v.State)
+			str = fmt.Sprintf(base, v.Id, v.State)
 		}
 	}
 	return str
