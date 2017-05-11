@@ -1,0 +1,7 @@
+<Error>
+  <Code>PreconditionFailed</Code>
+  <Message>At least one of the pre-conditions you specified did not hold</Message>
+  <Condition>Bucket POST must be of the enclosure-type multipart/form-data</Condition>
+  <RequestId>634081169DAFE345</RequestId>
+  <HostId>80jHDkIWiVJd6ofogZSnvEfIxEUk35ULsvWPYFcH5f6VSUMPhCAevKwzLWN+Iw6gGTEvgogepSY=</HostId>
+</Error>
