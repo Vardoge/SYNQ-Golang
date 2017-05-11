@@ -17,6 +17,21 @@ var testReqs []*http.Request
 var testValues []url.Values
 var testServer *httptest.Server
 
+func S3Stub() *httptest.Server {
+	var resp []byte
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println("here in s3 req", r.RequestURI)
+		// assume this is "s3"
+		if r.Header.Get("Content-Type") == "multipart/form-data" {
+		} else {
+			resp, _ = ioutil.ReadFile("../sample/aws_err.xml")
+			w.Header().Set("Content-Type", "application/xml")
+			w.WriteHeader(http.StatusPreconditionFailed)
+		}
+		w.Write(resp)
+	}))
+}
+
 func ServerStub() *httptest.Server {
 	var resp string
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

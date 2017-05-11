@@ -2,6 +2,7 @@ package synq
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -30,6 +31,14 @@ type ErrorResp struct {
 	Message string
 }
 
+type AwsError struct {
+	Code      string
+	Message   string
+	Condition string
+	RequestId string
+	HostId    string
+}
+
 func New(key string) Api {
 	api := Api{Key: key}
 	api.Url = DEFAULT_URL
@@ -49,14 +58,25 @@ func parseResp(resp *http.Response, err error, v interface{}) error {
 	}
 
 	if resp.StatusCode != 200 {
-		var eResp ErrorResp
-		err = json.Unmarshal(responseAsBytes, &eResp)
-		if err != nil {
-			log.Println("could not parse error response")
-			return err
+		if resp.Header.Get("Content-Type") == "application/xml" {
+			var xmlErr AwsError
+			// handle this differently
+			err = xml.Unmarshal(responseAsBytes, &xmlErr)
+			if err != nil {
+				log.Println("could not parse xml", err)
+				return err
+			}
+			return errors.New(xmlErr.Message)
+		} else {
+			var eResp ErrorResp
+			err = json.Unmarshal(responseAsBytes, &eResp)
+			if err != nil {
+				log.Println("could not parse error response")
+				return err
+			}
+			log.Printf("Received %v\n", eResp)
+			return errors.New(eResp.Message)
 		}
-		log.Printf("Received %v\n", eResp)
-		return errors.New(eResp.Message)
 	}
 	err = json.Unmarshal(responseAsBytes, &v)
 	if err != nil {
