@@ -5,7 +5,30 @@
 
 This is the Golang SDK for the SYNQ [API](https://synq.fm/docs)
 
-## Usage
+## Build / Test
+
+Run Tests
+`go test ./...`
+
+Build the CLI
+```
+cd cli
+go build
+./cli -h
+
+Usage of ./cli:
+  -api_key string
+      pass the synq api key
+  -command string
+      pass in command (default "details")
+  -file string
+      path to file you want to upload
+  -video_id string
+      pass in the video id to get data about
+
+```
+
+## Usage (API)
 
 Here's an example of a simple main script that uses our SDK
 
@@ -23,4 +46,15 @@ func main() {
   video := api.GetVideo("myvideo")
   log.Printf("video returned %v", video)
 }
+```
+
+## Usage (CLI)
+
+You can also exercise the code via the command line using our `cli`
+
+```bash
+# Create a new video object
+./cli --api_key=<key> --command create
+# Get details for a video
+./cli --api_key=<key> --video_id=<vid>
 ```

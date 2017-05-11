@@ -16,11 +16,13 @@ func main() {
 		c = flag.String("command", "details", "pass in command")
 		a = flag.String("api_key", "", "pass the synq api key")
 		v = flag.String("video_id", "", "pass in the video id to get data about")
+		f = flag.String("file", "", "path to file you want to upload")
 	)
 	flag.Parse()
 	cmd := *c
 	vid := *v
 	api_key := *a
+	file := *f
 	if api_key == "" {
 		log.Println("missing api_key")
 		os.Exit(-1)
@@ -34,12 +36,16 @@ func main() {
 		}
 		log.Printf("getting video %s\n", vid)
 		video, err = api.GetVideo(vid)
+	case "upload_info":
+		log.Printf("Getting upload info for %s\n", vid)
+		video.Api = &api
+		video.Id = vid
+		err = video.GetUploadInfo()
 	case "upload":
-		log.Printf("Calling Upload")
-		video, err = api.GetVideo(vid)
-		if err == nil {
-			video.Upload()
-		}
+		log.Printf("uploading file %s\n", file)
+		video.Api = &api
+		video.Id = vid
+		video.UploadFile(file)
 	case "create":
 		log.Printf("Creating new video")
 		video, err = api.Create()
