@@ -16,6 +16,7 @@ const (
 	VIDEO_ID2         = "55d4062f99454c9fb21e5186a09c2115"
 	API_KEY           = "aba179c14ab349e0bb0d12b7eca5fa24"
 	API_KEY2          = "cba179c14ab349e0bb0d12b7eca5fa25"
+	UPLOAD_KEY        = "projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/uploads/videos/55/d4/55d4062f99454c9fb21e5186a09c2115.mp4"
 	INVALID_UUID      = `{"url": "http://docs.synq.fm/api/v1/errors/invalid_uuid","name": "invalid_uuid","message": "Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'."}`
 	VIDEO_NOT_FOUND   = `{"url": "http://docs.synq.fm/api/v1/errors/not_found_video","name": "not_found_video","message": "Video not found."}`
 	API_KEY_NOT_FOUND = `{"url": "http://docs.synq.fm/api/v1/errors/not_found_api_key","name": "not_found_api_key","message": "API key not found."}`
@@ -137,5 +138,14 @@ func TestCreate(t *testing.T) {
 }
 
 func TestGetUploadInfo(t *testing.T) {
-
+	assert := assert.New(t)
+	api := setupTestApi(API_KEY, false)
+	video := Video{Id: VIDEO_ID2, Api: &api}
+	err := video.GetUploadInfo()
+	assert.Nil(err)
+	assert.NotEmpty(video.UploadInfo)
+	assert.Equal(UPLOAD_KEY, video.UploadInfo.Key)
+	assert.Equal("public-read", video.UploadInfo.Acl)
+	assert.Equal("https://synqfm.s3.amazonaws.com", video.UploadInfo.Action)
+	assert.Equal("video/mp4", video.UploadInfo.ContentType)
 }

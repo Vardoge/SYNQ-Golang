@@ -71,7 +71,7 @@ func (v *Video) GetVideo() error {
 func (v *Video) GetUploadInfo() error {
 	form := url.Values{}
 	form.Add("video_id", v.Id)
-	err := v.Api.handlePost("upload", form, v.UploadInfo)
+	err := v.Api.handlePost("upload", form, &v.UploadInfo)
 	if err != nil {
 		return err
 	}
