@@ -13,13 +13,13 @@ import (
 
 var (
 	DEFAULT_URL        = "https://api.synq.fm"
-	DEFAULT_TIMEOUT_MS = 5000
+	DEFAULT_TIMEOUT_MS = 5000   // 5 seconds
+	DEFAULT_UPLOAD_MS  = 600000 // 5 minutes
 )
 
 type Api struct {
-	Key     string
-	Url     string
-	Timeout int
+	Key string
+	Url string
 }
 
 type ErrorResp struct {
@@ -42,7 +42,6 @@ type AwsError struct {
 func New(key string) Api {
 	api := Api{Key: key}
 	api.Url = DEFAULT_URL
-	api.Timeout = DEFAULT_TIMEOUT_MS
 	return api
 }
 
@@ -78,6 +77,10 @@ func parseResp(resp *http.Response, err error, v interface{}) error {
 			return errors.New(eResp.Message)
 		}
 	}
+	if resp.Header.Get("Content-Type") == "application/xml" {
+		log.Println(string(responseAsBytes))
+		return nil
+	}
 	err = json.Unmarshal(responseAsBytes, &v)
 	if err != nil {
 		log.Println("could not parse response")
@@ -86,14 +89,14 @@ func parseResp(resp *http.Response, err error, v interface{}) error {
 	return nil
 }
 
-func (a *Api) handleReq(req *http.Request, v interface{}) error {
-	httpClient := &http.Client{Timeout: time.Duration(a.Timeout) * time.Millisecond}
+func (a *Api) handleUploadReq(req *http.Request, v interface{}) error {
+	httpClient := &http.Client{Timeout: time.Duration(DEFAULT_UPLOAD_MS) * time.Millisecond}
 	resp, err := httpClient.Do(req)
 	return parseResp(resp, err, v)
 }
 
 func (a *Api) postForm(url string, data url.Values, v interface{}) error {
-	httpClient := &http.Client{Timeout: time.Duration(a.Timeout) * time.Millisecond}
+	httpClient := &http.Client{Timeout: time.Duration(DEFAULT_TIMEOUT_MS) * time.Millisecond}
 	resp, err := httpClient.PostForm(url, data)
 	return parseResp(resp, err, v)
 }

@@ -42,10 +42,14 @@ func main() {
 		video.Id = vid
 		err = video.GetUploadInfo()
 	case "upload":
-		log.Printf("uploading file %s\n", file)
+		if file == "" {
+			log.Println("missing 'file'")
+			os.Exit(-1)
+		}
+		log.Printf("uploading file '%s'\n", file)
 		video.Api = &api
 		video.Id = vid
-		video.UploadFile(file)
+		err = video.UploadFile(file)
 	case "create":
 		log.Printf("Creating new video")
 		video, err = api.Create()

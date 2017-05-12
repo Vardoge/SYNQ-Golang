@@ -196,9 +196,13 @@ func TestCreateUploadReq(t *testing.T) {
 	b := make([]byte, len(src))
 	f.Read(b)
 	assert.Equal(src, b)
-	assert.Len(req.PostForm, 7)
+	assert.Len(req.PostForm, 6)
 	for key, value := range uploadInfo {
-		assert.Equal(value, req.PostFormValue(key))
+		if key == "action" {
+			assert.Equal("", req.PostFormValue(key))
+		} else {
+			assert.Equal(value, req.PostFormValue(key))
+		}
 	}
 }
 
@@ -218,6 +222,6 @@ func TestUploadFile(t *testing.T) {
 	assert.Equal("file 'myfile.mp4' does not exist", err.Error())
 	video.UploadInfo.setURL(aws.URL)
 	err = video.UploadFile(valid_file)
-	//assert.Nil(err)
+	assert.Nil(err)
 
 }

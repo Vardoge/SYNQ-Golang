@@ -78,23 +78,29 @@ func (u Upload) createUploadReq(fileName string) (req *http.Request, err error) 
 	if os.IsNotExist(err) {
 		return req, errors.New("file '" + fileName + "' does not exist")
 	}
+	// add file last
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
+	// add fields
+	for key, value := range u {
+		if key == "action" {
+			continue
+		}
+		fw, err := w.CreateFormField(key)
+		if err != nil {
+			return req, err
+		}
+		if _, err = fw.Write([]byte(value)); err != nil {
+			return req, err
+		}
+	}
+	// file last
 	fw, err := w.CreateFormFile("file", fileName)
 	if err != nil {
 		return req, err
 	}
 	if _, err = io.Copy(fw, f); err != nil {
 		return req, err
-	}
-	// Add the other fields
-	for key, value := range u {
-		if fw, err = w.CreateFormField(key); err != nil {
-			return req, err
-		}
-		if _, err = fw.Write([]byte(value)); err != nil {
-			return req, err
-		}
 	}
 	w.Close()
 
@@ -145,8 +151,8 @@ func (v *Video) UploadFile(fileName string) error {
 		log.Println("failed to create upload req")
 		return err
 	}
-	if err := v.Api.handleReq(req, resp); err != nil {
-		log.Println("failed to handleReq")
+	if err := v.Api.handleUploadReq(req, resp); err != nil {
+		log.Println("failed to call handleUploadReq")
 		return err
 	}
 
