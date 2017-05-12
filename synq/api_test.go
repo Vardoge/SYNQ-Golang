@@ -1,6 +1,8 @@
 package synq
 
 import (
+	"bytes"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -31,7 +33,7 @@ func S3Stub() *httptest.Server {
 			w.Header().Set("Location", key)
 			w.WriteHeader(http.StatusNoContent)
 		} else {
-			resp, _ = ioutil.ReadFile("../sample/aws_err.xml")
+			resp = loadSample("aws_err.xml")
 			w.Header().Set("Content-Type", "application/xml")
 			w.WriteHeader(http.StatusPreconditionFailed)
 		}
@@ -64,6 +66,15 @@ func ServerStub() *httptest.Server {
 	}))
 }
 
+func loadSample(name string) (data []byte) {
+	data, err := ioutil.ReadFile("../sample/" + name)
+	if err != nil {
+		log.Println("could not load sample file " + name)
+		return data
+	}
+	return data
+}
+
 func setupTestServer(generic bool) {
 	if testServer != nil {
 		testServer.Close()
@@ -89,6 +100,27 @@ func TestNew(t *testing.T) {
 	api := New("key")
 	assert.NotNil(api)
 	assert.Equal("key", api.Key)
+}
+
+func TestParseAwsResp(t *testing.T) {
+	assert := assert.New(t)
+	var v interface{}
+	resp := http.Response{
+		StatusCode: 204,
+	}
+	err := errors.New("failure")
+	e := parseAwsResp(&resp, err, v)
+	assert.NotNil(e)
+	assert.Equal("failure", e.Error())
+	resp.StatusCode = 204
+	e = parseAwsResp(&resp, nil, v)
+	assert.Nil(e)
+	err_msg := loadSample("asw_err.xml")
+	resp = http.Response{
+		StatusCode: 412,
+		Body:       ioutil.NopCloser(bytes.NewBuffer(err_msg)),
+	}
+
 }
 
 func TestPostFormFail(t *testing.T) {

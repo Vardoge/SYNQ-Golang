@@ -45,7 +45,7 @@ func New(key string) Api {
 	return api
 }
 
-func parseResp(resp *http.Response, err error, v interface{}) error {
+func parseAwsResp(resp *http.Response, err error, v interface{}) error {
 	if err != nil {
 		log.Println("could not make http request")
 		return err
@@ -55,6 +55,27 @@ func parseResp(resp *http.Response, err error, v interface{}) error {
 		return nil
 	}
 
+	var xmlErr AwsError
+	// handle this differently
+	responseAsBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("could not parse resp body")
+		return err
+	}
+	err = xml.Unmarshal(responseAsBytes, &xmlErr)
+	if err != nil {
+		log.Println("could not parse xml", err)
+		return err
+	}
+	return errors.New(xmlErr.Message)
+}
+
+func parseSynqResp(resp *http.Response, err error, v interface{}) error {
+	if err != nil {
+		log.Println("could not make http request")
+		return err
+	}
+
 	responseAsBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("could not parse resp body")
@@ -62,29 +83,15 @@ func parseResp(resp *http.Response, err error, v interface{}) error {
 	}
 
 	if resp.StatusCode != 200 {
-		if resp.Header.Get("Content-Type") == "application/xml" {
-			var xmlErr AwsError
-			// handle this differently
-			err = xml.Unmarshal(responseAsBytes, &xmlErr)
-			if err != nil {
-				log.Println("could not parse xml", err)
-				return err
-			}
-			return errors.New(xmlErr.Message)
-		} else {
-			var eResp ErrorResp
-			err = json.Unmarshal(responseAsBytes, &eResp)
-			if err != nil {
-				log.Println("could not parse error response")
-				return err
-			}
-			log.Printf("Received %v\n", eResp)
-			return errors.New(eResp.Message)
+		var eResp ErrorResp
+		err = json.Unmarshal(responseAsBytes, &eResp)
+		if err != nil {
+			log.Println("could not parse error response")
+			return err
 		}
-	}
-	if resp.Header.Get("Content-Type") == "application/xml" {
-		log.Println(string(responseAsBytes))
-		return nil
+		log.Printf("Received %v\n", eResp)
+		return errors.New(eResp.Message)
+
 	}
 	err = json.Unmarshal(responseAsBytes, &v)
 	if err != nil {
@@ -97,13 +104,13 @@ func parseResp(resp *http.Response, err error, v interface{}) error {
 func (a *Api) handleUploadReq(req *http.Request, v interface{}) error {
 	httpClient := &http.Client{Timeout: time.Duration(DEFAULT_UPLOAD_MS) * time.Millisecond}
 	resp, err := httpClient.Do(req)
-	return parseResp(resp, err, v)
+	return parseAwsResp(resp, err, v)
 }
 
 func (a *Api) postForm(url string, data url.Values, v interface{}) error {
 	httpClient := &http.Client{Timeout: time.Duration(DEFAULT_TIMEOUT_MS) * time.Millisecond}
 	resp, err := httpClient.PostForm(url, data)
-	return parseResp(resp, err, v)
+	return parseSynqResp(resp, err, v)
 }
 
 func (a *Api) handlePost(action string, form url.Values, v interface{}) error {
