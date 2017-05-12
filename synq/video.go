@@ -1,10 +1,12 @@
 package synq
 
 import (
-	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -63,23 +65,44 @@ func (u Upload) setURL(url string) {
 	u["action"] = url
 }
 
+func (u Upload) url() string {
+	return u["action"]
+}
+
 func (u Upload) createUploadReq(fileName string) (req *http.Request, err error) {
 	if !u.valid() {
 		return req, errors.New("no valid upload data")
 	}
 	f, err := os.Open(fileName)
+	defer f.Close()
 	if os.IsNotExist(err) {
 		return req, errors.New("file '" + fileName + "' does not exist")
 	}
-	body := bufio.NewReader(f)
-	url := u["action"]
-	req, err = http.NewRequest("POST", url, body)
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+	fw, err := w.CreateFormFile("file", fileName)
 	if err != nil {
 		return req, err
 	}
-	for key, value := range u {
-		req.Header.Set(key, value)
+	if _, err = io.Copy(fw, f); err != nil {
+		return req, err
 	}
+	// Add the other fields
+	for key, value := range u {
+		if fw, err = w.CreateFormField(key); err != nil {
+			return req, err
+		}
+		if _, err = fw.Write([]byte(value)); err != nil {
+			return req, err
+		}
+	}
+	w.Close()
+
+	req, err = http.NewRequest("POST", u.url(), &b)
+	if err != nil {
+		return req, err
+	}
+	req.Header.Set("Content-Type", w.FormDataContentType())
 	return req, nil
 }
 

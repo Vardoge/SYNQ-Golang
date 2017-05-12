@@ -154,7 +154,7 @@ func TestGetUploadInfo(t *testing.T) {
 	assert.Len(video.UploadInfo, 7)
 	assert.Equal(UPLOAD_KEY, video.UploadInfo["key"])
 	assert.Equal("public-read", video.UploadInfo["acl"])
-	assert.Equal("https://synqfm.s3.amazonaws.com", video.UploadInfo["action"])
+	assert.Equal("https://synqfm.s3.amazonaws.com", video.UploadInfo.url())
 	assert.Equal("video/mp4", video.UploadInfo["Content-Type"])
 }
 
@@ -187,6 +187,19 @@ func TestCreateUploadReq(t *testing.T) {
 	req, err := uploadInfo.createUploadReq(valid_file)
 	assert.Nil(err)
 	assert.NotEmpty(req.Header)
+	assert.Contains(req.Header.Get("Content-Type"), "multipart/form-data")
+	f, h, err := req.FormFile("file")
+	assert.Nil(err)
+	assert.Equal(valid_file, h.Filename)
+	assert.Nil(err)
+	src, _ := ioutil.ReadFile(valid_file)
+	b := make([]byte, len(src))
+	f.Read(b)
+	assert.Equal(src, b)
+	assert.Len(req.PostForm, 7)
+	for key, value := range uploadInfo {
+		assert.Equal(value, req.PostFormValue(key))
+	}
 }
 
 func TestUploadFile(t *testing.T) {
