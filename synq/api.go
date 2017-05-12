@@ -50,6 +50,11 @@ func parseResp(resp *http.Response, err error, v interface{}) error {
 		log.Println("could not make http request")
 		return err
 	}
+	// nothing to process, return success
+	if resp.StatusCode == 204 {
+		return nil
+	}
+
 	responseAsBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("could not parse resp body")

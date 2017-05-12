@@ -223,5 +223,4 @@ func TestUploadFile(t *testing.T) {
 	video.UploadInfo.setURL(aws.URL)
 	err = video.UploadFile(valid_file)
 	assert.Nil(err)
-
 }

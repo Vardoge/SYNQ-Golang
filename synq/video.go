@@ -34,6 +34,7 @@ type Video struct {
 	UpdatedAt  time.Time              `json:"updated_at"`
 	Api        *Api
 	UploadInfo Upload
+	UploadResp interface{}
 }
 
 // Helper function to get details for a video, will create video object
@@ -63,6 +64,10 @@ func (u Upload) valid() bool {
 
 func (u Upload) setURL(url string) {
 	u["action"] = url
+}
+
+func (u Upload) dstFileName() string {
+	return u["key"]
 }
 
 func (u Upload) url() string {
@@ -140,7 +145,6 @@ func (v *Video) GetUploadInfo() error {
 
 // Uploads a file to the designated Upload location, this will call GetUploadInfo() if needed
 func (v *Video) UploadFile(fileName string) error {
-	var resp interface{}
 	if err := v.GetUploadInfo(); err != nil {
 		log.Println("failed to getUploadInfo()")
 		return err
@@ -151,11 +155,10 @@ func (v *Video) UploadFile(fileName string) error {
 		log.Println("failed to create upload req")
 		return err
 	}
-	if err := v.Api.handleUploadReq(req, resp); err != nil {
+	if err := v.Api.handleUploadReq(req, &v.UploadResp); err != nil {
 		log.Println("failed to call handleUploadReq")
 		return err
 	}
-
 	return nil
 }
 
