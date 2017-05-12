@@ -57,7 +57,7 @@ func main() {
 		err = errors.New("unknown command " + cmd)
 	}
 	if err != nil {
-		log.Println(err.Error())
+		log.Printf("Error : %s\n", err.Error())
 		os.Exit(-1)
 	}
 	log.Printf(video.Display())
