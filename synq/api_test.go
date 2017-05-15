@@ -66,11 +66,17 @@ func ServerStub() *httptest.Server {
 	}))
 }
 
+type BadReader struct {
+}
+
+func (b BadReader) Read(p []byte) (n int, err error) {
+	return 0, errors.New("failed to read")
+}
+
 func loadSample(name string) (data []byte) {
 	data, err := ioutil.ReadFile("../sample/" + name)
 	if err != nil {
-		log.Println("could not load sample file " + name)
-		return data
+		log.Panicf("could not load sample file %s : '%s'", name, err.Error())
 	}
 	return data
 }
@@ -112,15 +118,93 @@ func TestParseAwsResp(t *testing.T) {
 	e := parseAwsResp(&resp, err, v)
 	assert.NotNil(e)
 	assert.Equal("failure", e.Error())
-	resp.StatusCode = 204
+
+	br := BadReader{}
+	resp = http.Response{
+		StatusCode: 412,
+		Body:       ioutil.NopCloser(br),
+	}
 	e = parseAwsResp(&resp, nil, v)
-	assert.Nil(e)
-	err_msg := loadSample("asw_err.xml")
+	assert.NotNil(e)
+	assert.Equal("failed to read", e.Error())
+
+	err_msg := loadSample("upload.json")
 	resp = http.Response{
 		StatusCode: 412,
 		Body:       ioutil.NopCloser(bytes.NewBuffer(err_msg)),
 	}
+	e = parseAwsResp(&resp, nil, v)
+	assert.NotNil(e)
+	assert.Equal("EOF", e.Error())
 
+	err_msg = loadSample("aws_err.xml")
+	resp = http.Response{
+		StatusCode: 412,
+		Body:       ioutil.NopCloser(bytes.NewBuffer(err_msg)),
+	}
+	e = parseAwsResp(&resp, nil, v)
+	assert.NotNil(e)
+	assert.Equal("At least one of the pre-conditions you specified did not hold", e.Error())
+
+	resp = http.Response{
+		StatusCode: 204,
+	}
+	e = parseAwsResp(&resp, nil, v)
+	assert.Nil(e)
+}
+
+func TestParseSynqResp(t *testing.T) {
+	assert := assert.New(t)
+	var v interface{}
+	resp := http.Response{
+		StatusCode: 200,
+	}
+	err := errors.New("failure")
+	e := parseSynqResp(&resp, err, v)
+	assert.NotNil(e)
+	assert.Equal("failure", e.Error())
+	br := BadReader{}
+	resp = http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(br),
+	}
+	e = parseSynqResp(&resp, nil, v)
+	assert.NotNil(e)
+	assert.Equal("failed to read", e.Error())
+	err_msg := loadSample("aws_err.xml")
+	resp = http.Response{
+		StatusCode: 400,
+		Body:       ioutil.NopCloser(bytes.NewBuffer(err_msg)),
+	}
+	e = parseSynqResp(&resp, nil, v)
+	assert.NotNil(e)
+	assert.Equal("invalid character '<' looking for beginning of value", e.Error())
+	err_msg = []byte(INVALID_UUID)
+	resp = http.Response{
+		StatusCode: 400,
+		Body:       ioutil.NopCloser(bytes.NewBuffer(err_msg)),
+	}
+	e = parseSynqResp(&resp, nil, v)
+	assert.NotNil(e)
+	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", e.Error())
+	msg := []byte("<xml>")
+	resp = http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(bytes.NewBuffer(msg)),
+	}
+	e = parseSynqResp(&resp, nil, v)
+	assert.NotNil(e)
+	assert.Equal("invalid character '<' looking for beginning of value", e.Error())
+	msg = loadSample("video.json")
+	var video Video
+	resp = http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(bytes.NewBuffer(msg)),
+	}
+	e = parseSynqResp(&resp, nil, &video)
+	assert.Nil(e)
+	assert.Equal(VIDEO_ID, video.Id)
+	assert.NotEmpty(video.Input)
 }
 
 func TestPostFormFail(t *testing.T) {
