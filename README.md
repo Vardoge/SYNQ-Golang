@@ -50,6 +50,8 @@ Usage of ./cli:
 ```bash
 # Create a new video object
 ./cli --api_key=<key> --command create
+# Upload a file
+./cli --api_key=<key> --video_id=<vid> --file <file name>
 # Get details for a video
 ./cli --api_key=<key> --video_id=<vid>
 ```
