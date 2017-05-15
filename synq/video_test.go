@@ -156,6 +156,7 @@ func TestGetUploadInfo(t *testing.T) {
 	assert.Equal("public-read", video.UploadInfo["acl"])
 	assert.Equal("https://synqfm.s3.amazonaws.com", video.UploadInfo.url())
 	assert.Equal("video/mp4", video.UploadInfo["Content-Type"])
+	assert.Equal(UPLOAD_KEY, video.UploadInfo.dstFileName())
 }
 
 func TestCreateUploadReqErr(t *testing.T) {
@@ -223,4 +224,10 @@ func TestUploadFile(t *testing.T) {
 	video.UploadInfo.setURL(aws.URL)
 	err = video.UploadFile(valid_file)
 	assert.Nil(err)
+	// use an invalid key and it should return an error
+	video.UploadInfo["key"] = "fakekey"
+	err = video.UploadFile(valid_file)
+	assert.NotNil(err)
+	assert.Equal("At least one of the pre-conditions you specified did not hold", err.Error())
+
 }
