@@ -2,6 +2,7 @@ package synq
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -12,13 +13,13 @@ import (
 
 var (
 	DEFAULT_URL        = "https://api.synq.fm"
-	DEFAULT_TIMEOUT_MS = 5000
+	DEFAULT_TIMEOUT_MS = 5000   // 5 seconds
+	DEFAULT_UPLOAD_MS  = 600000 // 5 minutes
 )
 
 type Api struct {
-	Key     string
-	Url     string
-	Timeout int
+	Key string
+	Url string
 }
 
 type ErrorResp struct {
@@ -30,21 +31,51 @@ type ErrorResp struct {
 	Message string
 }
 
+type AwsError struct {
+	Code      string
+	Message   string
+	Condition string
+	RequestId string
+	HostId    string
+}
+
 func New(key string) Api {
 	api := Api{Key: key}
 	api.Url = DEFAULT_URL
-	api.Timeout = DEFAULT_TIMEOUT_MS
 	return api
 }
 
-//func (a *Api) handleReq(req *http.Request, video *Video) error {
-func (a *Api) handleReq(url string, data url.Values, v interface{}) error {
-	httpClient := &http.Client{Timeout: time.Duration(a.Timeout) * time.Millisecond}
-	resp, err := httpClient.PostForm(url, data)
+func parseAwsResp(resp *http.Response, err error, v interface{}) error {
 	if err != nil {
-		log.Println("could not PostForm")
+		log.Println("could not make http request")
 		return err
 	}
+	// nothing to process, return success
+	if resp.StatusCode == 204 {
+		return nil
+	}
+
+	var xmlErr AwsError
+	// handle this differently
+	responseAsBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("could not parse resp body")
+		return err
+	}
+	err = xml.Unmarshal(responseAsBytes, &xmlErr)
+	if err != nil {
+		log.Println("could not parse xml", err)
+		return err
+	}
+	return errors.New(xmlErr.Message)
+}
+
+func parseSynqResp(resp *http.Response, err error, v interface{}) error {
+	if err != nil {
+		log.Println("could not make http request")
+		return err
+	}
+
 	responseAsBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("could not parse resp body")
@@ -60,17 +91,30 @@ func (a *Api) handleReq(url string, data url.Values, v interface{}) error {
 		}
 		log.Printf("Received %v\n", eResp)
 		return errors.New(eResp.Message)
+
 	}
 	err = json.Unmarshal(responseAsBytes, &v)
 	if err != nil {
-		log.Println("could not parse video response")
+		log.Println("could not parse response")
 		return err
 	}
 	return nil
 }
 
+func (a *Api) handleUploadReq(req *http.Request, v interface{}) error {
+	httpClient := &http.Client{Timeout: time.Duration(DEFAULT_UPLOAD_MS) * time.Millisecond}
+	resp, err := httpClient.Do(req)
+	return parseAwsResp(resp, err, v)
+}
+
+func (a *Api) postForm(url string, data url.Values, v interface{}) error {
+	httpClient := &http.Client{Timeout: time.Duration(DEFAULT_TIMEOUT_MS) * time.Millisecond}
+	resp, err := httpClient.PostForm(url, data)
+	return parseSynqResp(resp, err, v)
+}
+
 func (a *Api) handlePost(action string, form url.Values, v interface{}) error {
 	urlString := a.Url + "/v1/video/" + action
 	form.Set("api_key", a.Key)
-	return a.handleReq(urlString, form, v)
+	return a.postForm(urlString, form, v)
 }

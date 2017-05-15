@@ -4,6 +4,11 @@ machine:
   environment:
     version: "latest"
 
+notify:
+  webhooks:
+    # A list of hook hashes, containing the URL field
+    - url: https://coveralls.io/webhook?repo_token=${COVERALLS_TOKEN}
+
 dependencies:
   override:
     - go get github.com/stretchr/testify/assert
