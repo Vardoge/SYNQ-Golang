@@ -262,7 +262,7 @@ func (v *Video) MultipartUpload(fileName string) error {
 	bucket := "synqfm" // TODO(mastensg): bucket from v.UploadInfo["action"]
 	contentType := v.UploadInfo["Content-Type"]
 	key := v.UploadInfo["key"]
-	if err := multipartUpload(f, acl, awsAccessKeyId, bucket, contentType, key, uploaderURL); err != nil {
+	if _, err := multipartUpload(f, acl, awsAccessKeyId, bucket, contentType, key, uploaderURL); err != nil {
 		return err
 	}
 
