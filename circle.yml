@@ -11,6 +11,8 @@ notify:
 
 dependencies:
   override:
+    - go get github.com/aws/aws-sdk-go
+    - go get github.com/leanovate/gopter
     - go get github.com/stretchr/testify/assert
     - sudo rm -rf ${HOME}/.go_workspace/src/github.com/${CIRCLE_PROJECT_USERNAME}
     - mkdir -p ~/.go_workspace/src/github.com/${CIRCLE_PROJECT_USERNAME}
