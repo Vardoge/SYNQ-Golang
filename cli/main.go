@@ -13,7 +13,7 @@ func main() {
 	var err error
 	var video synq.Video
 	var (
-		c = flag.String("command", "details", "pass in command")
+		c = flag.String("command", "one of: create-and-upload, details, uploader_info", "pass in command")
 		a = flag.String("api_key", "", "pass the synq api key")
 		v = flag.String("video_id", "", "pass in the video id to get data about")
 		f = flag.String("file", "", "path to file you want to upload")
@@ -53,6 +53,79 @@ func main() {
 	case "create":
 		log.Printf("Creating new video")
 		video, err = api.Create()
+	case "uploader_info":
+		if vid == "" {
+			log.Println("missing video id")
+			os.Exit(-1)
+		}
+		video.Api = &api
+		video.Id = vid
+		err = video.GetUploaderInfo()
+		if err != nil {
+			log.Println(err)
+			os.Exit(-1)
+		}
+		log.Println("uploader_url:", video.UploaderInfo["uploader_url"])
+		os.Exit(0)
+	case "uploader":
+		if file == "" {
+			log.Println("missing 'file'")
+			os.Exit(-1)
+		}
+		if vid == "" {
+			log.Println("missing video id")
+			os.Exit(-1)
+		}
+		video.Api = &api
+		video.Id = vid
+		err = video.GetUploaderInfo()
+		if err != nil {
+			log.Println(err)
+			os.Exit(-1)
+		}
+		log.Println("uploader_url:", video.UploaderInfo["uploader_url"])
+
+		log.Println("uploading file: ", file)
+		err = video.MultipartUpload(file)
+		if err != nil {
+			log.Println(err)
+			os.Exit(-1)
+		}
+		log.Println("uploaded file")
+
+		video, err = api.GetVideo(video.Id)
+	case "create_and_upload":
+		/*
+			if file == "" {
+				log.Println("missing argument: file")
+				os.Exit(-1)
+			}
+
+			log.Println("creating new video")
+			video, err = api.Create()
+			if err != nil {
+				log.Println(err)
+				os.Exit(-1)
+			}
+			log.Println("created video with video_id", video.Id)
+
+			log.Printf("uploading file %q\n", file)
+			f, err := os.Open(file)
+			defer f.Close()
+			if err != nil {
+				log.Println(err)
+				os.Exit(-1)
+			}
+
+			err = video.MultipartUpload(f)
+			if err != nil {
+				log.Println(err)
+				os.Exit(-1)
+			}
+			log.Println("uploaded file")
+
+			video, err = api.GetVideo(video.Id)
+		*/
 	default:
 		err = errors.New("unknown command " + cmd)
 	}
