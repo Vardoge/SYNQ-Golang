@@ -115,12 +115,14 @@ func tokenOfUploaderURL(uploaderURL string) (string, error) {
 	return token, nil
 }
 
-// makeMultipartUploadSigner returns a function that can be added to an s3
-// client's list of handlers. The function will take over signing of requests
-// from aws-sdk-go.
+// MultipartUploadSigner returns a function that can be added to an s3 client's
+// list of handlers. The function will take over signing of requests from
+// aws-sdk-go.
 //
 // The signer function uses SYNQ's embeddable web uploader's remote procedure
 // to sign requests.
+//
+// This function is used by the internal multipartUpload function.
 //
 // Example:
 //         // AWS session.
@@ -129,13 +131,14 @@ func tokenOfUploaderURL(uploaderURL string) (string, error) {
 //         // S3 service client.
 //         svc := s3.New(sess)
 //
-//         signer := makeSigner()
+//         // Signer function. Determine the arguments somehow.
+//         signer := MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token, video_id)
 //
 //         // Register handler as the last handler of the signing phase.
 //         svc.Handlers.Sign.PushBack(signer)
 //
 //         // S3 requests are now signed by signer().
-func makeMultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token, video_id string) func(r *request.Request) {
+func MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token, video_id string) func(r *request.Request) {
 	signer := func(r *request.Request) {
 		hr := r.HTTPRequest
 
@@ -157,13 +160,11 @@ func makeMultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, to
 
 		x_amz_date := hr.Header.Get("X-Amz-Date")
 
-		// extract url query parameters and http headers in the formats
-		// that https://uploader.synq.fm/uploader/signature expects
-		query := hr.URL.Path
+		// construct "headers" string to send to
+		// https://uploader.synq.fm/uploader/signature
 		headers := ""
 		if hr.URL.RawQuery == "uploads=" {
 			// Initiate multi-part upload
-			query += "?uploads"
 
 			// TODO(mastensg): parameterize bucket name, content-type, acl
 			headers = fmt.Sprintf("%s\n\n%s\n\n%s\nx-amz-date:%s\n/synqfm%s",
@@ -171,29 +172,27 @@ func makeMultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, to
 				"video/mp4",
 				"x-amz-acl:public-read",
 				x_amz_date,
-				query,
+				hr.URL.Path+"?uploads",
 			)
 		} else if hr.Method == "PUT" {
 			// Upload one part
-			query += "?" + hr.URL.RawQuery
 
 			// TODO(mastensg): parameterize bucket name
 			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/synqfm%s",
 				hr.Method,
 				"",
 				x_amz_date,
-				query,
+				hr.URL.Path+"?" + hr.URL.RawQuery,
 			)
 		} else if hr.Method == "POST" {
 			// Finish multi-part upload
-			query += "?" + hr.URL.RawQuery
 
 			// TODO(mastensg): parameterize bucket name, content-type(?)
 			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/synqfm%s",
 				hr.Method,
 				"application/xml; charset=UTF-8",
 				x_amz_date,
-				query,
+				hr.URL.Path+"?"+hr.URL.RawQuery,
 			)
 
 			// TODO(mastensg): the content-type header set by
@@ -211,7 +210,7 @@ func makeMultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, to
 		}
 
 		// rewrite authorization header(s)
-		delete(hr.Header, "X-Amz-Content-Sha256") //TODO(mastensg): can this be left in?
+		delete(hr.Header, "X-Amz-Content-Sha256") // TODO(mastensg): can this be left in?
 		delete(hr.Header, "Authorization")
 		authorization := fmt.Sprintf("AWS %s:%s", awsAccessKeyId, signature)
 		hr.Header.Set("Authorization", authorization)
@@ -225,7 +224,9 @@ func makeMultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, to
 // http://docs.aws.amazon.com/AmazonS3/latest/dev/uploadobjusingmpu.html
 //
 // This is the internal function to make uploads, which is called by the public
-// MultipartUpload. This function uses s3manager from aws-sdk-go to upload.
+// MultipartUpload. This function uses s3manager from aws-sdk-go to manage the
+// process of uploading in multiple parts. In particular, this will start
+// several goroutines that will upload parts concurrently.
 func multipartUpload(body io.Reader, acl, awsAccessKeyId, bucket, contentType, key, uploaderURL, video_id string) (*s3manager.UploadOutput, error) {
 	token, err := tokenOfUploaderURL(uploaderURL)
 	if err != nil {
