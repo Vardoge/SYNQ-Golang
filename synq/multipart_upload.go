@@ -302,7 +302,7 @@ func MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token,
 		}
 
 		// rewrite authorization header(s)
-		delete(hr.Header, "X-Amz-Content-Sha256") // TODO(mastensg): can this be left in?
+		delete(hr.Header, "X-Amz-Content-Sha256")
 		delete(hr.Header, "Authorization")
 		authorization := fmt.Sprintf("AWS %s:%s", awsAccessKeyId, signature)
 		hr.Header.Set("Authorization", authorization)
