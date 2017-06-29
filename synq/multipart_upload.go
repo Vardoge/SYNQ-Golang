@@ -251,7 +251,7 @@ func multipartUpload(body io.Reader, acl, awsAccessKeyId, bucket, contentType, k
 	svc := s3.New(sess)
 
 	// sign handler
-	signer := makeMultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token, video_id)
+	signer := MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token, video_id)
 	svc.Handlers.Sign.PushBack(signer)
 
 	// s3manager uploader
