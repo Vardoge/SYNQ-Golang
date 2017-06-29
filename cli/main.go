@@ -78,12 +78,6 @@ func main() {
 		}
 		video.Api = &api
 		video.Id = vid
-		err = video.GetUploaderInfo()
-		if err != nil {
-			log.Println(err)
-			os.Exit(-1)
-		}
-		log.Println("uploader_url:", video.UploaderInfo["uploader_url"])
 
 		log.Println("uploading file: ", file)
 		err = video.MultipartUpload(file)
