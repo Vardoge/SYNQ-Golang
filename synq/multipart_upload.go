@@ -258,11 +258,10 @@ func MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token,
 		if hr.URL.RawQuery == "uploads=" {
 			// Initiate multi-part upload
 
-			// TODO(mastensg): parameterize bucket name, content-type, acl
-			headers = fmt.Sprintf("%s\n\n%s\n\n%s\nx-amz-date:%s\n/%s%s",
+			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-acl:%s\nx-amz-date:%s\n/%s%s",
 				hr.Method,
-				"video/mp4",
-				"x-amz-acl:public-read",
+				contentType,
+				acl,
 				x_amz_date,
 				bucket,
 				hr.URL.Path+"?uploads",
@@ -270,7 +269,6 @@ func MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token,
 		} else if hr.Method == "PUT" {
 			// Upload one part
 
-			// TODO(mastensg): parameterize bucket name
 			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/%s%s",
 				hr.Method,
 				"",
@@ -281,7 +279,7 @@ func MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token,
 		} else if hr.Method == "POST" {
 			// Finish multi-part upload
 
-			// TODO(mastensg): parameterize bucket name, content-type(?)
+			// TODO(mastensg): parameterize content-type(?)
 			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/%s%s",
 				hr.Method,
 				"application/xml; charset=UTF-8",
