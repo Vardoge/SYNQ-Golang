@@ -279,19 +279,18 @@ func MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token,
 		} else if hr.Method == "POST" {
 			// Finish multi-part upload
 
-			// TODO(mastensg): parameterize content-type(?)
-			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/%s%s",
-				hr.Method,
-				"application/xml; charset=UTF-8",
-				x_amz_date,
-				bucket,
-				hr.URL.Path+"?"+hr.URL.RawQuery,
-			)
-
 			// TODO(mastensg): the content-type header set by
 			// aws-sdk-go is not exactly the one expected by
 			// uploader/signature, maybe
 			hr.Header.Set("Content-Type", "application/xml; charset=UTF-8")
+
+			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/%s%s",
+				hr.Method,
+				hr.Header.Get("Content-Type"),
+				x_amz_date,
+				bucket,
+				hr.URL.Path+"?"+hr.URL.RawQuery,
+			)
 		} else {
 			// Unknown request type
 			return // TODO(mastensg): how to report errors from handlers?
