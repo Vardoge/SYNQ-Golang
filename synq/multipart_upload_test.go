@@ -1,11 +1,7 @@
 package synq
 
 import (
-	//"encoding/json"
-	//"io/ioutil"
-	//"log"
-	//"net/http"
-	//"net/http/httptest"
+	"fmt"
 	"net/url"
 	"testing"
 
@@ -74,6 +70,79 @@ func TestTokenOfUploaderURL(t *testing.T) {
 				token, err := tokenOfUploaderURL(u.String())
 
 				return token == v && err == nil
+			},
+			gen.AnyString().SuchThat(
+				func(v string) bool { return v != "" },
+			),
+		))
+
+		p.TestingRun(t)
+	}
+}
+
+func TestBucketOfUploadAction(t *testing.T) {
+	assert := assert.New(t)
+
+	// real example
+	{
+		bucket, err := bucketOfUploadAction("https://synqfm.s3.amazonaws.com")
+		assert.Equal(nil, err)
+		assert.Equal("synqfm", bucket)
+	}
+
+	// another bucket
+	{
+		bucket, err := bucketOfUploadAction("https://another-bucket.s3.amazonaws.com")
+		assert.Equal(nil, err)
+		assert.Equal("another-bucket", bucket)
+	}
+
+	// yet another bucket with slash at the end
+	{
+		bucket, err := bucketOfUploadAction("https://yet-another-bucket.s3.amazonaws.com/")
+		assert.Equal(nil, err)
+		assert.Equal("yet-another-bucket", bucket)
+	}
+
+	// not https but http
+	{
+		bucket, err := bucketOfUploadAction("http://not-https.s3.amazonaws.com")
+		assert.Equal(nil, err)
+		assert.Equal("not-https", bucket)
+	}
+
+	// another kind of url
+	{
+		bucket, err := bucketOfUploadAction("https://uploader.synq.fm")
+		assert.NotEqual(nil, err)
+		assert.NotEqual("uploader", bucket)
+	}
+
+	// yet another kind of url
+	{
+		bucket, err := bucketOfUploadAction("https://uploader.synq.fm/uploader/55d4062f99454c9fb21e5186a09c2115?token=not32characters")
+		assert.NotEqual(nil, err)
+		assert.NotEqual("uploader", bucket)
+	}
+
+	// no bucket, and the bucket that is not there is not named "s3"
+	{
+		bucket, err := bucketOfUploadAction("https://s3.amazonaws.com")
+		assert.NotEqual(nil, err)
+		assert.NotEqual("s3", bucket)
+	}
+
+	// any non-empty bucket name
+	{
+		p := gopter.NewProperties(nil)
+
+		p.Property("extract any bucket name", prop.ForAll(
+			func(v string) bool {
+				const format = "https://%s.s3.amazonaws.com"
+
+				bucket, err := bucketOfUploadAction(fmt.Sprintf(format, v))
+
+				return bucket == v && err == nil
 			},
 			gen.AnyString().SuchThat(
 				func(v string) bool { return v != "" },

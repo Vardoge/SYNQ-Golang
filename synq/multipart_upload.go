@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -81,6 +82,44 @@ func UploaderSignature(url_fmt, video_id, token, headers string) ([]byte, error)
 	}
 
 	return []byte(respStruct.Signature), nil
+}
+
+// bucketOfUploadAction parses an "action" URL as received with GetUploadInfo,
+// and returns the bucket name part of that URL.
+//
+// Example:
+//         const a = "https://synqfm.s3.amazonaws.com"
+//
+//         bucket, err := bucketOfUploadAction(a)
+//         if err != nil {
+//                 log.Fatal(err)
+//         }
+//         fmt.Println(bucket) // prints synqfm
+func bucketOfUploadAction(actionURL string) (string, error) {
+	u, err := url.Parse(actionURL)
+	if err != nil {
+		return "", err
+	}
+
+	hs := strings.Split(u.Host, ".")
+	if len(hs) != 4 {
+		return "", errors.New("Invalid action URL. " +
+			"Not exactly 4 period-separated words in host.")
+	}
+	if hs[1] != "s3" {
+		return "", errors.New("Invalid action URL. " +
+			"Second word in period-separated host is not s3")
+	}
+	if hs[2] != "amazonaws" {
+		return "", errors.New("Invalid action URL. " +
+			"Third word in period-separated host is not amazonaws")
+	}
+	if hs[3] != "com" {
+		return "", errors.New("Invalid action URL. " +
+			"Fourth word in period-separated host is not com")
+	}
+
+	return hs[0], nil
 }
 
 // tokenOfUploaderURL parses an uploader URL string, and returns its token
@@ -182,7 +221,7 @@ func MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token,
 				hr.Method,
 				"",
 				x_amz_date,
-				hr.URL.Path+"?" + hr.URL.RawQuery,
+				hr.URL.Path+"?"+hr.URL.RawQuery,
 			)
 		} else if hr.Method == "POST" {
 			// Finish multi-part upload
