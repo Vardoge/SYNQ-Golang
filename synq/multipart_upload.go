@@ -28,9 +28,6 @@ import (
 const multipartUploadAwsAccessKeyId = "AAAAAAAAAAAAAAAAAAAA"
 const multipartUploadAwsSecretAccessKey = "ssssssssssssssssssssssssssssssssssssssss"
 
-// TODO(mastensg): Determine region from bucket, or /v1/video/uploader
-const multipartUploadS3BucketRegion = "us-east-1"
-
 // UploaderSignatureUrlFormat is a printf format string which is used when
 // signing multipart upload requests.
 // TODO(mastensg): Determine this format (or at least prefix) at runtime, from
@@ -106,9 +103,9 @@ func bucketOfUploadAction(actionURL string) (string, error) {
 		return "", errors.New("Invalid action URL. " +
 			"Not exactly 4 period-separated words in host.")
 	}
-	if hs[1] != "s3" {
+	if !strings.HasPrefix(hs[1], "s3") {
 		return "", errors.New("Invalid action URL. " +
-			"Second word in period-separated host is not s3")
+			"Second word in period-separated host does not start with s3")
 	}
 	if hs[2] != "amazonaws" {
 		return "", errors.New("Invalid action URL. " +
@@ -120,6 +117,62 @@ func bucketOfUploadAction(actionURL string) (string, error) {
 	}
 
 	return hs[0], nil
+}
+
+// regionOfUploadAction parses an "action" URL as received with GetUploadInfo,
+// and returns the region of the bucket that is the URL refers to.
+//
+// This relies on heuristics, and will not work with certain styles of URLs.
+//
+// See: http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region
+//
+// Example:
+//         const a = "https://synqfm.s3.amazonaws.com"
+//
+//         region, err := regionOfUploadAction(a)
+//         if err != nil {
+//                 log.Fatal(err)
+//         }
+//         fmt.Println(region) // prints us-east-1
+func regionOfUploadAction(actionURL string) (string, error) {
+	u, err := url.Parse(actionURL)
+	if err != nil {
+		return "", err
+	}
+
+	hs := strings.Split(u.Host, ".")
+	if len(hs) != 4 {
+		return "", errors.New("Invalid action URL. " +
+			"Not exactly 4 period-separated words in host.")
+	}
+	if !strings.HasPrefix(hs[1], "s3") {
+		return "", errors.New("Invalid action URL. " +
+			"Second word in period-separated host does not start with s3")
+	}
+	if hs[2] != "amazonaws" {
+		return "", errors.New("Invalid action URL. " +
+			"Third word in period-separated host is not amazonaws")
+	}
+	if hs[3] != "com" {
+		return "", errors.New("Invalid action URL. " +
+			"Fourth word in period-separated host is not com")
+	}
+
+	regionPart := hs[1]
+
+	// us-east-1 is the region if nothing else is specified.
+	if regionPart == "s3" {
+		return "us-east-1", nil
+	}
+
+	// If the region part of the host is not exactly "s3", then it must be
+	// "s3-something".
+	if !strings.HasPrefix(regionPart, "s3-") {
+		return "", errors.New("Invalid action URL. " +
+			`Second word in period-separated host is not "s3", and does not start with "s3-".`)
+	}
+
+	return regionPart[len("s3-"):], nil
 }
 
 // tokenOfUploaderURL parses an uploader URL string, and returns its token
@@ -275,6 +328,11 @@ func multipartUpload(body io.Reader, acl, actionURL, awsAccessKeyId, contentType
 		return nil, err
 	}
 
+	region, err := regionOfUploadAction(actionURL)
+	if err != nil {
+		return nil, err
+	}
+
 	token, err := tokenOfUploaderURL(uploaderURL)
 	if err != nil {
 		return nil, err
@@ -289,7 +347,7 @@ func multipartUpload(body io.Reader, acl, actionURL, awsAccessKeyId, contentType
 	// session
 	sess, err := session.NewSession(&aws.Config{
 		Credentials: credentials,
-		Region:      aws.String(multipartUploadS3BucketRegion),
+		Region:      aws.String(region),
 	})
 	if err != nil {
 		return nil, err
