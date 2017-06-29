@@ -206,31 +206,34 @@ func MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token,
 			// Initiate multi-part upload
 
 			// TODO(mastensg): parameterize bucket name, content-type, acl
-			headers = fmt.Sprintf("%s\n\n%s\n\n%s\nx-amz-date:%s\n/synqfm%s",
+			headers = fmt.Sprintf("%s\n\n%s\n\n%s\nx-amz-date:%s\n/%s%s",
 				hr.Method,
 				"video/mp4",
 				"x-amz-acl:public-read",
 				x_amz_date,
+				bucket,
 				hr.URL.Path+"?uploads",
 			)
 		} else if hr.Method == "PUT" {
 			// Upload one part
 
 			// TODO(mastensg): parameterize bucket name
-			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/synqfm%s",
+			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/%s%s",
 				hr.Method,
 				"",
 				x_amz_date,
+				bucket,
 				hr.URL.Path+"?"+hr.URL.RawQuery,
 			)
 		} else if hr.Method == "POST" {
 			// Finish multi-part upload
 
 			// TODO(mastensg): parameterize bucket name, content-type(?)
-			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/synqfm%s",
+			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/%s%s",
 				hr.Method,
 				"application/xml; charset=UTF-8",
 				x_amz_date,
+				bucket,
 				hr.URL.Path+"?"+hr.URL.RawQuery,
 			)
 
@@ -266,7 +269,12 @@ func MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token,
 // MultipartUpload. This function uses s3manager from aws-sdk-go to manage the
 // process of uploading in multiple parts. In particular, this will start
 // several goroutines that will upload parts concurrently.
-func multipartUpload(body io.Reader, acl, awsAccessKeyId, bucket, contentType, key, uploaderURL, video_id string) (*s3manager.UploadOutput, error) {
+func multipartUpload(body io.Reader, acl, actionURL, awsAccessKeyId, contentType, key, uploaderURL, video_id string) (*s3manager.UploadOutput, error) {
+	bucket, err := bucketOfUploadAction(actionURL)
+	if err != nil {
+		return nil, err
+	}
+
 	token, err := tokenOfUploaderURL(uploaderURL)
 	if err != nil {
 		return nil, err

@@ -253,16 +253,18 @@ func (v *Video) MultipartUpload(fileName string) error {
 		return errors.New("file '" + fileName + "' does not exist")
 	}
 
+	// extract upload action url
+	actionURL := v.UploadInfo.url()
+
 	// extract uploader url
 	uploaderURL := v.UploaderInfo.url()
 
 	// multipartUploadWithUploaderURL
 	acl := v.UploadInfo["acl"]
 	awsAccessKeyId := v.UploadInfo["AWSAccessKeyId"]
-	bucket := "synqfm" // TODO(mastensg): bucket from v.UploadInfo["action"]
 	contentType := v.UploadInfo["Content-Type"]
 	key := v.UploadInfo["key"]
-	if _, err := multipartUpload(f, acl, awsAccessKeyId, bucket, contentType, key, uploaderURL, v.Id); err != nil {
+	if _, err := multipartUpload(f, acl, actionURL, awsAccessKeyId, contentType, key, uploaderURL, v.Id); err != nil {
 		return err
 	}
 
