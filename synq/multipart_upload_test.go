@@ -153,6 +153,20 @@ func TestBucketOfUploadAction(t *testing.T) {
 		assert.Equal("", bucket)
 	}
 
+	// not "amazonaws"
+	{
+		bucket, err := bucketOfUploadAction("https://s3.amazon.com/")
+		assert.NotEqual(nil, err)
+		assert.Equal("", bucket)
+	}
+
+	// not "com"
+	{
+		bucket, err := bucketOfUploadAction("https://s3.amazon.com/")
+		assert.NotEqual(nil, err)
+		assert.Equal("", bucket)
+	}
+
 	// any non-empty bucket name
 	{
 		p := gopter.NewProperties(nil)
@@ -234,6 +248,20 @@ func TestRegionOfUploadAction(t *testing.T) {
 	// invalid url
 	{
 		region, err := regionOfUploadAction("https://s3.amazonaws.com/%")
+		assert.NotEqual(nil, err)
+		assert.Equal("", region)
+	}
+
+	// not "amazonaws"
+	{
+		region, err := regionOfUploadAction("https://s3.amazon.com/")
+		assert.NotEqual(nil, err)
+		assert.Equal("", region)
+	}
+
+	// not "com"
+	{
+		region, err := regionOfUploadAction("https://s3.amazon.com/")
 		assert.NotEqual(nil, err)
 		assert.Equal("", region)
 	}
