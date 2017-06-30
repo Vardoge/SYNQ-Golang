@@ -2,6 +2,8 @@ package synq
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 
@@ -289,5 +291,49 @@ func TestTokenOfUploaderURL(t *testing.T) {
 		))
 
 		p.TestingRun(t)
+	}
+}
+
+func uploaderSignatureUrlFormatOfTestServerUrl(u string) string {
+	const f = "%s/uploader/signature/%%s?token=%%s"
+	return fmt.Sprintf(f, u)
+}
+
+func TestUploaderSignatureUrlFormatOfTestServerUrl(t *testing.T) {
+	assert := assert.New(t)
+
+	const u = "http://127.0.0.1:34377"
+
+	f := uploaderSignatureUrlFormatOfTestServerUrl(u)
+
+	assert.Equal("http://127.0.0.1:34377/uploader/signature/%s?token=%s", f)
+}
+
+func TestUploaderSignature(t *testing.T) {
+	assert := assert.New(t)
+
+	// always internal server error
+	{
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "no", http.StatusInternalServerError)
+		}))
+		defer ts.Close()
+
+		uf := uploaderSignatureUrlFormatOfTestServerUrl(ts.URL)
+
+		const video_id = "e3c71a23462f07fea2ef317dcd3b7a9b"
+		const token = "568575f9c000b533292adc88f5a2321a"
+		const headers = `POST
+
+video/mp4
+
+x-amz-acl:public-read
+x-amz-date:Fri, 30 Jun 2017 14:03:55 UTC
+/synqfm/projects/00/00/00000000000000000000000000000000/uploads/videos/e3/c7/e3c71a23462f07fea2ef317dcd3b7a9b.mp4?uploads`
+
+		signature, err := UploaderSignature(uf, video_id, token, headers)
+
+		assert.Equal([]byte(nil), signature)
+		assert.Equal("HTTP response status not OK.", err.Error())
 	}
 }

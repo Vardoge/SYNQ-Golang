@@ -65,6 +65,10 @@ func UploaderSignature(url_fmt, video_id, token, headers string) ([]byte, error)
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New("HTTP response status not OK.")
+	}
+
 	// read response
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
