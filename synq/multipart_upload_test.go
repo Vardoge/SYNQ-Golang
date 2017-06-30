@@ -388,4 +388,34 @@ x-amz-date:Fri, 30 Jun 2017 14:03:55 UTC
 		assert.Equal([]byte(nil), signature)
 		assert.Equal("invalid character 'o' in literal null (expecting 'u')", err.Error())
 	}
+
+	// return signature
+	{
+		const video_id = "e3c71a23462f07fea2ef317dcd3b7a9b"
+		const token = "568575f9c000b533292adc88f5a2321a"
+		const headers = `POST
+
+video/mp4
+
+x-amz-acl:public-read
+x-amz-date:Fri, 30 Jun 2017 14:50:33 UTC
+/synqfm/projects/20/fc/20fc57c626dc489ea285493b3813a0b5/uploads/videos/58/70/58705c8fcb054fb68fe85b61ab4f17af.mp4?uploads`
+		const request = `{"headers":"POST\n\nvideo/mp4\n\nx-amz-acl:public-read\nx-amz-date:Fri,` +
+			` 30 Jun 2017 14:50:33 UTC\n/synqfm/projects/20/fc/20fc57c626dc489ea285493b3813a0b5` +
+			`/uploads/videos/58/70/58705c8fcb054fb68fe85b61ab4f17af.mp4?uploads"}`
+		const expectedSignature = "/0OolBcoDZ95IbeDPMt5P+3kCnc="
+
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			response := fmt.Sprintf(`{"signature":"%s"}`, expectedSignature)
+			fmt.Fprint(w, response)
+		}))
+		defer ts.Close()
+
+		uf := uploaderSignatureUrlFormatOfTestServerUrl(ts.URL)
+
+		signature, err := UploaderSignature(uf, video_id, token, headers)
+
+		assert.Equal([]byte(expectedSignature), signature)
+		assert.Equal(nil, err)
+	}
 }
