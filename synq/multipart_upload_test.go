@@ -162,7 +162,7 @@ func TestBucketOfUploadAction(t *testing.T) {
 
 	// not "com"
 	{
-		bucket, err := regionOfUploadAction("https://bucket.s3.amazonaws.org/")
+		bucket, err := bucketOfUploadAction("https://bucket.s3.amazonaws.org/")
 		assert.NotEqual(nil, err)
 		assert.Equal("", bucket)
 	}
@@ -219,7 +219,7 @@ func TestRegionOfUploadAction(t *testing.T) {
 
 	// invalid region
 	{
-		region, err := bucketOfUploadAction("https://invalid-region.not-s3-eu-west-1.amazonaws.com")
+		region, err := regionOfUploadAction("https://invalid-region.not-s3-eu-west-1.amazonaws.com")
 		assert.NotEqual(nil, err)
 		assert.Equal("", region)
 	}
