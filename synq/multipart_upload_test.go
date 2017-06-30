@@ -231,6 +231,13 @@ func TestRegionOfUploadAction(t *testing.T) {
 		assert.Equal("", region)
 	}
 
+	// invalid url
+	{
+		region, err := regionOfUploadAction("https://s3.amazonaws.com/%")
+		assert.NotEqual(nil, err)
+		assert.Equal("", region)
+	}
+
 	// any non-empty region name
 	{
 		p := gopter.NewProperties(nil)
