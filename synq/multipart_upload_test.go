@@ -312,6 +312,31 @@ func TestUploaderSignatureUrlFormatOfTestServerUrl(t *testing.T) {
 func TestUploaderSignature(t *testing.T) {
 	assert := assert.New(t)
 
+	// no server
+	{
+		uf := uploaderSignatureUrlFormatOfTestServerUrl("http://0.0.0.0:0")
+
+		const video_id = "e3c71a23462f07fea2ef317dcd3b7a9b"
+		const token = "568575f9c000b533292adc88f5a2321a"
+		const headers = `POST
+
+video/mp4
+
+x-amz-acl:public-read
+x-amz-date:Fri, 30 Jun 2017 14:03:55 UTC
+/synqfm/projects/00/00/00000000000000000000000000000000/uploads/videos/e3/c7/e3c71a23462f07fea2ef317dcd3b7a9b.mp4?uploads`
+
+		signature, err := UploaderSignature(uf, video_id, token, headers)
+
+		const expectedError = `Post http://0.0.0.0:0/uploader/signature/` +
+			`e3c71a23462f07fea2ef317dcd3b7a9b?token=568575f9c000b533292adc88f5a2321a:` +
+			` dial tcp 0.0.0.0:0: getsockopt: connection refused`
+
+		// TODO(mastensg): check errors by some other method than string matching
+		assert.Equal([]byte(nil), signature)
+		assert.Equal(expectedError, err.Error())
+	}
+
 	// always internal server error
 	{
 		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -333,6 +358,7 @@ x-amz-date:Fri, 30 Jun 2017 14:03:55 UTC
 
 		signature, err := UploaderSignature(uf, video_id, token, headers)
 
+		// TODO(mastensg): check errors by some other method than string matching
 		assert.Equal([]byte(nil), signature)
 		assert.Equal("HTTP response status not OK.", err.Error())
 	}

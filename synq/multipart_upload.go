@@ -66,6 +66,8 @@ func UploaderSignature(url_fmt, video_id, token, headers string) ([]byte, error)
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		// TODO(mastensg): report status and maybe body
+		// TODO(mastensg): handle known error responses specifically
 		return nil, errors.New("HTTP response status not OK.")
 	}
 
