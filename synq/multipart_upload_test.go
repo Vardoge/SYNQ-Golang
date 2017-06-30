@@ -146,6 +146,13 @@ func TestBucketOfUploadAction(t *testing.T) {
 		assert.Equal("", bucket)
 	}
 
+	// invalid url
+	{
+		bucket, err := bucketOfUploadAction("https:/s3.amazonaws.com")
+		assert.NotEqual(nil, err)
+		assert.Equal("", bucket)
+	}
+
 	// any non-empty bucket name
 	{
 		p := gopter.NewProperties(nil)
