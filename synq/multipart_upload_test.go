@@ -148,7 +148,7 @@ func TestBucketOfUploadAction(t *testing.T) {
 
 	// invalid url
 	{
-		bucket, err := bucketOfUploadAction("https:/s3.amazonaws.com")
+		bucket, err := bucketOfUploadAction("https://s3.amazonaws.com/%")
 		assert.NotEqual(nil, err)
 		assert.Equal("", bucket)
 	}
