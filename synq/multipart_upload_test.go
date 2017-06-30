@@ -148,21 +148,21 @@ func TestBucketOfUploadAction(t *testing.T) {
 
 	// invalid url
 	{
-		bucket, err := bucketOfUploadAction("https://s3.amazonaws.com/%")
+		bucket, err := bucketOfUploadAction("https://bucket.s3.amazonaws.com/%")
 		assert.NotEqual(nil, err)
 		assert.Equal("", bucket)
 	}
 
 	// not "amazonaws"
 	{
-		bucket, err := bucketOfUploadAction("https://s3.amazon.com/")
+		bucket, err := bucketOfUploadAction("https://bucket.s3.amazon.com/")
 		assert.NotEqual(nil, err)
 		assert.Equal("", bucket)
 	}
 
 	// not "com"
 	{
-		bucket, err := bucketOfUploadAction("https://s3.amazon.com/")
+		bucket, err := regionOfUploadAction("https://bucket.s3.amazonaws.org/")
 		assert.NotEqual(nil, err)
 		assert.Equal("", bucket)
 	}
@@ -247,21 +247,21 @@ func TestRegionOfUploadAction(t *testing.T) {
 
 	// invalid url
 	{
-		region, err := regionOfUploadAction("https://s3.amazonaws.com/%")
+		region, err := regionOfUploadAction("https://bucket.s3.amazonaws.com/%")
 		assert.NotEqual(nil, err)
 		assert.Equal("", region)
 	}
 
 	// not "amazonaws"
 	{
-		region, err := regionOfUploadAction("https://s3.amazon.com/")
+		region, err := regionOfUploadAction("https://bucket.s3.amazon.com/")
 		assert.NotEqual(nil, err)
 		assert.Equal("", region)
 	}
 
 	// not "com"
 	{
-		region, err := regionOfUploadAction("https://s3.amazon.com/")
+		region, err := regionOfUploadAction("https://bucket.s3.amazonaws.org/")
 		assert.NotEqual(nil, err)
 		assert.Equal("", region)
 	}
