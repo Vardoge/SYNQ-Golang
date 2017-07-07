@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -443,5 +444,64 @@ x-amz-date:Fri, 30 Jun 2017 14:50:33 UTC
 
 		assert.Equal([]byte(expectedSignature), signature)
 		assert.Nil(err)
+	}
+}
+
+func TestReformatXAmzDate(t *testing.T) {
+	assert := assert.New(t)
+
+	// Example:
+	{
+		const in = "20060102T150405Z"
+		out, err := ReformatXAmzDate(in)
+		assert.Nil(err)
+		assert.Equal("Mon, 02 Jan 2006 15:04:05 UTC", out)
+	}
+
+	// badly formatted
+	{
+		const in = "20060102T150405"
+		out, err := ReformatXAmzDate(in)
+		assert.NotNil(err)
+		assert.Equal("", out)
+	}
+
+	// zero-padded date
+	{
+		const in = "20170707T141740Z"
+		out, err := ReformatXAmzDate(in)
+		assert.Nil(err)
+		assert.Equal("Fri, 07 Jul 2017 14:17:40 UTC", out)
+	}
+
+	// any time
+	{
+		p := gopter.NewProperties(nil)
+
+		p.Property("reformat any time", prop.ForAll(
+			func(v int64) bool {
+				const format_in = "20060102T150405Z"
+				const format_expect_out = "Mon, 02 Jan 2006 15:04:05 MST"
+
+				u := time.Unix(v, 0).UTC()
+
+				in := u.Format(format_in)
+				expect_out := u.Format(format_expect_out)
+
+				out, err := ReformatXAmzDate(in)
+				if out != expect_out {
+					fmt.Println("")
+					fmt.Println("in        ", in)
+					fmt.Println("expect_out", expect_out)
+					fmt.Println("out       ", out)
+					fmt.Println("err       ", err.Error())
+				}
+
+				return out == expect_out && err == nil
+			},
+			gen.Int64Range(-(1<<35), (1<<37)),
+		))
+
+		p.TestingRun(t)
 	}
 }

@@ -213,6 +213,51 @@ func tokenOfUploaderURL(uploaderURL string) (string, error) {
 	return token, nil
 }
 
+// ReformatXAmzDate reformats the contents of a X-Amz-Date header into the
+// format that https://uploader.synq.fm/uploader/signature expects.
+//
+// Example:
+//         const in = "20060102T150405Z"
+//
+//         out, err := ReformatXAmzDate(in)
+//         if err != nil {
+//                 log.Fatal(err)
+//         }
+//         fmt.Println(out) // Mon, 02 Jan 2006 15:04:05 UTC
+func ReformatXAmzDate(in string) (string, error) {
+	t, err := time.Parse("20060102T150405Z", in)
+	if err != nil {
+		return "", err
+	}
+	return t.Format(time.RFC1123), nil
+}
+
+// RewriteXAmzDateHeader rewrites the X-Amz-Date header, of an http.Header,
+// into the format that https://uploader.synq.fm/uploader/signature expects.
+//
+// Example:
+//         h := http.Header{}
+//         h.Set("X-Amz-Date", "20060102T150405Z")
+//
+//         err := RewriteXAmzDateHeader(h)
+//         if err != nil {
+//                 log.Fatal(err)
+//         }
+//         fmt.Println(h.Get("X-Amz-Date")) // Mon, 2 Jan 2006 15:04:05 UTC
+func RewriteXAmzDateHeader(h http.Header) error {
+	in := h.Get("X-Amz-Date")
+	if in == "" {
+		return errors.New("Missing header: X-Amz-Date.")
+	}
+	out, err := ReformatXAmzDate(in)
+	if err != nil {
+		return err
+	}
+	delete(h, "X-Amz-Date") // TODO(mastensg): enough to just set and not delete?
+	h.Set("X-Amz-Date", out)
+	return nil
+}
+
 // MultipartUploadSigner returns a function that can be added to an s3 client's
 // list of handlers. The function will take over signing of requests from
 // aws-sdk-go.
@@ -240,20 +285,8 @@ func MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token,
 	signer := func(r *request.Request) {
 		hr := r.HTTPRequest
 
-		// rewrite the X-Amz-Date header into the format that
-		// https://uploader.synq.fm/uploader/signature expects
-		{
-			x_amz_date_in := hr.Header.Get("X-Amz-Date")
-			if x_amz_date_in == "" {
-				return // TODO(mastensg): how to report errors from handlers?
-			}
-			x_amz_date_t, err := time.Parse("20060102T150405Z", x_amz_date_in)
-			if err != nil {
-				return // TODO(mastensg): how to report errors from handlers?
-			}
-			x_amz_date := x_amz_date_t.Format("Mon, 2 Jan 2006 15:04:05 MST")
-			delete(hr.Header, "X-Amz-Date") // TODO(mastensg): enough to just set and not delete?
-			hr.Header.Set("X-Amz-Date", x_amz_date)
+		if err := RewriteXAmzDateHeader(hr.Header); err != nil {
+			return // TODO(mastensg): how to report errors from handlers?
 		}
 
 		x_amz_date := hr.Header.Get("X-Amz-Date")
