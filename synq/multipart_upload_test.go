@@ -529,6 +529,14 @@ func TestRewriteXAmzDate(t *testing.T) {
 		assert.Equal("Fri, 07 Jul 2017 14:17:40 UTC", h.Get("X-Amz-Date"))
 	}
 
+	// missing header
+	{
+		h := http.Header{}
+		err := RewriteXAmzDateHeader(h)
+		assert.NotNil(err)
+		assert.Equal("", h.Get("X-Amz-Date"))
+	}
+
 	// any time
 	{
 		p := gopter.NewProperties(nil)
