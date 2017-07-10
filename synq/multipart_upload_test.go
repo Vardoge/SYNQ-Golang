@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go/aws/request"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/leanovate/gopter"
@@ -649,5 +651,68 @@ func TestMultipartUploadSignRequest(t *testing.T) {
 
 		err = multipartUploadSignRequest(acl, awsAccessKeyId, bucket, contentType, key, token, video_id, uf, r)
 		assert.Equal("Unknown request type.", err.Error())
+	}
+}
+
+func TestMultipartUploadSigner(t *testing.T) {
+	assert := assert.New(t)
+
+	const (
+		acl            = "public-read"
+		awsAccessKeyId = "AAAAAAAAAAAAAAAAAAAA"
+		bucket         = "not-synqfm"
+		contentType    = "video/mp4"
+		key            = "foo.mp4"
+		token          = "b7230fea53d525948f33abf5f4b893f5"
+		video_id       = "55d4062f99454c9fb21e5186a09c2115"
+	)
+
+	const signature = "/0OolBcoDZ95IbeDPMt5P+3kCnc="
+
+	// server that always returns a signature
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := fmt.Sprintf(`{"signature":"%s"}`, signature)
+		fmt.Fprint(w, response)
+	}))
+	defer ts.Close()
+	uf := uploaderSignatureUrlFormatOfTestServerUrl(ts.URL)
+
+	signer := MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token, video_id, uf)
+
+	// rewrite date
+	{
+		r, err := http.NewRequest("GET", "", strings.NewReader(""))
+		assert.Nil(err)
+		r.Header.Set("X-Amz-Date", "20060102T150405Z")
+
+		ar := request.Request{}
+		ar.HTTPRequest = r
+		signer(&ar)
+		assert.Equal("Mon, 02 Jan 2006 15:04:05 UTC", ar.HTTPRequest.Header.Get("X-Amz-Date"))
+	}
+
+	// missing header
+	{
+
+		r, err := http.NewRequest("POST", "", strings.NewReader(""))
+		assert.Nil(err)
+
+		ar := request.Request{}
+		ar.HTTPRequest = r
+		signer(&ar)
+		// TODO(mastensg): how to report errors from handlers?
+	}
+
+	// Unknown request type
+	{
+
+		r, err := http.NewRequest("GET", "", strings.NewReader(""))
+		assert.Nil(err)
+		r.Header.Set("X-Amz-Date", "20060102T150405Z")
+
+		ar := request.Request{}
+		ar.HTTPRequest = r
+		signer(&ar)
+		// TODO(mastensg): how to report errors from handlers?
 	}
 }

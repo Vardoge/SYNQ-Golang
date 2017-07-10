@@ -347,9 +347,9 @@ func multipartUploadSignRequest(acl, awsAccessKeyId, bucket, contentType, key, t
 //         svc.Handlers.Sign.PushBack(signer)
 //
 //         // S3 requests are now signed by signer().
-func MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token, video_id string) func(r *request.Request) {
+func MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token, video_id, uploaderSignatureUrlFormat string) func(r *request.Request) {
 	signer := func(r *request.Request) {
-		err := multipartUploadSignRequest(acl, awsAccessKeyId, bucket, contentType, key, token, video_id, UploaderSignatureUrlFormat, r.HTTPRequest)
+		err := multipartUploadSignRequest(acl, awsAccessKeyId, bucket, contentType, key, token, video_id, uploaderSignatureUrlFormat, r.HTTPRequest)
 		if err != nil {
 			return // TODO(mastensg): how to report errors from handlers?
 		}
@@ -400,7 +400,7 @@ func multipartUpload(body io.Reader, acl, actionURL, awsAccessKeyId, contentType
 	svc := s3.New(sess)
 
 	// sign handler
-	signer := MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token, video_id)
+	signer := MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token, video_id, UploaderSignatureUrlFormat)
 	svc.Handlers.Sign.PushBack(signer)
 
 	// s3manager uploader
