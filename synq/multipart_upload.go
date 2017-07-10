@@ -258,6 +258,72 @@ func RewriteXAmzDateHeader(h http.Header) error {
 	return nil
 }
 
+// multipartUploadSignRequest signs a single AWS request using SYNQ's
+// embeddable web uploader's remote signature procedure.
+func multipartUploadSignRequest(acl, awsAccessKeyId, bucket, contentType, key, token, video_id, uploaderSignatureUrlFormat string, r *http.Request) error {
+	if err := RewriteXAmzDateHeader(r.Header); err != nil {
+		return err
+	}
+
+	x_amz_date := r.Header.Get("X-Amz-Date")
+
+	// construct "headers" string to send to
+	// https://uploader.synq.fm/uploader/signature
+	headers := ""
+	if r.URL.RawQuery == "uploads=" {
+		// Initiate multi-part upload
+
+		headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-acl:%s\nx-amz-date:%s\n/%s%s",
+			r.Method,
+			contentType,
+			acl,
+			x_amz_date,
+			bucket,
+			r.URL.Path+"?uploads",
+		)
+	} else if r.Method == "PUT" {
+		// Upload one part
+
+		headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/%s%s",
+			r.Method,
+			"",
+			x_amz_date,
+			bucket,
+			r.URL.Path+"?"+r.URL.RawQuery,
+		)
+	} else if r.Method == "POST" {
+		// Finish multi-part upload
+
+		// TODO(mastensg): the content-type header set by
+		// aws-sdk-go is not exactly the one expected by
+		// uploader/signature, maybe
+		r.Header.Set("Content-Type", "application/xml; charset=UTF-8")
+
+		headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/%s%s",
+			r.Method,
+			r.Header.Get("Content-Type"),
+			x_amz_date,
+			bucket,
+			r.URL.Path+"?"+r.URL.RawQuery,
+		)
+	} else {
+		return errors.New("Unknown request type.")
+	}
+
+	signature, err := UploaderSignature(uploaderSignatureUrlFormat, video_id, token, headers)
+	if err != nil {
+		return err
+	}
+
+	// rewrite authorization header(s)
+	delete(r.Header, "X-Amz-Content-Sha256")
+	delete(r.Header, "Authorization")
+	authorization := fmt.Sprintf("AWS %s:%s", awsAccessKeyId, signature)
+	r.Header.Set("Authorization", authorization)
+
+	return nil
+}
+
 // MultipartUploadSigner returns a function that can be added to an s3 client's
 // list of handlers. The function will take over signing of requests from
 // aws-sdk-go.
@@ -283,68 +349,10 @@ func RewriteXAmzDateHeader(h http.Header) error {
 //         // S3 requests are now signed by signer().
 func MultipartUploadSigner(acl, awsAccessKeyId, bucket, contentType, key, token, video_id string) func(r *request.Request) {
 	signer := func(r *request.Request) {
-		hr := r.HTTPRequest
-
-		if err := RewriteXAmzDateHeader(hr.Header); err != nil {
-			return // TODO(mastensg): how to report errors from handlers?
-		}
-
-		x_amz_date := hr.Header.Get("X-Amz-Date")
-
-		// construct "headers" string to send to
-		// https://uploader.synq.fm/uploader/signature
-		headers := ""
-		if hr.URL.RawQuery == "uploads=" {
-			// Initiate multi-part upload
-
-			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-acl:%s\nx-amz-date:%s\n/%s%s",
-				hr.Method,
-				contentType,
-				acl,
-				x_amz_date,
-				bucket,
-				hr.URL.Path+"?uploads",
-			)
-		} else if hr.Method == "PUT" {
-			// Upload one part
-
-			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/%s%s",
-				hr.Method,
-				"",
-				x_amz_date,
-				bucket,
-				hr.URL.Path+"?"+hr.URL.RawQuery,
-			)
-		} else if hr.Method == "POST" {
-			// Finish multi-part upload
-
-			// TODO(mastensg): the content-type header set by
-			// aws-sdk-go is not exactly the one expected by
-			// uploader/signature, maybe
-			hr.Header.Set("Content-Type", "application/xml; charset=UTF-8")
-
-			headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/%s%s",
-				hr.Method,
-				hr.Header.Get("Content-Type"),
-				x_amz_date,
-				bucket,
-				hr.URL.Path+"?"+hr.URL.RawQuery,
-			)
-		} else {
-			// Unknown request type
-			return // TODO(mastensg): how to report errors from handlers?
-		}
-
-		signature, err := UploaderSignature(UploaderSignatureUrlFormat, video_id, token, headers)
+		err := multipartUploadSignRequest(acl, awsAccessKeyId, bucket, contentType, key, token, video_id, UploaderSignatureUrlFormat, r.HTTPRequest)
 		if err != nil {
 			return // TODO(mastensg): how to report errors from handlers?
 		}
-
-		// rewrite authorization header(s)
-		delete(hr.Header, "X-Amz-Content-Sha256")
-		delete(hr.Header, "Authorization")
-		authorization := fmt.Sprintf("AWS %s:%s", awsAccessKeyId, signature)
-		hr.Header.Set("Authorization", authorization)
 	}
 
 	return signer
