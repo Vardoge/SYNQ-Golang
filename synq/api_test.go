@@ -224,7 +224,7 @@ func TestPostFormFail(t *testing.T) {
 	assert.Equal("fail error", err.Error())
 	err = api.postForm(testServer.URL+"/fake/fail_parse", form, &video)
 	assert.NotNil(err)
-	assert.Equal("unexpected end of JSON input", err.Error())
+	assert.Equal("could not parse : ", err.Error())
 	err = api.postForm(testServer.URL+"/fake/path_missing", form, &video)
 	assert.NotNil(err)
 	assert.Equal("unexpected end of JSON input", err.Error())
