@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -87,7 +88,7 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 		err = json.Unmarshal(responseAsBytes, &eResp)
 		if err != nil {
 			log.Println("could not parse error response")
-			return err
+			return errors.New(fmt.Sprintf("could not parse : %s", string(responseAsBytes)))
 		}
 		log.Printf("Received %v\n", eResp)
 		return errors.New(eResp.Message)
