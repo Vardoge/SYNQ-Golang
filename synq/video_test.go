@@ -73,6 +73,8 @@ func SynqStub() *httptest.Server {
 					resp, _ = ioutil.ReadFile("../sample/upload.json")
 				case "/v1/video/uploader":
 					resp, _ = ioutil.ReadFile("../sample/uploader.json")
+				case "/v1/video/update":
+					resp, _ = ioutil.ReadFile("../sample/update.json")
 				default:
 					w.WriteHeader(http.StatusBadRequest)
 					resp = []byte(HTTP_NOT_FOUND)
@@ -97,49 +99,6 @@ func TestDisplay(t *testing.T) {
 	v.State = "uploaded"
 	v.Player = p
 	assert.Equal("Video abc123\n\tState : uploaded\n\tEmbed URL : url\n\tThumbnail : url2\n", v.Display())
-}
-
-func TestGetVideo(t *testing.T) {
-	assert := assert.New(t)
-	api := setupTestApi("fake", false)
-	assert.NotNil(api)
-	_, e := api.GetVideo(VIDEO_ID)
-	assert.NotNil(e)
-	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", e.Error())
-	api.Key = API_KEY
-	_, e = api.GetVideo("fake")
-	assert.NotNil(e)
-	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", e.Error())
-	_, e = api.GetVideo(VIDEO_ID2)
-	assert.NotNil(e)
-	assert.Equal("Video not found.", e.Error())
-	video, e := api.GetVideo(VIDEO_ID)
-	assert.Nil(e)
-	assert.Equal("uploaded", video.State)
-	assert.NotEmpty(video.Input)
-	assert.Equal(float64(720), video.Input["width"].(float64))
-	assert.Equal(float64(1280), video.Input["height"].(float64))
-	assert.Equal("https://player.synq.fm/embed/45d4063d00454c9fb21e5186a09c3115", video.Player.EmbedUrl)
-	assert.Equal("https://multicdn.synq.fm/projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/derivatives/thumbnails/45/d4/45d4063d00454c9fb21e5186a09c3115/0000360.jpg", video.Player.ThumbnailUrl)
-	assert.Equal(0, video.Player.Views)
-	assert.NotEmpty(video.Outputs)
-	assert.Len(video.Outputs, 5)
-}
-
-func TestCreate(t *testing.T) {
-	assert := assert.New(t)
-	api := setupTestApi("fake", false)
-	assert.NotNil(api)
-	_, e := api.Create()
-	assert.NotNil(e)
-	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", e.Error())
-	api.Key = API_KEY
-	v, e := api.Create()
-	assert.Nil(e)
-	assert.Equal("created", v.State)
-	assert.NotNil(v.CreatedAt)
-	assert.NotNil(v.UpdatedAt)
-	assert.Equal(VIDEO_ID2, v.Id)
 }
 
 func TestGetUploadInfo(t *testing.T) {

@@ -120,6 +120,18 @@ func (a *Api) handlePost(action string, form url.Values, v interface{}) error {
 	return a.postForm(urlString, form, v)
 }
 
+// Calls the /v1/video/create API to create a new video object
+func (a *Api) Create() (Video, error) {
+	video := Video{}
+	form := url.Values{}
+	err := a.handlePost("create", form, &video)
+	if err != nil {
+		return video, err
+	}
+	video.Api = a
+	return video, nil
+}
+
 // Helper function to get details for a video, will create video object
 func (a *Api) GetVideo(id string) (Video, error) {
 	video := Video{}
@@ -136,16 +148,4 @@ func (a *Api) Update(id string, source string) (Video, error) {
 	video.Api = a
 	err := video.Update(source)
 	return video, err
-}
-
-// Calls the /v1/video/create API to create a new video object
-func (a *Api) Create() (Video, error) {
-	video := Video{}
-	form := url.Values{}
-	err := a.handlePost("create", form, &video)
-	if err != nil {
-		return video, err
-	}
-	video.Api = a
-	return video, nil
 }
