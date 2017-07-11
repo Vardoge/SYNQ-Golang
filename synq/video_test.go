@@ -51,6 +51,7 @@ func SynqStub() *httptest.Server {
 			bytes, _ := ioutil.ReadAll(r.Body)
 			//Parse response body
 			v, _ := url.ParseQuery(string(bytes))
+			testValues = append(testValues, v)
 			key := v.Get("api_key")
 			ke := validKey(key)
 			if ke != "" {

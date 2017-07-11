@@ -332,4 +332,7 @@ func TestUpdateVideo(t *testing.T) {
 	assert.Nil(e)
 	val := video.Userdata["user"].(string)
 	assert.Equal("data", val)
+	v := testValues[0]
+	src := v.Get("source")
+	assert.Equal(source, src)
 }
