@@ -97,7 +97,7 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 	err = json.Unmarshal(responseAsBytes, &v)
 	if err != nil {
 		log.Println("could not parse response")
-		return err
+		return errors.New(fmt.Sprintf("could not parse : %s", string(responseAsBytes)))
 	}
 	return nil
 }

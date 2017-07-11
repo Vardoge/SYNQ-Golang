@@ -181,7 +181,7 @@ func TestParseSynqResp(t *testing.T) {
 	}
 	e = parseSynqResp(&resp, nil, v)
 	assert.NotNil(e)
-	assert.Equal("invalid character '<' looking for beginning of value", e.Error())
+	assert.Equal("could not parse : <Error>\n  <Code>PreconditionFailed</Code>\n  <Message>At least one of the pre-conditions you specified did not hold</Message>\n  <Condition>Bucket POST must be of the enclosure-type multipart/form-data</Condition>\n  <RequestId>634081169DAFE345</RequestId>\n  <HostId>80jHDkIWiVJd6ofogZSnvEfIxEUk35ULsvWPYFcH5f6VSUMPhCAevKwzLWN+Iw6gGTEvgogepSY=</HostId>\n</Error>\n", e.Error())
 	err_msg = []byte(INVALID_UUID)
 	resp = http.Response{
 		StatusCode: 400,
@@ -197,7 +197,7 @@ func TestParseSynqResp(t *testing.T) {
 	}
 	e = parseSynqResp(&resp, nil, v)
 	assert.NotNil(e)
-	assert.Equal("invalid character '<' looking for beginning of value", e.Error())
+	assert.Equal("could not parse : <xml>", e.Error())
 	msg = loadSample("video.json")
 	var video Video
 	resp = http.Response{
@@ -227,7 +227,7 @@ func TestPostFormFail(t *testing.T) {
 	assert.Equal("could not parse : ", err.Error())
 	err = api.postForm(testServer.URL+"/fake/path_missing", form, &video)
 	assert.NotNil(err)
-	assert.Equal("unexpected end of JSON input", err.Error())
+	assert.Equal("could not parse : ", err.Error())
 }
 
 func TestPostForm(t *testing.T) {
@@ -257,7 +257,7 @@ func TestHandlePostFail(t *testing.T) {
 	form.Set("test", "value")
 	err := api.handlePost("path_missing", form, &video)
 	assert.NotNil(err)
-	assert.Equal("unexpected end of JSON input", err.Error())
+	assert.Equal("could not parse : ", err.Error())
 	api.Url = ":://noprotocol.com"
 	err = api.handlePost("path", form, &video)
 	assert.NotNil(err)
