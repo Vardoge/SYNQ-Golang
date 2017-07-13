@@ -20,7 +20,7 @@ import (
 
 func main() {
   api := synq.New("myapikey")
-  video := api.GetVideo("myvideo")
+  video, _ := api.GetVideo("myvideo")
   log.Printf("video returned %v", video)
 }
 ```
