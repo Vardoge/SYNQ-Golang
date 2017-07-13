@@ -21,5 +21,5 @@ jobs:
       - run:
           name: Run Golang Tests
           command: |
-            GOPATH=$GOPATH:${SYNQ_DIR}/${REPO}/vendor overalls -project=github.com/SYNQfm/${REPO} -covermode=count -debug -ignore=.git,vendor -- -race -v
-            goveralls -coverprofile=${SYNQ_DIR}/${REPO}/overalls.coverprofile -service circle-ci -repotoken "${COVERALLS_TOKEN}""
+            GOPATH=$GOPATH:"${SYNQ_DIR}"/"${REPO}"/vendor overalls -project=github.com/SYNQfm/${REPO} -covermode=count -debug -ignore=.git,vendor -- -race -v
+            goveralls -coverprofile="${SYNQ_DIR}"/"${REPO}"/overalls.coverprofile -service circle-ci -repotoken "${COVERALLS_TOKEN}"
