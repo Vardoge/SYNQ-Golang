@@ -1,7 +1,7 @@
 version: 2
 notify:
   webhooks:
-    - url: https://coveralls.io/webhook?repo_token=$COVERALLS_TOKEN
+    - url: https://coveralls.io/webhook?repo_token=${COVERALLS_TOKEN}
 jobs:
   build:
     docker:
@@ -15,11 +15,11 @@ jobs:
       - run:
           name: Download Dependencies
           command: |
-            sudo chown  -R circleci:circleci $SYNQ_DIR
+            sudo chown  -R circleci:circleci "${SYNQ_DIR}"
             go get github.com/kardianos/govendor
             govendor sync
       - run:
           name: Run Golang Tests
           command: |
-            GOPATH=$GOPATH:$SYNQ_DIR/$REPO/vendor overalls -project=github.com/SYNQfm/$REPO -covermode=count -debug -ignore=.git,vendor -- -race -v
-            goveralls -coverprofile=$SYNQ_DIR/$REPO/overalls.coverprofile -service circle-ci -repotoken $COVERALLS_TOKEN
+            GOPATH=$GOPATH:"${SYNQ_DIR}"/"${REPO}"/vendor overalls -project=github.com/SYNQfm/"${REPO}" -covermode=count -debug -ignore=.git,vendor -- -race -v
+            goveralls -coverprofile="${SYNQ_DIR}"/"${REPO}"/overalls.coverprofile -service circle-ci -repotoken "${COVERALLS_TOKEN}""
