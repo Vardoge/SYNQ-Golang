@@ -42,27 +42,6 @@ type Video struct {
 	UploaderInfo Uploader
 }
 
-// Helper function to get details for a video, will create video object
-func (a *Api) GetVideo(id string) (Video, error) {
-	video := Video{}
-	video.Id = id
-	video.Api = a
-	err := video.GetVideo()
-	return video, err
-}
-
-// Calls the /v1/video/create API to create a new video object
-func (a *Api) Create() (Video, error) {
-	video := Video{}
-	form := url.Values{}
-	err := a.handlePost("create", form, &video)
-	if err != nil {
-		return video, err
-	}
-	video.Api = a
-	return video, nil
-}
-
 func (u Upload) valid() bool {
 	return u["key"] != ""
 }
@@ -135,6 +114,18 @@ func (v *Video) GetVideo() error {
 	form := url.Values{}
 	form.Add("video_id", v.Id)
 	err := v.Api.handlePost("details", form, v)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Calls the /v1/video/update API to update userdata within video object
+func (v *Video) Update(source string) error {
+	form := url.Values{}
+	form.Add("video_id", v.Id)
+	form.Add("source", source)
+	err := v.Api.handlePost("update", form, v)
 	if err != nil {
 		return err
 	}

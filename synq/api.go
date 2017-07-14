@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -87,7 +88,7 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 		err = json.Unmarshal(responseAsBytes, &eResp)
 		if err != nil {
 			log.Println("could not parse error response")
-			return err
+			return errors.New(fmt.Sprintf("could not parse : %s", string(responseAsBytes)))
 		}
 		log.Printf("Received %v\n", eResp)
 		return errors.New(eResp.Message)
@@ -96,7 +97,7 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 	err = json.Unmarshal(responseAsBytes, &v)
 	if err != nil {
 		log.Println("could not parse response")
-		return err
+		return errors.New(fmt.Sprintf("could not parse : %s", string(responseAsBytes)))
 	}
 	return nil
 }
@@ -117,4 +118,34 @@ func (a *Api) handlePost(action string, form url.Values, v interface{}) error {
 	urlString := a.Url + "/v1/video/" + action
 	form.Set("api_key", a.Key)
 	return a.postForm(urlString, form, v)
+}
+
+// Calls the /v1/video/create API to create a new video object
+func (a *Api) Create() (Video, error) {
+	video := Video{}
+	form := url.Values{}
+	err := a.handlePost("create", form, &video)
+	if err != nil {
+		return video, err
+	}
+	video.Api = a
+	return video, nil
+}
+
+// Helper function to get details for a video, will create video object
+func (a *Api) GetVideo(id string) (Video, error) {
+	video := Video{}
+	video.Id = id
+	video.Api = a
+	err := video.GetVideo()
+	return video, err
+}
+
+// Helper function to update video
+func (a *Api) Update(id string, source string) (Video, error) {
+	video := Video{}
+	video.Id = id
+	video.Api = a
+	err := video.Update(source)
+	return video, err
 }
