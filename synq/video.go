@@ -2,6 +2,8 @@ package synq
 
 import (
 	"bytes"
+	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -36,10 +38,28 @@ type Video struct {
 	Userdata     map[string]interface{} `json:"userdata"`
 	CreatedAt    time.Time              `json:"created_at"`
 	UpdatedAt    time.Time              `json:"updated_at"`
-	Api          *Api
-	UploadInfo   Upload
-	UploadResp   interface{}
-	UploaderInfo Uploader
+	Api          *Api                   `json:"-"`
+	UploadInfo   Upload                 `json:"-"`
+	UploadResp   interface{}            `json:"-"`
+	UploaderInfo Uploader               `json:"-"`
+}
+
+func (v Video) Value() (driver.Value, error) {
+	json, err := json.Marshal(v)
+	return json, err
+}
+
+func (v *Video) Scan(src interface{}) error {
+	source, ok := src.([]byte)
+	if !ok {
+		return errors.New("Type assertion .([]byte) failed.")
+	}
+
+	err := json.Unmarshal(source, &v)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (u Upload) valid() bool {
