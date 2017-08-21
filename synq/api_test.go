@@ -2,6 +2,7 @@ package synq
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"log"
@@ -13,6 +14,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var testReqs []*http.Request
@@ -281,7 +283,7 @@ func TestHandlePost(t *testing.T) {
 }
 
 func TestCreate(t *testing.T) {
-	assert := assert.New(t)
+	assert := require.New(t)
 	api := setupTestApi("fake", false)
 	assert.NotNil(api)
 	_, e := api.Create()
@@ -294,6 +296,27 @@ func TestCreate(t *testing.T) {
 	assert.NotNil(v.CreatedAt)
 	assert.NotNil(v.UpdatedAt)
 	assert.Equal(VIDEO_ID2, v.Id)
+	// create user userdata
+	userdata := make(map[string]interface{})
+	userdata["importer"] = make(map[string]interface{})
+	import_data := make(map[string]string)
+	import_data["content_file"] = "myfile"
+	import_data["id"] = "1234"
+	userdata["importer"] = import_data
+	_, e = api.Create(userdata)
+	assert.Nil(e)
+	assert.Len(testReqs, 3)
+	assert.Len(testValues, 3)
+	req := *testReqs[2]
+	val := testValues[2]
+	assert.Equal("/v1/video/create", req.URL.Path)
+	data := val.Get("userdata")
+	log.Println(data)
+	val_data := make(map[string]interface{})
+	json.Unmarshal([]byte(data), &val_data)
+	d := val_data["importer"].(map[string]interface{})
+	assert.Equal(import_data["content_file"], d["content_file"].(string))
+	assert.Equal(import_data["id"], d["id"].(string))
 }
 
 func TestGetVideo(t *testing.T) {
