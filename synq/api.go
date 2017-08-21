@@ -121,9 +121,13 @@ func (a *Api) handlePost(action string, form url.Values, v interface{}) error {
 }
 
 // Calls the /v1/video/create API to create a new video object
-func (a *Api) Create() (Video, error) {
+func (a *Api) Create(userdata ...map[string]interface{}) (Video, error) {
 	video := Video{}
 	form := url.Values{}
+	if len(userdata) > 0 {
+		bytes, _ := json.Marshal(userdata[0])
+		form.Set("userdata", string(bytes))
+	}
 	err := a.handlePost("create", form, &video)
 	if err != nil {
 		return video, err
