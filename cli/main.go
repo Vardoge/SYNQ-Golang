@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -13,10 +15,10 @@ func main() {
 	var err error
 	var video synq.Video
 	var (
-		c = flag.String("command", "one of: create_and_then_multipart_upload, details, uploader_info", "pass in command")
+		c = flag.String("command", "", "one of: details, upload_info, upload, create, uploader_info, uploader or create_and_then_multipart_upload")
 		a = flag.String("api_key", "", "pass the synq api key")
 		v = flag.String("video_id", "", "pass in the video id to get data about")
-		f = flag.String("file", "", "path to file you want to upload")
+		f = flag.String("file", "", "path to file you want to upload or userdata")
 	)
 	flag.Parse()
 	cmd := *c
@@ -52,7 +54,17 @@ func main() {
 		err = video.UploadFile(file)
 	case "create":
 		log.Printf("Creating new video")
-		video, err = api.Create()
+		if file != "" {
+			log.Printf("loading userdata file from %s\n", file)
+			bytes, err := ioutil.ReadFile(file)
+			if err == nil {
+				userdata := make(map[string]interface{})
+				json.Unmarshal(bytes, &userdata)
+				video, err = api.Create(userdata)
+			}
+		} else {
+			video, err = api.Create()
+		}
 	case "uploader_info":
 		if vid == "" {
 			log.Println("missing video id")
