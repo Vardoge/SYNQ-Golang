@@ -39,19 +39,20 @@ Usage of ./cli:
   -api_key string
       pass the synq api key
   -command string
-      pass in command (default "details")
+      one of: details, upload_info, upload, create, uploader_info, uploader, query or create_and_then_multipart_upload
   -file string
-      path to file you want to upload
+      path to file you want to upload or userdata
+  -query string
+      query string to use
   -video_id string
       pass in the video id to get data about
-
 ```
 
 ```bash
 # Create a new video object
-./cli --api_key=<key> --command create
+./cli -api_key=<key> -command create
 # Upload a file
-./cli --api_key=<key> --video_id=<vid> --file <file name>
+./cli -api_key=<key> -video_id=<vid> -file <file name> -command upload
 # Get details for a video
-./cli --api_key=<key> --video_id=<vid>
+./cli -api_key=<key> -video_id=<vid> -command details
 ```

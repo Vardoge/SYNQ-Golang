@@ -11,14 +11,22 @@ import (
 	"github.com/SYNQfm/SYNQ-Golang/synq"
 )
 
+func handleError(err error) {
+	if err != nil {
+		log.Printf("Error : %s\n", err.Error())
+		os.Exit(1)
+	}
+}
+
 func main() {
 	var err error
 	var video synq.Video
 	var (
-		c = flag.String("command", "", "one of: details, upload_info, upload, create, uploader_info, uploader or create_and_then_multipart_upload")
+		c = flag.String("command", "", "one of: details, upload_info, upload, create, uploader_info, uploader, query or create_and_then_multipart_upload")
 		a = flag.String("api_key", "", "pass the synq api key")
 		v = flag.String("video_id", "", "pass in the video id to get data about")
 		f = flag.String("file", "", "path to file you want to upload or userdata")
+		q = flag.String("query", "", "query string to use")
 	)
 	flag.Parse()
 	cmd := *c
@@ -43,6 +51,14 @@ func main() {
 		video.Api = &api
 		video.Id = vid
 		err = video.GetUploadInfo()
+	case "query":
+		videos, err := api.Query(*q)
+		handleError(err)
+		log.Printf("Found %d videos\n", len(videos))
+		for _, video := range videos {
+			log.Printf(video.Display())
+		}
+		os.Exit(0)
 	case "upload":
 		if file == "" {
 			log.Println("missing 'file'")
@@ -93,10 +109,7 @@ func main() {
 
 		log.Printf("uploading file '%s'\n", file)
 		err = video.MultipartUpload(file)
-		if err != nil {
-			log.Println(err)
-			os.Exit(-1)
-		}
+		handleError(err)
 
 		video, err = api.GetVideo(video.Id)
 	case "create_and_then_multipart_upload":
@@ -107,25 +120,16 @@ func main() {
 
 		log.Printf("Creating new video")
 		video, err = api.Create()
-		if err != nil {
-			log.Println(err)
-			os.Exit(-1)
-		}
+		handleError(err)
 
 		log.Printf("uploading file '%s'\n", file)
 		err = video.MultipartUpload(file)
-		if err != nil {
-			log.Println(err)
-			os.Exit(-1)
-		}
+		handleError(err)
 
 		video, err = api.GetVideo(video.Id)
 	default:
-		err = errors.New("unknown command " + cmd)
+		err = errors.New("unknown command '" + cmd + "'")
 	}
-	if err != nil {
-		log.Printf("Error : %s\n", err.Error())
-		os.Exit(-1)
-	}
+	handleError(err)
 	log.Printf(video.Display())
 }

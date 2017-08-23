@@ -80,7 +80,7 @@ func SynqStub() *httptest.Server {
 					"/v1/video/query":
 					paths := strings.Split(r.RequestURI, "/")
 					action := paths[len(paths)-1]
-					resp, _ = ioutil.ReadFile("../sample/" + action + ".json")
+					resp, _ = loadSample(action + ".json")
 				default:
 					w.WriteHeader(http.StatusBadRequest)
 					resp = []byte(HTTP_NOT_FOUND)
