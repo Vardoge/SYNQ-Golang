@@ -120,6 +120,15 @@ func (a *Api) handlePost(action string, form url.Values, v interface{}) error {
 	return a.postForm(urlString, form, v)
 }
 
+// Helper function to query for videos
+func (a *Api) Query(filter string) ([]Video, error) {
+	var videos []Video
+	form := url.Values{}
+	form.Set("filter", filter)
+	err := a.handlePost("query", form, &videos)
+	return videos, err
+}
+
 // Calls the /v1/video/create API to create a new video object
 func (a *Api) Create(userdata ...map[string]interface{}) (Video, error) {
 	video := Video{}
