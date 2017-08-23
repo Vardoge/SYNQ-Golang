@@ -46,6 +46,51 @@ func S3Stub() *httptest.Server {
 	}))
 }
 
+func SynqStub() *httptest.Server {
+	var resp []byte
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Println("here in synq response", r.RequestURI)
+		testReqs = append(testReqs, r)
+		if r.Method == "POST" {
+			bytes, _ := ioutil.ReadAll(r.Body)
+			//Parse response body
+			v, _ := url.ParseQuery(string(bytes))
+			testValues = append(testValues, v)
+			key := v.Get("api_key")
+			ke := validKey(key)
+			if ke != "" {
+				w.WriteHeader(http.StatusBadRequest)
+				resp = []byte(ke)
+			} else {
+				switch r.RequestURI {
+				case "/v1/video/details":
+					video_id := v.Get("video_id")
+					ke = validVideo(video_id)
+					if ke != "" {
+						w.WriteHeader(http.StatusBadRequest)
+						resp = []byte(ke)
+					} else {
+						resp, _ = ioutil.ReadFile("../sample/video.json")
+					}
+				case "/v1/video/create":
+					resp, _ = ioutil.ReadFile("../sample/new_video.json")
+				case "/v1/video/upload",
+					"/v1/video/uploader",
+					"/v1/video/update",
+					"/v1/video/query":
+					paths := strings.Split(r.RequestURI, "/")
+					action := paths[len(paths)-1]
+					resp = loadSample(action + ".json")
+				default:
+					w.WriteHeader(http.StatusBadRequest)
+					resp = []byte(HTTP_NOT_FOUND)
+				}
+			}
+		}
+		w.Write(resp)
+	}))
+}
+
 func ServerStub() *httptest.Server {
 	var resp string
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -317,6 +362,23 @@ func TestCreate(t *testing.T) {
 	d := val_data["importer"].(map[string]interface{})
 	assert.Equal(import_data["content_file"], d["content_file"].(string))
 	assert.Equal(import_data["id"], d["id"].(string))
+}
+
+func TestQuery(t *testing.T) {
+	assert := require.New(t)
+	api := setupTestApi(API_KEY, false)
+	assert.NotNil(api)
+	filter := `if (video.state == "uploaded") { return video }`
+	videos, err := api.Query(filter)
+	assert.Nil(err)
+	assert.Len(videos, 3)
+	assert.Equal(VIDEO_ID, videos[0].Id)
+	assert.Equal("de98a4c92152411fbac3b7027c8f2df7", videos[1].Id)
+	assert.Equal("bb98e6cea8224ea29e6bf00e36632bdf", videos[2].Id)
+	for _, video := range videos {
+		assert.Equal("uploaded", video.State)
+		assert.Equal(2, video.Player.Views)
+	}
 }
 
 func TestGetVideo(t *testing.T) {

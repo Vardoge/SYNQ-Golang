@@ -3,10 +3,6 @@ package synq
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
-	"net/http"
-	"net/http/httptest"
-	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -40,50 +36,6 @@ func validVideo(id string) string {
 		return VIDEO_NOT_FOUND
 	}
 	return ""
-}
-
-func SynqStub() *httptest.Server {
-	var resp []byte
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("here in synq response", r.RequestURI)
-		testReqs = append(testReqs, r)
-		if r.Method == "POST" {
-			bytes, _ := ioutil.ReadAll(r.Body)
-			//Parse response body
-			v, _ := url.ParseQuery(string(bytes))
-			testValues = append(testValues, v)
-			key := v.Get("api_key")
-			ke := validKey(key)
-			if ke != "" {
-				w.WriteHeader(http.StatusBadRequest)
-				resp = []byte(ke)
-			} else {
-				switch r.RequestURI {
-				case "/v1/video/details":
-					video_id := v.Get("video_id")
-					ke = validVideo(video_id)
-					if ke != "" {
-						w.WriteHeader(http.StatusBadRequest)
-						resp = []byte(ke)
-					} else {
-						resp, _ = ioutil.ReadFile("../sample/video.json")
-					}
-				case "/v1/video/create":
-					resp, _ = ioutil.ReadFile("../sample/new_video.json")
-				case "/v1/video/upload":
-					resp, _ = ioutil.ReadFile("../sample/upload.json")
-				case "/v1/video/uploader":
-					resp, _ = ioutil.ReadFile("../sample/uploader.json")
-				case "/v1/video/update":
-					resp, _ = ioutil.ReadFile("../sample/update.json")
-				default:
-					w.WriteHeader(http.StatusBadRequest)
-					resp = []byte(HTTP_NOT_FOUND)
-				}
-			}
-		}
-		w.Write(resp)
-	}))
 }
 
 func TestDisplay(t *testing.T) {
