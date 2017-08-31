@@ -235,35 +235,35 @@ func TestTokenOfUploaderURL(t *testing.T) {
 
 	// real example
 	{
-		token, err := tokenOfUploaderURL("https://uploader.synq.fm/uploader/55d4062f99454c9fb21e5186a09c2115?token=b7230fea53d525948f33abf5f4b893f5")
+		token, err := TokenOfUploaderURL("https://uploader.synq.fm/uploader/55d4062f99454c9fb21e5186a09c2115?token=b7230fea53d525948f33abf5f4b893f5")
 		assert.Nil(err)
 		assert.Equal("b7230fea53d525948f33abf5f4b893f5", token)
 	}
 
 	// non-uuid token
 	{
-		token, err := tokenOfUploaderURL("https://uploader.synq.fm/uploader/55d4062f99454c9fb21e5186a09c2115?token=not32characters")
+		token, err := TokenOfUploaderURL("https://uploader.synq.fm/uploader/55d4062f99454c9fb21e5186a09c2115?token=not32characters")
 		assert.Nil(err)
 		assert.Equal("not32characters", token)
 	}
 
 	// no url scheme
 	{
-		token, err := tokenOfUploaderURL("://uploader.synq.fm/uploader/55d4062f99454c9fb21e5186a09c2115?token=b7230fea53d525948f33abf5f4b893f5")
+		token, err := TokenOfUploaderURL("://uploader.synq.fm/uploader/55d4062f99454c9fb21e5186a09c2115?token=b7230fea53d525948f33abf5f4b893f5")
 		assert.NotNil(err)
 		assert.Equal("", token)
 	}
 
 	// no query
 	{
-		token, err := tokenOfUploaderURL("https://uploader.synq.fm/uploader/55d4062f99454c9fb21e5186a09c2115")
+		token, err := TokenOfUploaderURL("https://uploader.synq.fm/uploader/55d4062f99454c9fb21e5186a09c2115")
 		assert.NotNil(err)
 		assert.Equal("", token)
 	}
 
 	// no "token" parameter
 	{
-		token, err := tokenOfUploaderURL("https://uploader.synq.fm/uploader/55d4062f99454c9fb21e5186a09c2115?notoken=notoken")
+		token, err := TokenOfUploaderURL("https://uploader.synq.fm/uploader/55d4062f99454c9fb21e5186a09c2115?notoken=notoken")
 		assert.NotNil(err)
 		assert.Equal("", token)
 	}
@@ -285,7 +285,7 @@ func TestTokenOfUploaderURL(t *testing.T) {
 				values.Set("token", v)
 				u.RawQuery = values.Encode()
 
-				token, err := tokenOfUploaderURL(u.String())
+				token, err := TokenOfUploaderURL(u.String())
 
 				return token == v && err == nil
 			},

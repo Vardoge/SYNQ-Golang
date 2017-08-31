@@ -181,7 +181,7 @@ func regionOfUploadAction(actionURL string) (string, error) {
 	return regionPart[len("s3-"):], nil
 }
 
-// tokenOfUploaderURL parses an uploader URL string, and returns its token
+// TokenOfUploaderURL parses an uploader URL string, and returns its token
 // parameter.
 //
 // Example:
@@ -189,12 +189,12 @@ func regionOfUploadAction(actionURL string) (string, error) {
 //         "00000000000000000000000000000000" +
 //         "?token=11111111111111111111111111111111"
 //
-//         token, err := tokenOfUploaderURL(u)
+//         token, err := TokenOfUploaderURL(u)
 //         if err != nil {
 //                 log.Fatal(err)
 //         }
 //         fmt.Println(token) // prints 11111111111111111111111111111111
-func tokenOfUploaderURL(uploaderURL string) (string, error) {
+func TokenOfUploaderURL(uploaderURL string) (string, error) {
 	u, err := url.Parse(uploaderURL)
 	if err != nil {
 		return "", err
@@ -377,7 +377,7 @@ func multipartUpload(body io.Reader, acl, actionURL, awsAccessKeyId, contentType
 		return nil, err
 	}
 
-	token, err := tokenOfUploaderURL(uploaderURL)
+	token, err := TokenOfUploaderURL(uploaderURL)
 	if err != nil {
 		return nil, err
 	}
