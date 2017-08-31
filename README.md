@@ -5,6 +5,11 @@
 
 This is the Golang SDK for the SYNQ [API](https://synq.fm/docs)
 
+## Installing
+```
+go get -u github.com/SYNQfm/SYNQ-Golang
+```
+
 ## Usage (API)
 
 Here's an example of a simple main script that uses our SDK
