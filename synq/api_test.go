@@ -156,6 +156,15 @@ func TestNew(t *testing.T) {
 	api := New("key")
 	assert.NotNil(api)
 	assert.Equal("key", api.Key)
+	assert.Equal(time.Duration(DEFAULT_TIMEOUT_MS)*time.Millisecond, api.Timeout)
+	assert.Equal(time.Duration(DEFAULT_UPLOAD_MS)*time.Millisecond, api.UploadTimeout)
+	api = New("key", time.Duration(15)*time.Second)
+	assert.Equal("key", api.Key)
+	assert.Equal(time.Duration(15)*time.Second, api.Timeout)
+	api = New("key", time.Duration(30)*time.Second, time.Duration(100)*time.Second)
+	assert.Equal("key", api.Key)
+	assert.Equal(time.Duration(30)*time.Second, api.Timeout)
+	assert.Equal(time.Duration(100)*time.Second, api.UploadTimeout)
 }
 
 func TestParseAwsResp(t *testing.T) {
