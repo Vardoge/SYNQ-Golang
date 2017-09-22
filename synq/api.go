@@ -19,8 +19,10 @@ var (
 )
 
 type Api struct {
-	Key string
-	Url string
+	Key           string
+	Url           string
+	Timeout       time.Duration
+	UploadTimeout time.Duration
 }
 
 type ErrorResp struct {
@@ -40,10 +42,21 @@ type AwsError struct {
 	HostId    string
 }
 
-func New(key string) Api {
-	api := Api{Key: key}
-	api.Url = DEFAULT_URL
-	return api
+func New(key string, timeouts ...time.Duration) Api {
+	timeout := time.Duration(DEFAULT_TIMEOUT_MS) * time.Millisecond
+	up_timeout := time.Duration(DEFAULT_UPLOAD_MS) * time.Millisecond
+	if len(timeouts) > 1 {
+		timeout = timeouts[0]
+		up_timeout = timeouts[1]
+	} else if len(timeouts) > 0 {
+		timeout = timeouts[0]
+	}
+	return Api{
+		Key:           key,
+		Url:           DEFAULT_URL,
+		Timeout:       timeout,
+		UploadTimeout: up_timeout,
+	}
 }
 
 func parseAwsResp(resp *http.Response, err error, v interface{}) error {
@@ -103,13 +116,13 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 }
 
 func (a *Api) handleUploadReq(req *http.Request, v interface{}) error {
-	httpClient := &http.Client{Timeout: time.Duration(DEFAULT_UPLOAD_MS) * time.Millisecond}
+	httpClient := &http.Client{Timeout: a.UploadTimeout}
 	resp, err := httpClient.Do(req)
 	return parseAwsResp(resp, err, v)
 }
 
 func (a *Api) postForm(url string, data url.Values, v interface{}) error {
-	httpClient := &http.Client{Timeout: time.Duration(DEFAULT_TIMEOUT_MS) * time.Millisecond}
+	httpClient := &http.Client{Timeout: a.Timeout}
 	resp, err := httpClient.PostForm(url, data)
 	return parseSynqResp(resp, err, v)
 }
