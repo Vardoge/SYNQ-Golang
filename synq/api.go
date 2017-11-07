@@ -9,11 +9,13 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
 var (
 	DEFAULT_URL        = "https://api.synq.fm"
+	DEFAULT_V2_URL     = "http://b9n2fsyd6jbfihx82.stoplight-proxy.io/"
 	DEFAULT_TIMEOUT_MS = 5000   // 5 seconds
 	DEFAULT_UPLOAD_MS  = 600000 // 5 minutes
 )
@@ -23,6 +25,7 @@ type Api struct {
 	Url           string
 	Timeout       time.Duration
 	UploadTimeout time.Duration
+	Version       string
 }
 
 type ErrorResp struct {
@@ -95,7 +98,6 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 		log.Println("could not parse resp body")
 		return err
 	}
-
 	if resp.StatusCode != 200 {
 		var eResp ErrorResp
 		err = json.Unmarshal(responseAsBytes, &eResp)
@@ -115,22 +117,42 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 	return nil
 }
 
+func (a *Api) isV2() bool {
+	return a.Version == "v2"
+}
+
 func (a *Api) handleUploadReq(req *http.Request, v interface{}) error {
 	httpClient := &http.Client{Timeout: a.UploadTimeout}
 	resp, err := httpClient.Do(req)
 	return parseAwsResp(resp, err, v)
 }
 
-func (a *Api) postForm(url string, data url.Values, v interface{}) error {
+func (a *Api) sendReq(req *http.Request, v interface{}) error {
 	httpClient := &http.Client{Timeout: a.Timeout}
-	resp, err := httpClient.PostForm(url, data)
+	resp, err := httpClient.Do(req)
 	return parseSynqResp(resp, err, v)
 }
 
-func (a *Api) handlePost(action string, form url.Values, v interface{}) error {
-	urlString := a.Url + "/v1/video/" + action
-	form.Set("api_key", a.Key)
-	return a.postForm(urlString, form, v)
+func (a *Api) makeReq(action string, form url.Values) *http.Request {
+	var urlStr string
+	method := "POST"
+	if a.isV2() {
+		urlStr = a.Url + "/v2/videos"
+		switch action {
+		case "update":
+			method = "PUT"
+		}
+	} else {
+		form.Set(("api_key"), a.Key)
+		urlStr = a.Url + "/v1/video/" + action
+	}
+	req, _ := http.NewRequest(method, urlStr, strings.NewReader(form.Encode()))
+	return req
+}
+
+func (a *Api) request(action string, form url.Values, v interface{}) error {
+	req := a.makeReq(action, form)
+	return a.sendReq(req, v)
 }
 
 // Helper function to query for videos
@@ -138,7 +160,7 @@ func (a *Api) Query(filter string) ([]Video, error) {
 	var videos []Video
 	form := url.Values{}
 	form.Set("filter", filter)
-	err := a.handlePost("query", form, &videos)
+	err := a.request("query", form, &videos)
 	return videos, err
 }
 
@@ -148,9 +170,13 @@ func (a *Api) Create(userdata ...map[string]interface{}) (Video, error) {
 	form := url.Values{}
 	if len(userdata) > 0 {
 		bytes, _ := json.Marshal(userdata[0])
-		form.Set("userdata", string(bytes))
+		formKey := "userdata"
+		if a.isV2() {
+			formKey = "user_data"
+		}
+		form.Set(formKey, string(bytes))
 	}
-	err := a.handlePost("create", form, &video)
+	err := a.request("create", form, &video)
 	if err != nil {
 		return video, err
 	}

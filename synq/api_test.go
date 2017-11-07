@@ -266,74 +266,12 @@ func TestParseSynqResp(t *testing.T) {
 	assert.NotEmpty(video.Input)
 }
 
-func TestPostFormFail(t *testing.T) {
-	video := Video{}
-	assert := assert.New(t)
-	setupTestServer(true)
-	form := url.Values{}
-	api := Api{}
-	err := api.postForm("/fake/fail", form, &video)
-	assert.NotNil(err)
-	assert.Equal("Post /fake/fail: unsupported protocol scheme \"\"", err.Error())
-	err = api.postForm(testServer.URL+"/fake/fail", form, &video)
-	assert.NotNil(err)
-	assert.Equal("fail error", err.Error())
-	err = api.postForm(testServer.URL+"/fake/fail_parse", form, &video)
-	assert.NotNil(err)
-	assert.Equal("could not parse : ", err.Error())
-	err = api.postForm(testServer.URL+"/fake/path_missing", form, &video)
-	assert.NotNil(err)
-	assert.Equal("could not parse : ", err.Error())
-}
-
-func TestPostForm(t *testing.T) {
-	api := Api{}
-	video := Video{}
-	assert := assert.New(t)
-	setupTestServer(true)
-	form := url.Values{}
-	err := api.postForm(testServer.URL+"/fake/path", form, &video)
-	assert.Nil(err)
-	assert.Len(testReqs, 1)
-	r := testReqs[0]
-	assert.Equal("/fake/path", r.RequestURI)
-	assert.Equal("uploaded", video.State)
-	assert.Equal(time.February, video.CreatedAt.Month())
-	assert.Equal(15, video.CreatedAt.Day())
-	assert.Equal(2017, video.CreatedAt.Year())
-	assert.Equal(16, video.UpdatedAt.Day())
-	assert.Equal("application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
-}
-
-func TestHandlePostFail(t *testing.T) {
-	api := setupTestApi("fake", true)
-	assert := assert.New(t)
-	form := url.Values{}
-	video := Video{}
-	form.Set("test", "value")
-	err := api.handlePost("path_missing", form, &video)
-	assert.NotNil(err)
-	assert.Equal("could not parse : ", err.Error())
-	api.Url = ":://noprotocol.com"
-	err = api.handlePost("path", form, &video)
-	assert.NotNil(err)
-	assert.Equal("parse :://noprotocol.com/v1/video/path: missing protocol scheme", err.Error())
-}
-
-func TestHandlePost(t *testing.T) {
-	api := setupTestApi("fake", true)
-	assert := assert.New(t)
-	form := url.Values{}
-	video := Video{}
-	form.Set("test", "value")
-	err := api.handlePost("create", form, &video)
-	assert.Nil(err)
-	assert.Len(testReqs, 1)
-	r := testReqs[0]
-	v := testValues[0]
-	assert.Equal("/v1/video/create", r.RequestURI)
-	assert.Equal("value", v.Get("test"))
-	assert.Equal("fake", v.Get("api_key"))
+func TestMakeReq(t *testing.T) {
+	assert := require.New(t)
+	api := setupTestApi("fake", false)
+	form := make(url.Values)
+	req := api.makeReq("create", form)
+	assert.NotNil(req)
 }
 
 func TestCreate(t *testing.T) {
