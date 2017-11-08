@@ -145,7 +145,8 @@ func setupTestServer(generic bool) {
 }
 
 func setupTestApi(key string, generic bool) Api {
-	api := Api{Key: key}
+	api := Api{}
+	api.Key = key
 	setupTestServer(generic)
 	api.Url = testServer.URL
 	return api
@@ -155,16 +156,16 @@ func TestNew(t *testing.T) {
 	assert := assert.New(t)
 	api := New("key")
 	assert.NotNil(api)
-	assert.Equal("key", api.Key)
-	assert.Equal(time.Duration(DEFAULT_TIMEOUT_MS)*time.Millisecond, api.Timeout)
-	assert.Equal(time.Duration(DEFAULT_UPLOAD_MS)*time.Millisecond, api.UploadTimeout)
+	assert.Equal("key", api.key())
+	assert.Equal(time.Duration(DEFAULT_TIMEOUT_MS)*time.Millisecond, api.timeout(""))
+	assert.Equal(time.Duration(DEFAULT_UPLOAD_MS)*time.Millisecond, api.timeout("upload"))
 	api = New("key", time.Duration(15)*time.Second)
-	assert.Equal("key", api.Key)
-	assert.Equal(time.Duration(15)*time.Second, api.Timeout)
+	assert.Equal("key", api.key())
+	assert.Equal(time.Duration(15)*time.Second, api.timeout(""))
 	api = New("key", time.Duration(30)*time.Second, time.Duration(100)*time.Second)
-	assert.Equal("key", api.Key)
-	assert.Equal(time.Duration(30)*time.Second, api.Timeout)
-	assert.Equal(time.Duration(100)*time.Second, api.UploadTimeout)
+	assert.Equal("key", api.key())
+	assert.Equal(time.Duration(30)*time.Second, api.timeout(""))
+	assert.Equal(time.Duration(100)*time.Second, api.timeout("upload"))
 }
 
 func TestParseAwsResp(t *testing.T) {
@@ -272,6 +273,21 @@ func TestMakeReq(t *testing.T) {
 	form := make(url.Values)
 	req := api.makeReq("create", form)
 	assert.NotNil(req)
+	assert.Equal("/v1/video/create", req.URL.Path)
+	assert.Equal("POST", req.Method)
+	body, err := ioutil.ReadAll(req.Body)
+	assert.Nil(err)
+	assert.Equal("api_key=fake", string(body))
+	api.Version = "v2"
+	req = api.makeReq("create", form)
+	assert.NotNil(req)
+	assert.Equal("/v2/videos", req.URL.Path)
+	assert.Equal("POST", req.Method)
+	form.Add("video_id", "123")
+	req = api.makeReq("details", form)
+	assert.Equal("GET", req.Method)
+	assert.Equal("/v2/videos/123", req.URL.Path)
+	assert.Equal("Bearer "+api.Key, req.Header.Get("Authorization"))
 }
 
 func TestCreate(t *testing.T) {
