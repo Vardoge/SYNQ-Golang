@@ -45,6 +45,10 @@ func (v *VideoV2) Scan(src interface{}) error {
 	return nil
 }
 
+func version() string {
+	return "v2"
+}
+
 func (a ApiV2) makeReq(command string, form url.Values) *http.Request {
 	method := "POST"
 	ret := strings.Split(command, "_")

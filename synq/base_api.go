@@ -29,8 +29,15 @@ type BaseApi struct {
 type api interface {
 	key() string
 	url() string
+	version() string
 	timeout(string) time.Duration
 	makeReq(action string, form url.Values) *http.Request
+	Create(...map[string]interface{}) (video, error)
+}
+
+type video interface {
+	id() string
+	Display() string
 }
 
 type ErrorResp struct {

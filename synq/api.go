@@ -15,6 +15,10 @@ type Api struct {
 	BaseApi
 }
 
+func version() string {
+	return "v1"
+}
+
 // Helper function to query for videos
 func (a *Api) Query(filter string) ([]Video, error) {
 	var videos []Video

@@ -38,6 +38,7 @@ func main() {
 		os.Exit(1)
 	}
 	api := synq.New(api_key)
+	log.Printf("using %s API\n")
 	switch cmd {
 	case "details":
 		if vid == "" {
