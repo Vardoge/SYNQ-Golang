@@ -2,8 +2,6 @@ package synq
 
 import (
 	"bytes"
-	"database/sql/driver"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -42,24 +40,6 @@ type Video struct {
 	UploadInfo   Upload                 `json:"-"`
 	UploadResp   interface{}            `json:"-"`
 	UploaderInfo Uploader               `json:"-"`
-}
-
-func (v Video) Value() (driver.Value, error) {
-	json, err := json.Marshal(v)
-	return json, err
-}
-
-func (v *Video) Scan(src interface{}) error {
-	source, ok := src.([]byte)
-	if !ok {
-		return errors.New("Type assertion .([]byte) failed.")
-	}
-
-	err := json.Unmarshal(source, &v)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (u Upload) valid() bool {
@@ -133,7 +113,7 @@ func (u Uploader) url() string {
 func (v *Video) GetVideo() error {
 	form := url.Values{}
 	form.Add("video_id", v.Id)
-	err := v.Api.handlePost("details", form, v)
+	err := Request(v.Api, "details", form, v)
 	if err != nil {
 		return err
 	}
@@ -145,7 +125,7 @@ func (v *Video) Update(source string) error {
 	form := url.Values{}
 	form.Add("video_id", v.Id)
 	form.Add("source", source)
-	err := v.Api.handlePost("update", form, v)
+	err := Request(v.Api, "update", form, v)
 	if err != nil {
 		return err
 	}
@@ -160,7 +140,7 @@ func (v *Video) GetUploadInfo() error {
 	}
 	form := url.Values{}
 	form.Add("video_id", v.Id)
-	err := v.Api.handlePost("upload", form, &v.UploadInfo)
+	err := Request(v.Api, "upload", form, &v.UploadInfo)
 	if err != nil {
 		return err
 	}
@@ -197,7 +177,7 @@ func (v *Video) GetUploaderInfo() error {
 	}
 	form := url.Values{}
 	form.Add("video_id", v.Id)
-	err := v.Api.handlePost("uploader", form, &v.UploaderInfo)
+	err := Request(v.Api, "uploader", form, &v.UploaderInfo)
 	if err != nil {
 		return err
 	}
@@ -216,7 +196,7 @@ func (v *Video) UploadFile(fileName string) error {
 		log.Println("failed to create upload req")
 		return err
 	}
-	if err := v.Api.handleUploadReq(req, &v.UploadResp); err != nil {
+	if err := handleUploadReq(v.Api, req, &v.UploadResp); err != nil {
 		log.Println("failed to call handleUploadReq")
 		return err
 	}

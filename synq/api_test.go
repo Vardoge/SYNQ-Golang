@@ -145,7 +145,8 @@ func setupTestServer(generic bool) {
 }
 
 func setupTestApi(key string, generic bool) Api {
-	api := Api{Key: key}
+	api := Api{}
+	api.Key = key
 	setupTestServer(generic)
 	api.Url = testServer.URL
 	return api
@@ -155,16 +156,16 @@ func TestNew(t *testing.T) {
 	assert := assert.New(t)
 	api := New("key")
 	assert.NotNil(api)
-	assert.Equal("key", api.Key)
-	assert.Equal(time.Duration(DEFAULT_TIMEOUT_MS)*time.Millisecond, api.Timeout)
-	assert.Equal(time.Duration(DEFAULT_UPLOAD_MS)*time.Millisecond, api.UploadTimeout)
+	assert.Equal("key", api.key())
+	assert.Equal(time.Duration(DEFAULT_TIMEOUT_MS)*time.Millisecond, api.timeout(""))
+	assert.Equal(time.Duration(DEFAULT_UPLOAD_MS)*time.Millisecond, api.timeout("upload"))
 	api = New("key", time.Duration(15)*time.Second)
-	assert.Equal("key", api.Key)
-	assert.Equal(time.Duration(15)*time.Second, api.Timeout)
+	assert.Equal("key", api.key())
+	assert.Equal(time.Duration(15)*time.Second, api.timeout(""))
 	api = New("key", time.Duration(30)*time.Second, time.Duration(100)*time.Second)
-	assert.Equal("key", api.Key)
-	assert.Equal(time.Duration(30)*time.Second, api.Timeout)
-	assert.Equal(time.Duration(100)*time.Second, api.UploadTimeout)
+	assert.Equal("key", api.key())
+	assert.Equal(time.Duration(30)*time.Second, api.timeout(""))
+	assert.Equal(time.Duration(100)*time.Second, api.timeout("upload"))
 }
 
 func TestParseAwsResp(t *testing.T) {
@@ -266,74 +267,17 @@ func TestParseSynqResp(t *testing.T) {
 	assert.NotEmpty(video.Input)
 }
 
-func TestPostFormFail(t *testing.T) {
-	video := Video{}
-	assert := assert.New(t)
-	setupTestServer(true)
-	form := url.Values{}
-	api := Api{}
-	err := api.postForm("/fake/fail", form, &video)
-	assert.NotNil(err)
-	assert.Equal("Post /fake/fail: unsupported protocol scheme \"\"", err.Error())
-	err = api.postForm(testServer.URL+"/fake/fail", form, &video)
-	assert.NotNil(err)
-	assert.Equal("fail error", err.Error())
-	err = api.postForm(testServer.URL+"/fake/fail_parse", form, &video)
-	assert.NotNil(err)
-	assert.Equal("could not parse : ", err.Error())
-	err = api.postForm(testServer.URL+"/fake/path_missing", form, &video)
-	assert.NotNil(err)
-	assert.Equal("could not parse : ", err.Error())
-}
-
-func TestPostForm(t *testing.T) {
-	api := Api{}
-	video := Video{}
-	assert := assert.New(t)
-	setupTestServer(true)
-	form := url.Values{}
-	err := api.postForm(testServer.URL+"/fake/path", form, &video)
+func TestMakeReq(t *testing.T) {
+	assert := require.New(t)
+	api := setupTestApi("fake", false)
+	form := make(url.Values)
+	req := api.makeReq("create", form)
+	assert.NotNil(req)
+	assert.Equal("/v1/video/create", req.URL.Path)
+	assert.Equal("POST", req.Method)
+	body, err := ioutil.ReadAll(req.Body)
 	assert.Nil(err)
-	assert.Len(testReqs, 1)
-	r := testReqs[0]
-	assert.Equal("/fake/path", r.RequestURI)
-	assert.Equal("uploaded", video.State)
-	assert.Equal(time.February, video.CreatedAt.Month())
-	assert.Equal(15, video.CreatedAt.Day())
-	assert.Equal(2017, video.CreatedAt.Year())
-	assert.Equal(16, video.UpdatedAt.Day())
-	assert.Equal("application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
-}
-
-func TestHandlePostFail(t *testing.T) {
-	api := setupTestApi("fake", true)
-	assert := assert.New(t)
-	form := url.Values{}
-	video := Video{}
-	form.Set("test", "value")
-	err := api.handlePost("path_missing", form, &video)
-	assert.NotNil(err)
-	assert.Equal("could not parse : ", err.Error())
-	api.Url = ":://noprotocol.com"
-	err = api.handlePost("path", form, &video)
-	assert.NotNil(err)
-	assert.Equal("parse :://noprotocol.com/v1/video/path: missing protocol scheme", err.Error())
-}
-
-func TestHandlePost(t *testing.T) {
-	api := setupTestApi("fake", true)
-	assert := assert.New(t)
-	form := url.Values{}
-	video := Video{}
-	form.Set("test", "value")
-	err := api.handlePost("create", form, &video)
-	assert.Nil(err)
-	assert.Len(testReqs, 1)
-	r := testReqs[0]
-	v := testValues[0]
-	assert.Equal("/v1/video/create", r.RequestURI)
-	assert.Equal("value", v.Get("test"))
-	assert.Equal("fake", v.Get("api_key"))
+	assert.Equal("api_key=fake", string(body))
 }
 
 func TestCreate(t *testing.T) {
