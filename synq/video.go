@@ -196,7 +196,7 @@ func (v *Video) UploadFile(fileName string) error {
 		log.Println("failed to create upload req")
 		return err
 	}
-	if err := v.Api.handleUploadReq(req, &v.UploadResp); err != nil {
+	if err := handleUploadReq(v.Api, req, &v.UploadResp); err != nil {
 		log.Println("failed to call handleUploadReq")
 		return err
 	}

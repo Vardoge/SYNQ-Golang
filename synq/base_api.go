@@ -161,7 +161,7 @@ func handleReq(a api, req *http.Request, v interface{}) error {
 	return parseSynqResp(resp, err, v)
 }
 
-func (a *BaseApi) handleUploadReq(req *http.Request, v interface{}) error {
+func handleUploadReq(a api, req *http.Request, v interface{}) error {
 	httpClient := &http.Client{Timeout: a.timeout("upload")}
 	resp, err := httpClient.Do(req)
 	return parseAwsResp(resp, err, v)

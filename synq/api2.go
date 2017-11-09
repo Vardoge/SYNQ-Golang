@@ -45,9 +45,15 @@ func (v *VideoV2) Scan(src interface{}) error {
 	return nil
 }
 
-func (a ApiV2) makeReq(action string, form url.Values) *http.Request {
+func (a ApiV2) makeReq(command string, form url.Values) *http.Request {
 	method := "POST"
-	urlStr := a.url() + "/v2/videos"
+	ret := strings.Split(command, "_")
+	action := ret[0]
+	type_ := "videos"
+	if len(ret) > 1 {
+		type_ = ret[1] + "s"
+	}
+	urlStr := a.url() + "/v2/" + type_
 	switch action {
 	case "details":
 		// pull out the video id from the form
@@ -60,6 +66,10 @@ func (a ApiV2) makeReq(action string, form url.Values) *http.Request {
 	req, _ := http.NewRequest(method, urlStr, strings.NewReader(form.Encode()))
 	req.Header.Add("Authorization", "Bearer "+a.key())
 	return req
+}
+
+func (a *ApiV2) CreateAccount() string {
+	return ""
 }
 
 func (a *ApiV2) Create(userdata ...map[string]interface{}) (VideoV2, error) {
