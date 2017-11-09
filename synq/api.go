@@ -2,7 +2,9 @@ package synq
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/url"
+	"strings"
 )
 
 const (
@@ -18,7 +20,7 @@ func (a *Api) Query(filter string) ([]Video, error) {
 	var videos []Video
 	form := url.Values{}
 	form.Set("filter", filter)
-	err := a.request("query", form, &videos)
+	err := Request(a, "query", form, &videos)
 	return videos, err
 }
 
@@ -29,12 +31,9 @@ func (a *Api) Create(userdata ...map[string]interface{}) (Video, error) {
 	if len(userdata) > 0 {
 		bytes, _ := json.Marshal(userdata[0])
 		formKey := "userdata"
-		if a.isV2() {
-			formKey = "user_data"
-		}
 		form.Set(formKey, string(bytes))
 	}
-	err := a.request("create", form, &video)
+	err := Request(a, "create", form, &video)
 	if err != nil {
 		return video, err
 	}
@@ -58,4 +57,11 @@ func (a *Api) Update(id string, source string) (Video, error) {
 	video.Api = a
 	err := video.Update(source)
 	return video, err
+}
+
+func (a Api) makeReq(action string, form url.Values) *http.Request {
+	form.Set(("api_key"), a.key())
+	urlStr := a.url() + "/v1/video/" + action
+	req, _ := http.NewRequest("POST", urlStr, strings.NewReader(form.Encode()))
+	return req
 }

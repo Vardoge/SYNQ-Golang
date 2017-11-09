@@ -278,16 +278,6 @@ func TestMakeReq(t *testing.T) {
 	body, err := ioutil.ReadAll(req.Body)
 	assert.Nil(err)
 	assert.Equal("api_key=fake", string(body))
-	api.Version = "v2"
-	req = api.makeReq("create", form)
-	assert.NotNil(req)
-	assert.Equal("/v2/videos", req.URL.Path)
-	assert.Equal("POST", req.Method)
-	form.Add("video_id", "123")
-	req = api.makeReq("details", form)
-	assert.Equal("GET", req.Method)
-	assert.Equal("/v2/videos/123", req.URL.Path)
-	assert.Equal("Bearer "+api.Key, req.Header.Get("Authorization"))
 }
 
 func TestCreate(t *testing.T) {

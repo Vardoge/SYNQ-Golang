@@ -30,7 +30,7 @@ type api interface {
 	key() string
 	url() string
 	timeout(string) time.Duration
-	makeReq(string, url.Values) *http.Request
+	makeReq(action string, form url.Values) *http.Request
 }
 
 type ErrorResp struct {
@@ -134,10 +134,6 @@ func New(key string, timeouts ...time.Duration) api {
 	}
 }
 
-func (b BaseApi) isV2() bool {
-	return strings.Contains(b.Key, ".")
-}
-
 func (b BaseApi) timeout(type_ string) time.Duration {
 	if type_ == "upload" {
 		return b.UploadTimeout
@@ -154,43 +150,19 @@ func (b BaseApi) key() string {
 	return b.Key
 }
 
-func (b BaseApi) makeReq(action string, form url.Values) *http.Request {
-	if b.isV2() {
-		method := "POST"
-		urlStr := b.url() + "/v2/videos"
-		switch action {
-		case "details":
-			// pull out the video id from the form
-			video_id := form.Get("video_id")
-			method = "GET"
-			urlStr = urlStr + "/" + video_id
-		case "update":
-			method = "PUT"
-		}
-		req, _ := http.NewRequest(method, urlStr, strings.NewReader(form.Encode()))
-		req.Header.Add("Authorization", "Bearer "+b.key())
-		return req
-	} else {
-		form.Set(("api_key"), b.key())
-		urlStr := b.url() + "/v1/video/" + action
-		req, _ := http.NewRequest("POST", urlStr, strings.NewReader(form.Encode()))
-		return req
-	}
+func Request(a api, action string, form url.Values, v interface{}) error {
+	req := a.makeReq(action, form)
+	return handleReq(a, req, v)
 }
 
-func (b BaseApi) request(action string, form url.Values, v interface{}) error {
-	req := b.makeReq(action, form)
-	return b.handleReq(req, v)
-}
-
-func (b BaseApi) handleUploadReq(req *http.Request, v interface{}) error {
-	httpClient := &http.Client{Timeout: b.timeout("upload")}
-	resp, err := httpClient.Do(req)
-	return parseAwsResp(resp, err, v)
-}
-
-func (b BaseApi) handleReq(req *http.Request, v interface{}) error {
-	httpClient := &http.Client{Timeout: b.timeout("")}
+func handleReq(a api, req *http.Request, v interface{}) error {
+	httpClient := &http.Client{Timeout: a.timeout("")}
 	resp, err := httpClient.Do(req)
 	return parseSynqResp(resp, err, v)
+}
+
+func (a *BaseApi) handleUploadReq(req *http.Request, v interface{}) error {
+	httpClient := &http.Client{Timeout: a.timeout("upload")}
+	resp, err := httpClient.Do(req)
+	return parseAwsResp(resp, err, v)
 }
