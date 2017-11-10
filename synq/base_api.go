@@ -8,8 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 )
 
@@ -31,13 +29,6 @@ type api interface {
 	url() string
 	version() string
 	timeout(string) time.Duration
-	makeReq(action string, form url.Values) *http.Request
-	Create(...map[string]interface{}) (video, error)
-}
-
-type video interface {
-	id() string
-	Display() string
 }
 
 type ErrorResp struct {
@@ -112,7 +103,7 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 	return nil
 }
 
-func New(key string, timeouts ...time.Duration) api {
+func New(key string, timeouts ...time.Duration) BaseApi {
 	timeout := time.Duration(DEFAULT_TIMEOUT_MS) * time.Millisecond
 	up_timeout := time.Duration(DEFAULT_UPLOAD_MS) * time.Millisecond
 	if len(timeouts) > 1 {
@@ -121,23 +112,10 @@ func New(key string, timeouts ...time.Duration) api {
 	} else if len(timeouts) > 0 {
 		timeout = timeouts[0]
 	}
-	var url string
-	if strings.Contains(key, ".") {
-		url = DEFAULT_V2_URL
-	} else {
-		url = DEFAULT_V1_URL
-	}
-	base := BaseApi{
+	return BaseApi{
 		Key:           key,
-		Url:           url,
 		Timeout:       timeout,
 		UploadTimeout: up_timeout,
-	}
-
-	if strings.Contains(key, ".") {
-		return ApiV2{BaseApi: base}
-	} else {
-		return Api{BaseApi: base}
 	}
 }
 
@@ -155,11 +133,6 @@ func (b BaseApi) url() string {
 
 func (b BaseApi) key() string {
 	return b.Key
-}
-
-func Request(a api, action string, form url.Values, v interface{}) error {
-	req := a.makeReq(action, form)
-	return handleReq(a, req, v)
 }
 
 func handleReq(a api, req *http.Request, v interface{}) error {

@@ -113,7 +113,7 @@ func (u Uploader) url() string {
 func (v *Video) GetVideo() error {
 	form := url.Values{}
 	form.Add("video_id", v.Id)
-	err := Request(v.Api, "details", form, v)
+	err := v.Api.handlePost("details", form, v)
 	if err != nil {
 		return err
 	}
@@ -125,7 +125,7 @@ func (v *Video) Update(source string) error {
 	form := url.Values{}
 	form.Add("video_id", v.Id)
 	form.Add("source", source)
-	err := Request(v.Api, "update", form, v)
+	err := v.Api.handlePost("update", form, v)
 	if err != nil {
 		return err
 	}
@@ -140,7 +140,7 @@ func (v *Video) GetUploadInfo() error {
 	}
 	form := url.Values{}
 	form.Add("video_id", v.Id)
-	err := Request(v.Api, "upload", form, &v.UploadInfo)
+	err := v.Api.handlePost("upload", form, &v.UploadInfo)
 	if err != nil {
 		return err
 	}
@@ -177,7 +177,7 @@ func (v *Video) GetUploaderInfo() error {
 	}
 	form := url.Values{}
 	form.Add("video_id", v.Id)
-	err := Request(v.Api, "uploader", form, &v.UploaderInfo)
+	err := v.Api.handlePost("uploader", form, &v.UploaderInfo)
 	if err != nil {
 		return err
 	}

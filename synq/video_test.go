@@ -56,7 +56,7 @@ func TestDisplay(t *testing.T) {
 
 func TestGetUploadInfo(t *testing.T) {
 	assert := assert.New(t)
-	api := setupTestApi("fake", false)
+	api := setupTestApi("fake")
 	video := Video{Id: VIDEO_ID2, Api: &api}
 	err := video.GetUploadInfo()
 	assert.NotNil(err)
@@ -124,7 +124,7 @@ func TestCreateUploadReq(t *testing.T) {
 func TestUploadFile(t *testing.T) {
 	assert := assert.New(t)
 	aws := S3Stub()
-	api := setupTestApi("fake", false)
+	api := setupTestApi("fake")
 	defer aws.Close()
 	video := Video{Id: VIDEO_ID2, Api: &api}
 	valid_file := "video.go"

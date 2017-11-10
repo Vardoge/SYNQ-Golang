@@ -1,12 +1,11 @@
 package synq
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 )
 
@@ -45,31 +44,22 @@ func (v *VideoV2) Scan(src interface{}) error {
 	return nil
 }
 
-func version() string {
+func (a ApiV2) version() string {
 	return "v2"
 }
 
-func (a ApiV2) makeReq(command string, form url.Values) *http.Request {
-	method := "POST"
-	ret := strings.Split(command, "_")
-	action := ret[0]
-	type_ := "videos"
-	if len(ret) > 1 {
-		type_ = ret[1] + "s"
-	}
-	urlStr := a.url() + "/v2/" + type_
-	switch action {
-	case "details":
-		// pull out the video id from the form
-		video_id := form.Get("video_id")
-		method = "GET"
-		urlStr = urlStr + "/" + video_id
-	case "update":
-		method = "PUT"
-	}
-	req, _ := http.NewRequest(method, urlStr, strings.NewReader(form.Encode()))
+func NewV2(token string, timeouts ...time.Duration) ApiV2 {
+	base := New(token, timeouts...)
+	base.Url = DEFAULT_V2_URL
+	return ApiV2{BaseApi: base}
+}
+
+func (a ApiV2) handleAuth(req *http.Request) {
 	req.Header.Add("Authorization", "Bearer "+a.key())
-	return req
+}
+
+func (a ApiV2) getBaseUrl() string {
+	return a.url() + "/v2"
 }
 
 func (a *ApiV2) CreateAccount() string {
@@ -78,16 +68,15 @@ func (a *ApiV2) CreateAccount() string {
 
 func (a *ApiV2) Create(userdata ...map[string]interface{}) (VideoV2, error) {
 	video := VideoV2{}
-	form := url.Values{}
+	url := a.getBaseUrl() + "/videos"
+	body := bytes.NewBuffer([]byte{})
 	if len(userdata) > 0 {
-		bytes, _ := json.Marshal(userdata[0])
-		formKey := "user_data"
-		form.Set(formKey, string(bytes))
 	}
-	err := Request(a, "create", form, &video)
+	req, err := http.NewRequest("POST", url, body)
 	if err != nil {
 		return video, err
 	}
+	handleReq(a, req, video)
 	video.Api = a
 	return video, nil
 }

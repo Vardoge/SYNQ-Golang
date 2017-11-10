@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 )
 
 const (
@@ -15,8 +16,14 @@ type Api struct {
 	BaseApi
 }
 
-func version() string {
+func (a Api) version() string {
 	return "v1"
+}
+
+func NewV1(key string, timeouts ...time.Duration) Api {
+	base := New(key, timeouts...)
+	base.Url = DEFAULT_V1_URL
+	return Api{BaseApi: base}
 }
 
 // Helper function to query for videos
@@ -24,7 +31,7 @@ func (a *Api) Query(filter string) ([]Video, error) {
 	var videos []Video
 	form := url.Values{}
 	form.Set("filter", filter)
-	err := Request(a, "query", form, &videos)
+	err := a.handlePost("query", form, &videos)
 	return videos, err
 }
 
@@ -37,7 +44,7 @@ func (a *Api) Create(userdata ...map[string]interface{}) (Video, error) {
 		formKey := "userdata"
 		form.Set(formKey, string(bytes))
 	}
-	err := Request(a, "create", form, &video)
+	err := a.handlePost("create", form, &video)
 	if err != nil {
 		return video, err
 	}
@@ -63,9 +70,16 @@ func (a *Api) Update(id string, source string) (Video, error) {
 	return video, err
 }
 
-func (a Api) makeReq(action string, form url.Values) *http.Request {
+func (a *Api) makeReq(action string, form url.Values) (*http.Request, error) {
 	form.Set(("api_key"), a.key())
 	urlStr := a.url() + "/v1/video/" + action
-	req, _ := http.NewRequest("POST", urlStr, strings.NewReader(form.Encode()))
-	return req
+	return http.NewRequest("POST", urlStr, strings.NewReader(form.Encode()))
+}
+
+func (a *Api) handlePost(action string, form url.Values, v interface{}) error {
+	req, err := a.makeReq(action, form)
+	if err != nil {
+		return err
+	}
+	return handleReq(a, req, v)
 }
