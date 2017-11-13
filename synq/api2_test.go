@@ -1,10 +1,14 @@
 package synq
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func handleV2(w http.ResponseWriter, r *http.Request) {
+}
 
 func setupTestApiV2(key string) ApiV2 {
 	api := ApiV2{}
