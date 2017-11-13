@@ -62,7 +62,7 @@ func (a ApiV2) getBaseUrl() string {
 	return a.url() + "/v2"
 }
 
-func (a *ApiV2) CreateAccount() string {
+func (a *ApiV2) CreateAccount(name string, type_ string) string {
 	return ""
 }
 
@@ -71,6 +71,11 @@ func (a *ApiV2) Create(userdata ...map[string]interface{}) (VideoV2, error) {
 	url := a.getBaseUrl() + "/videos"
 	body := bytes.NewBuffer([]byte{})
 	if len(userdata) > 0 {
+		b, err := json.Marshal(userdata[0])
+		if err != nil {
+			return video, err
+		}
+		body = bytes.NewBuffer(b)
 	}
 	req, err := http.NewRequest("POST", url, body)
 	if err != nil {
