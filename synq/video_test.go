@@ -20,24 +20,6 @@ const (
 	HTTP_NOT_FOUND    = `{"url": "http://docs.synq.fm/api/v1/errors/http_not_found","name": "http_not_found","message": "Not found."}`
 )
 
-func validKey(key string) string {
-	if len(key) != 32 {
-		return INVALID_UUID
-	} else if key != API_KEY {
-		return API_KEY_NOT_FOUND
-	}
-	return ""
-}
-
-func validVideo(id string) string {
-	if len(id) != 32 {
-		return INVALID_UUID
-	} else if id != VIDEO_ID {
-		return VIDEO_NOT_FOUND
-	}
-	return ""
-}
-
 func TestDisplay(t *testing.T) {
 	assert := assert.New(t)
 	p := Player{EmbedUrl: "url", ThumbnailUrl: "url2"}

@@ -62,6 +62,24 @@ func setupTestApi(key string, type_ ...string) Api {
 	return api
 }
 
+func validKey(key string) string {
+	if len(key) != 32 {
+		return INVALID_UUID
+	} else if key != API_KEY {
+		return API_KEY_NOT_FOUND
+	}
+	return ""
+}
+
+func validVideo(id string) string {
+	if len(id) != 32 {
+		return INVALID_UUID
+	} else if id != VIDEO_ID {
+		return VIDEO_NOT_FOUND
+	}
+	return ""
+}
+
 func TestMakeReq(t *testing.T) {
 	assert := require.New(t)
 	api := setupTestApi("fake")

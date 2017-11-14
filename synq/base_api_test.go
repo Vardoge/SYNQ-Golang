@@ -89,6 +89,9 @@ func (b BadReader) Read(p []byte) (n int, err error) {
 }
 
 func loadSample(name string) (data []byte) {
+	if !strings.Contains(name, ".") {
+		name = name + ".json"
+	}
 	data, err := ioutil.ReadFile("../sample/" + name)
 	if err != nil {
 		log.Panicf("could not load sample file %s : '%s'", name, err.Error())

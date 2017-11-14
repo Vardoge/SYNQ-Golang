@@ -84,7 +84,7 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 		log.Println("could not parse resp body")
 		return err
 	}
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != 200 && resp.StatusCode != 201 {
 		var eResp ErrorResp
 		err = json.Unmarshal(responseAsBytes, &eResp)
 		if err != nil {
@@ -97,7 +97,7 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 	}
 	err = json.Unmarshal(responseAsBytes, &v)
 	if err != nil {
-		log.Println("could not parse response")
+		log.Printf("could not parse response : %s\n", err.Error())
 		return errors.New(fmt.Sprintf("could not parse : %s", string(responseAsBytes)))
 	}
 	return nil

@@ -5,16 +5,21 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"time"
 )
 
 const (
-	DEFAULT_V2_URL = "http://b9n2fsyd6jbfihx82.stoplight-proxy.io/"
+	DEFAULT_V2_URL = "http://b9n2fsyd6jbfihx82.stoplight-proxy.io"
 )
 
 type ApiV2 struct {
 	BaseApi
+}
+
+type Resp struct {
+	Video VideoV2 `json:"data"`
 }
 
 type VideoV2 struct {
@@ -54,7 +59,7 @@ func NewV2(token string, timeouts ...time.Duration) ApiV2 {
 	return ApiV2{BaseApi: base}
 }
 
-func (a ApiV2) handleAuth(req *http.Request) {
+func (a *ApiV2) handleAuth(req *http.Request) {
 	req.Header.Add("Authorization", "Bearer "+a.key())
 }
 
@@ -66,22 +71,36 @@ func (a *ApiV2) CreateAccount(name string, type_ string) string {
 	return ""
 }
 
+func (a *ApiV2) makeRequest(method string, url string, body io.Reader) (req *http.Request, err error) {
+	req, err = http.NewRequest("POST", url, body)
+	if err != nil {
+		return req, err
+	}
+	a.handleAuth(req)
+	return req, nil
+}
+
 func (a *ApiV2) Create(userdata ...map[string]interface{}) (VideoV2, error) {
-	video := VideoV2{}
+	resp := Resp{}
 	url := a.getBaseUrl() + "/videos"
-	body := bytes.NewBuffer([]byte{})
+	body := bytes.NewBuffer([]byte("{"))
 	if len(userdata) > 0 {
+		body.WriteString(`"user_data":`)
 		b, err := json.Marshal(userdata[0])
 		if err != nil {
-			return video, err
+			return resp.Video, err
 		}
-		body = bytes.NewBuffer(b)
+		body.Write(b)
 	}
-	req, err := http.NewRequest("POST", url, body)
+	body.WriteString("}")
+	req, err := a.makeRequest("POST", url, body)
 	if err != nil {
-		return video, err
+		return resp.Video, err
 	}
-	handleReq(a, req, video)
-	video.Api = a
-	return video, nil
+	err = handleReq(a, req, &resp)
+	if err != nil {
+		return resp.Video, err
+	}
+	resp.Video.Api = a
+	return resp.Video, nil
 }
