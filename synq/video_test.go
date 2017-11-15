@@ -20,24 +20,6 @@ const (
 	HTTP_NOT_FOUND    = `{"url": "http://docs.synq.fm/api/v1/errors/http_not_found","name": "http_not_found","message": "Not found."}`
 )
 
-func validKey(key string) string {
-	if len(key) != 32 {
-		return INVALID_UUID
-	} else if key != API_KEY {
-		return API_KEY_NOT_FOUND
-	}
-	return ""
-}
-
-func validVideo(id string) string {
-	if len(id) != 32 {
-		return INVALID_UUID
-	} else if id != VIDEO_ID {
-		return VIDEO_NOT_FOUND
-	}
-	return ""
-}
-
 func TestDisplay(t *testing.T) {
 	assert := assert.New(t)
 	p := Player{EmbedUrl: "url", ThumbnailUrl: "url2"}
@@ -56,7 +38,7 @@ func TestDisplay(t *testing.T) {
 
 func TestGetUploadInfo(t *testing.T) {
 	assert := assert.New(t)
-	api := setupTestApi("fake", false)
+	api := setupTestApi("fake")
 	video := Video{Id: VIDEO_ID2, Api: &api}
 	err := video.GetUploadInfo()
 	assert.NotNil(err)
@@ -124,7 +106,7 @@ func TestCreateUploadReq(t *testing.T) {
 func TestUploadFile(t *testing.T) {
 	assert := assert.New(t)
 	aws := S3Stub()
-	api := setupTestApi("fake", false)
+	api := setupTestApi("fake")
 	defer aws.Close()
 	video := Video{Id: VIDEO_ID2, Api: &api}
 	valid_file := "video.go"

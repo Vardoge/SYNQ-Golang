@@ -8,8 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 )
 
@@ -29,8 +27,8 @@ type BaseApi struct {
 type api interface {
 	key() string
 	url() string
+	version() string
 	timeout(string) time.Duration
-	makeReq(action string, form url.Values) *http.Request
 }
 
 type ErrorResp struct {
@@ -86,7 +84,7 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 		log.Println("could not parse resp body")
 		return err
 	}
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != 200 && resp.StatusCode != 201 {
 		var eResp ErrorResp
 		err = json.Unmarshal(responseAsBytes, &eResp)
 		if err != nil {
@@ -99,13 +97,13 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 	}
 	err = json.Unmarshal(responseAsBytes, &v)
 	if err != nil {
-		log.Println("could not parse response")
+		log.Printf("could not parse response : %s\n", err.Error())
 		return errors.New(fmt.Sprintf("could not parse : %s", string(responseAsBytes)))
 	}
 	return nil
 }
 
-func New(key string, timeouts ...time.Duration) api {
+func New(key string, timeouts ...time.Duration) BaseApi {
 	timeout := time.Duration(DEFAULT_TIMEOUT_MS) * time.Millisecond
 	up_timeout := time.Duration(DEFAULT_UPLOAD_MS) * time.Millisecond
 	if len(timeouts) > 1 {
@@ -114,23 +112,10 @@ func New(key string, timeouts ...time.Duration) api {
 	} else if len(timeouts) > 0 {
 		timeout = timeouts[0]
 	}
-	var url string
-	if strings.Contains(key, ".") {
-		url = DEFAULT_V2_URL
-	} else {
-		url = DEFAULT_V1_URL
-	}
-	base := BaseApi{
+	return BaseApi{
 		Key:           key,
-		Url:           url,
 		Timeout:       timeout,
 		UploadTimeout: up_timeout,
-	}
-
-	if strings.Contains(key, ".") {
-		return ApiV2{BaseApi: base}
-	} else {
-		return Api{BaseApi: base}
 	}
 }
 
@@ -148,11 +133,6 @@ func (b BaseApi) url() string {
 
 func (b BaseApi) key() string {
 	return b.Key
-}
-
-func Request(a api, action string, form url.Values, v interface{}) error {
-	req := a.makeReq(action, form)
-	return handleReq(a, req, v)
 }
 
 func handleReq(a api, req *http.Request, v interface{}) error {

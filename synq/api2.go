@@ -1,21 +1,25 @@
 package synq
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
-	"net/url"
-	"strings"
 	"time"
 )
 
 const (
-	DEFAULT_V2_URL = "http://b9n2fsyd6jbfihx82.stoplight-proxy.io/"
+	DEFAULT_V2_URL = "http://b9n2fsyd6jbfihx82.stoplight-proxy.io"
 )
 
 type ApiV2 struct {
 	BaseApi
+}
+
+type Resp struct {
+	Video VideoV2 `json:"data"`
 }
 
 type VideoV2 struct {
@@ -45,45 +49,58 @@ func (v *VideoV2) Scan(src interface{}) error {
 	return nil
 }
 
-func (a ApiV2) makeReq(command string, form url.Values) *http.Request {
-	method := "POST"
-	ret := strings.Split(command, "_")
-	action := ret[0]
-	type_ := "videos"
-	if len(ret) > 1 {
-		type_ = ret[1] + "s"
-	}
-	urlStr := a.url() + "/v2/" + type_
-	switch action {
-	case "details":
-		// pull out the video id from the form
-		video_id := form.Get("video_id")
-		method = "GET"
-		urlStr = urlStr + "/" + video_id
-	case "update":
-		method = "PUT"
-	}
-	req, _ := http.NewRequest(method, urlStr, strings.NewReader(form.Encode()))
-	req.Header.Add("Authorization", "Bearer "+a.key())
-	return req
+func (a ApiV2) version() string {
+	return "v2"
 }
 
-func (a *ApiV2) CreateAccount() string {
+func NewV2(token string, timeouts ...time.Duration) ApiV2 {
+	base := New(token, timeouts...)
+	base.Url = DEFAULT_V2_URL
+	return ApiV2{BaseApi: base}
+}
+
+func (a *ApiV2) handleAuth(req *http.Request) {
+	req.Header.Add("Authorization", "Bearer "+a.key())
+}
+
+func (a ApiV2) getBaseUrl() string {
+	return a.url() + "/v2"
+}
+
+func (a *ApiV2) CreateAccount(name string, type_ string) string {
 	return ""
 }
 
-func (a *ApiV2) Create(userdata ...map[string]interface{}) (VideoV2, error) {
-	video := VideoV2{}
-	form := url.Values{}
-	if len(userdata) > 0 {
-		bytes, _ := json.Marshal(userdata[0])
-		formKey := "user_data"
-		form.Set(formKey, string(bytes))
-	}
-	err := Request(a, "create", form, &video)
+func (a *ApiV2) makeRequest(method string, url string, body io.Reader) (req *http.Request, err error) {
+	req, err = http.NewRequest("POST", url, body)
 	if err != nil {
-		return video, err
+		return req, err
 	}
-	video.Api = a
-	return video, nil
+	a.handleAuth(req)
+	return req, nil
+}
+
+func (a *ApiV2) Create(userdata ...map[string]interface{}) (VideoV2, error) {
+	resp := Resp{}
+	url := a.getBaseUrl() + "/videos"
+	body := bytes.NewBuffer([]byte("{"))
+	if len(userdata) > 0 {
+		body.WriteString(`"user_data":`)
+		b, err := json.Marshal(userdata[0])
+		if err != nil {
+			return resp.Video, err
+		}
+		body.Write(b)
+	}
+	body.WriteString("}")
+	req, err := a.makeRequest("POST", url, body)
+	if err != nil {
+		return resp.Video, err
+	}
+	err = handleReq(a, req, &resp)
+	if err != nil {
+		return resp.Video, err
+	}
+	resp.Video.Api = a
+	return resp.Video, nil
 }

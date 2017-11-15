@@ -1,277 +1,91 @@
 package synq
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var testReqs []*http.Request
-var testValues []url.Values
-var testServer *httptest.Server
-
-func S3Stub() *httptest.Server {
+func handleV1(w http.ResponseWriter, r *http.Request) {
 	var resp []byte
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("here in s3 req", r.RequestURI)
-		if strings.Contains(r.Header.Get("Content-Type"), "multipart/form-data") {
-			key := r.PostFormValue("key")
-			if key != "fakekey" {
-				w.Header().Set("Server", "AmazonS3")
-				w.Header().Set("X-Amz-Id-2", "vodyoLHQBqirb+3l76iCOoh1Q3Abo8Bm9TntCC1TZso2pL3WGv9aUclvCWloOZynTAEGxNf51hI=")
-				w.Header().Set("X-Amz-Request-Id", "9171F45CEDC982B1")
-				w.Header().Set("Date", "Fri, 12 May 2017 04:23:53 GMT")
-				w.Header().Set("Etag", "9a81d889d4ea7adfa90c9b28b4bbc42f")
-				w.Header().Set("Location", key)
-				w.WriteHeader(http.StatusNoContent)
-				return
-			}
-		}
-		// be default, return error
-		resp = loadSample("aws_err.xml")
-		w.Header().Set("Content-Type", "application/xml")
-		w.WriteHeader(http.StatusPreconditionFailed)
-		w.Write(resp)
-	}))
-}
-
-func SynqStub() *httptest.Server {
-	var resp []byte
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("here in synq response", r.RequestURI)
-		testReqs = append(testReqs, r)
-		if r.Method == "POST" {
-			bytes, _ := ioutil.ReadAll(r.Body)
-			//Parse response body
-			v, _ := url.ParseQuery(string(bytes))
-			testValues = append(testValues, v)
-			key := v.Get("api_key")
-			ke := validKey(key)
-			if ke != "" {
-				w.WriteHeader(http.StatusBadRequest)
-				resp = []byte(ke)
-			} else {
-				switch r.RequestURI {
-				case "/v1/video/details":
-					video_id := v.Get("video_id")
-					ke = validVideo(video_id)
-					if ke != "" {
-						w.WriteHeader(http.StatusBadRequest)
-						resp = []byte(ke)
-					} else {
-						resp, _ = ioutil.ReadFile("../sample/video.json")
-					}
-				case "/v1/video/create":
-					resp, _ = ioutil.ReadFile("../sample/new_video.json")
-				case "/v1/video/upload",
-					"/v1/video/uploader",
-					"/v1/video/update",
-					"/v1/video/query":
-					paths := strings.Split(r.RequestURI, "/")
-					action := paths[len(paths)-1]
-					resp = loadSample(action + ".json")
-				default:
-					w.WriteHeader(http.StatusBadRequest)
-					resp = []byte(HTTP_NOT_FOUND)
-				}
-			}
-		}
-		w.Write(resp)
-	}))
-}
-
-func ServerStub() *httptest.Server {
-	var resp string
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("here in req", r.RequestURI)
-		testReqs = append(testReqs, r)
+	if r.Method == "POST" {
 		bytes, _ := ioutil.ReadAll(r.Body)
+		//Parse response body
 		v, _ := url.ParseQuery(string(bytes))
 		testValues = append(testValues, v)
-		if strings.Contains(r.RequestURI, "fail_parse") {
-			resp = ``
+		key := v.Get("api_key")
+		ke := validKey(key)
+		if ke != "" {
 			w.WriteHeader(http.StatusBadRequest)
-		} else if strings.Contains(r.RequestURI, "fail") {
-			resp = `{"message":"fail error"}`
-			w.WriteHeader(http.StatusBadRequest)
-		} else if strings.Contains(r.RequestURI, "path_missing") {
-			w.WriteHeader(http.StatusOK)
-			resp = ``
+			resp = []byte(ke)
 		} else {
-			w.WriteHeader(http.StatusOK)
-			resp = `{"created_at": "2017-02-15T03:01:16.767Z","updated_at": "2017-02-16T03:06:31.794Z", "state":"uploaded"}`
+			switch r.RequestURI {
+			case "/v1/video/details":
+				video_id := v.Get("video_id")
+				ke = validVideo(video_id)
+				if ke != "" {
+					w.WriteHeader(http.StatusBadRequest)
+					resp = []byte(ke)
+				} else {
+					resp, _ = ioutil.ReadFile("../sample/video.json")
+				}
+			case "/v1/video/create":
+				resp, _ = ioutil.ReadFile("../sample/new_video.json")
+			case "/v1/video/upload",
+				"/v1/video/uploader",
+				"/v1/video/update",
+				"/v1/video/query":
+				paths := strings.Split(r.RequestURI, "/")
+				action := paths[len(paths)-1]
+				resp = loadSample(action + ".json")
+			default:
+				w.WriteHeader(http.StatusBadRequest)
+				resp = []byte(HTTP_NOT_FOUND)
+			}
 		}
-		w.Write([]byte(resp))
-	}))
-}
-
-type BadReader struct {
-}
-
-func (b BadReader) Read(p []byte) (n int, err error) {
-	return 0, errors.New("failed to read")
-}
-
-func loadSample(name string) (data []byte) {
-	data, err := ioutil.ReadFile("../sample/" + name)
-	if err != nil {
-		log.Panicf("could not load sample file %s : '%s'", name, err.Error())
-	}
-	return data
-}
-
-func setupTestServer(generic bool) {
-	if testServer != nil {
-		testServer.Close()
-	}
-	testReqs = testReqs[:0]
-	testValues = testValues[:0]
-	if generic {
-		testServer = ServerStub()
-	} else {
-		testServer = SynqStub()
+		w.Write(resp)
 	}
 }
 
-func setupTestApi(key string, generic bool) Api {
+func setupTestApi(key string, type_ ...string) Api {
 	api := Api{}
 	api.Key = key
-	setupTestServer(generic)
+	setupTestServer(type_...)
 	api.Url = testServer.URL
 	return api
 }
 
-func TestNew(t *testing.T) {
-	assert := assert.New(t)
-	api := New("key")
-	assert.NotNil(api)
-	assert.Equal("key", api.key())
-	assert.Equal(time.Duration(DEFAULT_TIMEOUT_MS)*time.Millisecond, api.timeout(""))
-	assert.Equal(time.Duration(DEFAULT_UPLOAD_MS)*time.Millisecond, api.timeout("upload"))
-	api = New("key", time.Duration(15)*time.Second)
-	assert.Equal("key", api.key())
-	assert.Equal(time.Duration(15)*time.Second, api.timeout(""))
-	api = New("key", time.Duration(30)*time.Second, time.Duration(100)*time.Second)
-	assert.Equal("key", api.key())
-	assert.Equal(time.Duration(30)*time.Second, api.timeout(""))
-	assert.Equal(time.Duration(100)*time.Second, api.timeout("upload"))
+func validKey(key string) string {
+	if len(key) != 32 {
+		return INVALID_UUID
+	} else if key != API_KEY {
+		return API_KEY_NOT_FOUND
+	}
+	return ""
 }
 
-func TestParseAwsResp(t *testing.T) {
-	assert := assert.New(t)
-	var v interface{}
-	resp := http.Response{
-		StatusCode: 204,
+func validVideo(id string) string {
+	if len(id) != 32 {
+		return INVALID_UUID
+	} else if id != VIDEO_ID {
+		return VIDEO_NOT_FOUND
 	}
-	err := errors.New("failure")
-	e := parseAwsResp(&resp, err, v)
-	assert.NotNil(e)
-	assert.Equal("failure", e.Error())
-
-	br := BadReader{}
-	resp = http.Response{
-		StatusCode: 412,
-		Body:       ioutil.NopCloser(br),
-	}
-	e = parseAwsResp(&resp, nil, v)
-	assert.NotNil(e)
-	assert.Equal("failed to read", e.Error())
-
-	err_msg := loadSample("upload.json")
-	resp = http.Response{
-		StatusCode: 412,
-		Body:       ioutil.NopCloser(bytes.NewBuffer(err_msg)),
-	}
-	e = parseAwsResp(&resp, nil, v)
-	assert.NotNil(e)
-	assert.Equal("EOF", e.Error())
-
-	err_msg = loadSample("aws_err.xml")
-	resp = http.Response{
-		StatusCode: 412,
-		Body:       ioutil.NopCloser(bytes.NewBuffer(err_msg)),
-	}
-	e = parseAwsResp(&resp, nil, v)
-	assert.NotNil(e)
-	assert.Equal("At least one of the pre-conditions you specified did not hold", e.Error())
-
-	resp = http.Response{
-		StatusCode: 204,
-	}
-	e = parseAwsResp(&resp, nil, v)
-	assert.Nil(e)
-}
-
-func TestParseSynqResp(t *testing.T) {
-	assert := assert.New(t)
-	var v interface{}
-	resp := http.Response{
-		StatusCode: 200,
-	}
-	err := errors.New("failure")
-	e := parseSynqResp(&resp, err, v)
-	assert.NotNil(e)
-	assert.Equal("failure", e.Error())
-	br := BadReader{}
-	resp = http.Response{
-		StatusCode: 200,
-		Body:       ioutil.NopCloser(br),
-	}
-	e = parseSynqResp(&resp, nil, v)
-	assert.NotNil(e)
-	assert.Equal("failed to read", e.Error())
-	err_msg := loadSample("aws_err.xml")
-	resp = http.Response{
-		StatusCode: 400,
-		Body:       ioutil.NopCloser(bytes.NewBuffer(err_msg)),
-	}
-	e = parseSynqResp(&resp, nil, v)
-	assert.NotNil(e)
-	assert.Equal("could not parse : <Error>\n  <Code>PreconditionFailed</Code>\n  <Message>At least one of the pre-conditions you specified did not hold</Message>\n  <Condition>Bucket POST must be of the enclosure-type multipart/form-data</Condition>\n  <RequestId>634081169DAFE345</RequestId>\n  <HostId>80jHDkIWiVJd6ofogZSnvEfIxEUk35ULsvWPYFcH5f6VSUMPhCAevKwzLWN+Iw6gGTEvgogepSY=</HostId>\n</Error>\n", e.Error())
-	err_msg = []byte(INVALID_UUID)
-	resp = http.Response{
-		StatusCode: 400,
-		Body:       ioutil.NopCloser(bytes.NewBuffer(err_msg)),
-	}
-	e = parseSynqResp(&resp, nil, v)
-	assert.NotNil(e)
-	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", e.Error())
-	msg := []byte("<xml>")
-	resp = http.Response{
-		StatusCode: 200,
-		Body:       ioutil.NopCloser(bytes.NewBuffer(msg)),
-	}
-	e = parseSynqResp(&resp, nil, v)
-	assert.NotNil(e)
-	assert.Equal("could not parse : <xml>", e.Error())
-	msg = loadSample("video.json")
-	var video Video
-	resp = http.Response{
-		StatusCode: 200,
-		Body:       ioutil.NopCloser(bytes.NewBuffer(msg)),
-	}
-	e = parseSynqResp(&resp, nil, &video)
-	assert.Nil(e)
-	assert.Equal(VIDEO_ID, video.Id)
-	assert.NotEmpty(video.Input)
+	return ""
 }
 
 func TestMakeReq(t *testing.T) {
 	assert := require.New(t)
-	api := setupTestApi("fake", false)
+	api := setupTestApi("fake")
 	form := make(url.Values)
-	req := api.makeReq("create", form)
+	req, err := api.makeReq("create", form)
+	assert.Nil(err)
 	assert.NotNil(req)
 	assert.Equal("/v1/video/create", req.URL.Path)
 	assert.Equal("POST", req.Method)
@@ -280,9 +94,40 @@ func TestMakeReq(t *testing.T) {
 	assert.Equal("api_key=fake", string(body))
 }
 
+func TestHandlePostFail(t *testing.T) {
+	api := setupTestApi("fake", "generic")
+	assert := assert.New(t)
+	form := url.Values{}
+	video := Video{}
+	form.Set("test", "value")
+	err := api.handlePost("path_missing", form, &video)
+	assert.NotNil(err)
+	assert.Equal("could not parse : ", err.Error())
+	api.Url = ":://noprotocol.com"
+	err = api.handlePost("path", form, &video)
+	assert.NotNil(err)
+	assert.Equal("parse :://noprotocol.com/v1/video/path: missing protocol scheme", err.Error())
+}
+
+func TestHandlePost(t *testing.T) {
+	api := setupTestApi("fake", "generic")
+	assert := assert.New(t)
+	form := url.Values{}
+	video := Video{}
+	form.Set("test", "value")
+	err := api.handlePost("create", form, &video)
+	assert.Nil(err)
+	assert.Len(testReqs, 1)
+	r := testReqs[0]
+	v := testValues[0]
+	assert.Equal("/v1/video/create", r.RequestURI)
+	assert.Equal("value", v.Get("test"))
+	assert.Equal("fake", v.Get("api_key"))
+}
+
 func TestCreate(t *testing.T) {
 	assert := require.New(t)
-	api := setupTestApi("fake", false)
+	api := setupTestApi("fake")
 	assert.NotNil(api)
 	_, e := api.Create()
 	assert.NotNil(e)
@@ -319,7 +164,7 @@ func TestCreate(t *testing.T) {
 
 func TestQuery(t *testing.T) {
 	assert := require.New(t)
-	api := setupTestApi(API_KEY, false)
+	api := setupTestApi(API_KEY)
 	assert.NotNil(api)
 	filter := `if (video.state == "uploaded") { return video }`
 	videos, err := api.Query(filter)
@@ -336,7 +181,7 @@ func TestQuery(t *testing.T) {
 
 func TestGetVideo(t *testing.T) {
 	assert := assert.New(t)
-	api := setupTestApi("fake", false)
+	api := setupTestApi("fake")
 	assert.NotNil(api)
 	_, e := api.GetVideo(VIDEO_ID)
 	assert.NotNil(e)
@@ -363,7 +208,7 @@ func TestGetVideo(t *testing.T) {
 
 func TestUpdateVideo(t *testing.T) {
 	assert := assert.New(t)
-	api := setupTestApi(API_KEY, false)
+	api := setupTestApi(API_KEY)
 	assert.NotNil(api)
 	source := "video.userdata = {};"
 	video, e := api.Update(VIDEO_ID, source)
