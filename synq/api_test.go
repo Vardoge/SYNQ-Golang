@@ -1,7 +1,9 @@
 package synq
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -50,8 +52,8 @@ func handleV1(w http.ResponseWriter, r *http.Request) {
 				resp = []byte(HTTP_NOT_FOUND)
 			}
 		}
-		w.Write(resp)
 	}
+	w.Write(resp)
 }
 
 func setupTestApi(key string, type_ ...string) Api {
@@ -125,6 +127,61 @@ func TestHandlePost(t *testing.T) {
 	assert.Equal("fake", v.Get("api_key"))
 }
 
+func TestParseSynqResp(t *testing.T) {
+	assert := assert.New(t)
+	var v interface{}
+	resp := http.Response{
+		StatusCode: 200,
+	}
+	a := Api{}
+	err := errors.New("failure")
+	e := parseSynqResp(a, &resp, err, v)
+	assert.NotNil(e)
+	assert.Equal("failure", e.Error())
+	br := BadReader{}
+	resp = http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(br),
+	}
+	e = parseSynqResp(a, &resp, nil, v)
+	assert.NotNil(e)
+	assert.Equal("failed to read", e.Error())
+	err_msg := loadSample("aws_err.xml")
+	resp = http.Response{
+		StatusCode: 400,
+		Body:       ioutil.NopCloser(bytes.NewBuffer(err_msg)),
+	}
+	e = parseSynqResp(a, &resp, nil, v)
+	assert.NotNil(e)
+	assert.Equal("could not parse : <Error>\n  <Code>PreconditionFailed</Code>\n  <Message>At least one of the pre-conditions you specified did not hold</Message>\n  <Condition>Bucket POST must be of the enclosure-type multipart/form-data</Condition>\n  <RequestId>634081169DAFE345</RequestId>\n  <HostId>80jHDkIWiVJd6ofogZSnvEfIxEUk35ULsvWPYFcH5f6VSUMPhCAevKwzLWN+Iw6gGTEvgogepSY=</HostId>\n</Error>\n", e.Error())
+	err_msg = []byte(INVALID_UUID)
+	resp = http.Response{
+		StatusCode: 400,
+		Body:       ioutil.NopCloser(bytes.NewBuffer(err_msg)),
+	}
+	e = parseSynqResp(a, &resp, nil, v)
+	assert.NotNil(e)
+	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", e.Error())
+	msg := []byte("<xml>")
+	resp = http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(bytes.NewBuffer(msg)),
+	}
+	e = parseSynqResp(a, &resp, nil, v)
+	assert.NotNil(e)
+	assert.Equal("could not parse : <xml>", e.Error())
+	msg = loadSample("video.json")
+	var video Video
+	resp = http.Response{
+		StatusCode: 200,
+		Body:       ioutil.NopCloser(bytes.NewBuffer(msg)),
+	}
+	e = parseSynqResp(a, &resp, nil, &video)
+	assert.Nil(e)
+	assert.Equal(VIDEO_ID, video.Id)
+	assert.NotEmpty(video.Input)
+}
+
 func TestCreate(t *testing.T) {
 	assert := require.New(t)
 	api := setupTestApi("fake")
@@ -180,7 +237,7 @@ func TestQuery(t *testing.T) {
 }
 
 func TestGetVideo(t *testing.T) {
-	assert := assert.New(t)
+	assert := require.New(t)
 	api := setupTestApi("fake")
 	assert.NotNil(api)
 	_, e := api.GetVideo(VIDEO_ID)
@@ -207,7 +264,7 @@ func TestGetVideo(t *testing.T) {
 }
 
 func TestUpdateVideo(t *testing.T) {
-	assert := assert.New(t)
+	assert := require.New(t)
 	api := setupTestApi(API_KEY)
 	assert.NotNil(api)
 	source := "video.userdata = {};"

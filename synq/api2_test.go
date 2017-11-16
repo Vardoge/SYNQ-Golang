@@ -36,6 +36,13 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 				}
 				w.WriteHeader(http.StatusCreated)
 			}
+		case "/v2/videos/" + V2_VIDEO_ID:
+			if r.Method != "GET" {
+				w.WriteHeader(http.StatusNotFound)
+			} else {
+				resp = loadSample("new_video2_meta")
+				w.WriteHeader(http.StatusOK)
+			}
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
@@ -72,4 +79,14 @@ func TestCreate2(t *testing.T) {
 	video, err := api.Create()
 	assert.Nil(err)
 	assert.Equal(V2_VIDEO_ID, video.Id)
+}
+
+func TestGet2(t *testing.T) {
+	assert := require.New(t)
+	api := setupTestApiV2(TEST_AUTH)
+	_, err := api.GetVideo("")
+	assert.NotNil(err)
+	video, err := api.GetVideo(V2_VIDEO_ID)
+	assert.Nil(err)
+	assert.Equal(video.Id, V2_VIDEO_ID)
 }
