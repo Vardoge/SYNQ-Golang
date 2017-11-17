@@ -42,7 +42,7 @@ func (a *ApiV2) CreateAccount(name string, type_ string) string {
 }
 
 func (a *ApiV2) makeRequest(method string, url string, body io.Reader) (req *http.Request, err error) {
-	req, err = http.NewRequest("POST", url, body)
+	req, err = http.NewRequest(method, url, body)
 	if err != nil {
 		return req, err
 	}

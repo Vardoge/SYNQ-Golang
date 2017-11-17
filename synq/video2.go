@@ -1,6 +1,7 @@
 package synq
 
 import (
+	"bytes"
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
@@ -18,6 +19,22 @@ type VideoV2 struct {
 	CreatedAt time.Time              `json:"created_at"`
 	UpdatedAt time.Time              `json:"updated_at"`
 	Api       *ApiV2                 `json:"-"`
+	Assets    []Asset
+}
+
+type Asset struct {
+	Id       string        `json:"id"`
+	Type     string        `json:"type"`
+	VideoId  string        `json:"video_id"`
+	Location string        `json:"location"`
+	State    string        `json:"state"`
+	Account  string        `json:"account_id"`
+	Metadata VideoMetadata `json:"metadata"`
+}
+
+type VideoMetadata struct {
+	JobId    string `json:"job_id"`
+	JobState string `json:"job_state"`
 }
 
 func (v VideoV2) Value() (driver.Value, error) {
@@ -35,5 +52,26 @@ func (v *VideoV2) Scan(src interface{}) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (v *VideoV2) AddAsset(asset Asset) error {
+	url := v.Api.getBaseUrl() + "/assets"
+	b, _ := json.Marshal(asset)
+	body := bytes.NewBuffer(b)
+	req, err := v.Api.makeRequest("POST", url, body)
+	if err != nil {
+		return err
+	}
+	a := Asset{}
+	err = handleReq(v.Api, req, &a)
+	if err != nil {
+		return err
+	}
+	v.Assets = append(v.Assets, a)
+	return nil
+}
+
+func (a *Asset) Update() error {
 	return nil
 }

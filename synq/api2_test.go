@@ -24,24 +24,34 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 		resp = []byte(k)
 	} else {
 		switch r.URL.Path {
-		case "/v2/videos":
+		case "/v2/videos",
+			"/v2/assets":
 			if r.Method != "POST" {
 				w.WriteHeader(http.StatusNotFound)
 			} else {
-				bytes, _ := ioutil.ReadAll(r.Body)
-				if strings.Contains(string(bytes), "user_data") {
-					resp = loadSample("new_video2_meta")
-				} else {
-					resp = loadSample("new_video2")
+				if strings.Contains(r.URL.Path, "videos") {
+					bytes, _ := ioutil.ReadAll(r.Body)
+					if strings.Contains(string(bytes), "user_data") {
+						resp = loadSample("new_video2_meta")
+					} else {
+						resp = loadSample("new_video2")
+					}
+				} else if strings.Contains(r.URL.Path, "assets") {
+					resp = loadSample("new_asset")
 				}
 				w.WriteHeader(http.StatusCreated)
 			}
-		case "/v2/videos/" + V2_VIDEO_ID:
+		case "/v2/videos/" + V2_VIDEO_ID,
+			"/v2/assets/" + ASSET_ID:
 			if r.Method != "GET" {
 				w.WriteHeader(http.StatusNotFound)
 			} else {
-				resp = loadSample("new_video2_meta")
-				w.WriteHeader(http.StatusOK)
+				if strings.Contains(r.URL.Path, "videos") {
+					resp = loadSample("new_video2_meta")
+					w.WriteHeader(http.StatusOK)
+				} else if strings.Contains(r.URL.Path, "assets") {
+					resp = loadSample("asset")
+				}
 			}
 		default:
 			w.WriteHeader(http.StatusNotFound)
@@ -68,6 +78,18 @@ func setupTestApiV2(key string) ApiV2 {
 	setupTestServer("v2")
 	api.Url = testServer.URL
 	return api
+}
+
+func TestMakeReq2(t *testing.T) {
+	assert := require.New(t)
+	api := setupTestApiV2("fake")
+	body := strings.NewReader("")
+	req, err := api.makeRequest("POST", "url", body)
+	assert.Nil(err)
+	assert.Equal("POST", req.Method)
+	req, err = api.makeRequest("GET", "url", body)
+	assert.Nil(err)
+	assert.Equal("GET", req.Method)
 }
 
 func TestCreate2(t *testing.T) {
