@@ -21,6 +21,8 @@ type Asset struct {
 	Location  string                 `json:"location"`
 	State     string                 `json:"state"`
 	Type      string                 `json:"type"`
+	CreatedAt string                 `json:"created_at"`
+	UpdatedAt string                 `json:"updated_at"`
 	Metadata  map[string]interface{} `json:"metadata"`
 	Api       ApiV2                  `json:"-"`
 }
