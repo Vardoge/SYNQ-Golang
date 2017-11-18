@@ -112,3 +112,10 @@ func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 	}
 	return resp.Video, nil
 }
+
+func (a *ApiV2) GetAssetList() ([]Asset, error) {
+	list := AssetList{}
+	url := a.getBaseUrl() + "/assets"
+	err := a.handleGet(url, &list)
+	return list.Assets, err
+}

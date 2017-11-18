@@ -27,13 +27,6 @@ type Asset struct {
 	Api       ApiV2                  `json:"-"`
 }
 
-func (a *ApiV2) GetAssetList() ([]Asset, error) {
-	list := AssetList{}
-	url := a.getBaseUrl() + "/assets"
-	err := a.handleGet(url, &list)
-	return list.Assets, err
-}
-
 func (a *Asset) Update() error {
 	url := a.Api.getBaseUrl() + "/assets/" + a.Id
 	data, _ := json.Marshal(a)
