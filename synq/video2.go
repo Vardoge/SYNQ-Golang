@@ -22,17 +22,6 @@ type VideoV2 struct {
 	Assets    []Asset
 }
 
-type Asset struct {
-	Id       string        `json:"id"`
-	Type     string        `json:"type"`
-	VideoId  string        `json:"video_id"`
-	Location string        `json:"location"`
-	State    string        `json:"state"`
-	Account  string        `json:"account_id"`
-	Metadata VideoMetadata `json:"metadata"`
-	Video    VideoV2       `json:"-"`
-}
-
 type VideoMetadata struct {
 	JobId    string `json:"job_id"`
 	JobState string `json:"job_state"`
@@ -56,47 +45,36 @@ func (v *VideoV2) Scan(src interface{}) error {
 	return nil
 }
 
-func (v *VideoV2) AddAsset(asset Asset) error {
-	url := v.Api.getBaseUrl() + "/assets"
-	b, _ := json.Marshal(asset)
-	body := bytes.NewBuffer(b)
-	req, err := v.Api.makeRequest("POST", url, body)
+func (v *VideoV2) GetVideoAssetList() error {
+	list := AssetList{}
+	url := v.Api.getBaseUrl() + "/videos/" + v.Id + "/assets"
+	err := v.Api.handleGet(url, &list)
 	if err != nil {
 		return err
 	}
-	a := Asset{}
-	err = handleReq(v.Api, req, &a)
-	if err != nil {
-		return err
-	}
-	v.Assets = append(v.Assets, a)
+	v.Assets = list.Assets
 	return nil
 }
 
-func (v *VideoV2) GetAssets() (assets []Asset, err error) {
+func (v VideoV2) GetAsset(assetId string) (Asset, error) {
+	url := v.Api.getBaseUrl() + "/assets/" + assetId
+	var asset Asset
+	asset.Api = *v.Api
+	err := asset.handleAssetReq("GET", url, nil)
+	return asset, err
+}
+
+func (v VideoV2) CreateAsset(state, fileType, location string) (Asset, error) {
+	var asset Asset
+	asset.Api = *v.Api
+	asset.VideoId = v.Id
+	asset.State = state
+	asset.Type = fileType
+	asset.Location = location
+
 	url := v.Api.getBaseUrl() + "/assets"
-	err = v.Api.handleGet(url, assets)
-	return assets, err
-}
-
-func (v *VideoV2) GetAsset(id string) (a Asset, err error) {
-	url := v.Api.getBaseUrl() + "/assets/" + id
-	err = v.Api.handleGet(url, &a)
-	return a, err
-}
-
-func (a *Asset) Update() error {
-	api := a.Video.Api
-	url := api.getBaseUrl() + "/assets/" + a.Id
-	b, _ := json.Marshal(*a)
-	body := bytes.NewBuffer(b)
-	req, err := api.makeRequest("PUT", url, body)
-	if err != nil {
-		return err
-	}
-	err = handleReq(api, req, a)
-	if err != nil {
-		return err
-	}
-	return nil
+	data, _ := json.Marshal(asset)
+	body := bytes.NewBuffer(data)
+	err := asset.handleAssetReq("POST", url, body)
+	return asset, err
 }

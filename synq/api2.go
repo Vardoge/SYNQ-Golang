@@ -19,6 +19,10 @@ type ApiV2 struct {
 	BaseApi
 }
 
+func (a ApiV2) version() string {
+	return "v2"
+}
+
 func NewV2(token string, timeouts ...time.Duration) ApiV2 {
 	base := New(token, timeouts...)
 	base.Url = DEFAULT_V2_URL
