@@ -27,58 +27,6 @@ type Asset struct {
 	Api       ApiV2                  `json:"-"`
 }
 
-func (a *ApiV2) GetAssetList() ([]Asset, error) {
-	list := AssetList{}
-	url := a.getBaseUrl() + "/assets"
-	req, err := a.makeRequest("GET", url, nil)
-	if err != nil {
-		return list.Assets, err
-	}
-	err = handleReq(a, req, &list)
-	if err != nil {
-		return list.Assets, err
-	}
-	return list.Assets, nil
-}
-
-func (v *VideoV2) GetVideoAssetList() error {
-	list := AssetList{}
-	url := v.Api.getBaseUrl() + "/videos/" + v.Id + "/assets"
-	req, err := v.Api.makeRequest("GET", url, nil)
-	if err != nil {
-		return err
-	}
-	err = handleReq(v.Api, req, &list)
-	if err != nil {
-		return err
-	}
-	v.Assets = list.Assets
-	return nil
-}
-
-func (v VideoV2) GetAsset(assetId string) (Asset, error) {
-	url := v.Api.getBaseUrl() + "/assets/" + assetId
-	var asset Asset
-	asset.Api = *v.Api
-	err := asset.handleAssetReq("GET", url, nil)
-	return asset, err
-}
-
-func (v VideoV2) CreateAsset(state, fileType, location string) (Asset, error) {
-	var asset Asset
-	asset.Api = *v.Api
-	asset.VideoId = v.Id
-	asset.State = state
-	asset.Type = fileType
-	asset.Location = location
-
-	url := v.Api.getBaseUrl() + "/assets"
-	data, _ := json.Marshal(asset)
-	body := bytes.NewBuffer(data)
-	err := asset.handleAssetReq("POST", url, body)
-	return asset, err
-}
-
 func (a *Asset) Update() error {
 	url := a.Api.getBaseUrl() + "/assets/" + a.Id
 	data, _ := json.Marshal(a)

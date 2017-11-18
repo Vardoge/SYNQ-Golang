@@ -2,10 +2,15 @@ package synq
 
 import (
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
+
 	"time"
+
+	"github.com/SYNQfm/helpers/common"
 )
 
 const (
@@ -14,6 +19,15 @@ const (
 
 type Api struct {
 	BaseApi
+}
+
+type ErrorResp struct {
+	//"url": "http://docs.synq.fm/api/v1/error/some_error_code",
+	//"name": "Some error occurred.",
+	//"message": "A lengthy, human-readable description of the error that has occurred."
+	Url     string
+	Name    string
+	Message string
 }
 
 func (a Api) version() string {
@@ -50,6 +64,17 @@ func (a *Api) Create(userdata ...map[string]interface{}) (Video, error) {
 	}
 	video.Api = a
 	return video, nil
+}
+
+func (a Api) ParseError(bytes []byte) error {
+	var eResp ErrorResp
+	err := json.Unmarshal(bytes, &eResp)
+	if err != nil {
+		log.Printf("could not parse error response : %s\n", err.Error())
+		return common.NewError("could not parse : %s", string(bytes))
+	}
+	log.Printf("Received %v\n", eResp)
+	return errors.New(eResp.Message)
 }
 
 // Helper function to get details for a video, will create video object

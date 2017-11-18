@@ -23,25 +23,51 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		resp = []byte(k)
 	} else {
+		type_ := "video"
+		if strings.Contains(r.URL.Path, "assets") {
+			type_ = "asset"
+		}
 		switch r.URL.Path {
-		case "/v2/videos":
-			if r.Method != "POST" {
-				w.WriteHeader(http.StatusNotFound)
-			} else {
-				bytes, _ := ioutil.ReadAll(r.Body)
-				if strings.Contains(string(bytes), "user_data") {
-					resp = loadSample("new_video2_meta")
+		case "/v2/videos/" + V2_VIDEO_ID,
+			"/v2/assets/" + ASSET_ID:
+			if r.Method == "GET" || r.Method == "PUT" {
+				if type_ == "asset" {
+					resp = loadSample("asset_uploaded")
 				} else {
-					resp = loadSample("new_video2")
+					resp = loadSample("new_video2_meta")
 				}
-				w.WriteHeader(http.StatusCreated)
+				w.WriteHeader(http.StatusOK)
+			} else if r.Method == "DELETE" {
+				w.WriteHeader(http.StatusNoContent)
+			} else {
+				w.WriteHeader(http.StatusNotFound)
 			}
-		case "/v2/assets":
+		case "/v2/videos/" + V2_VIDEO_ID + "/assets":
 			if r.Method != "GET" {
 				w.WriteHeader(http.StatusNotFound)
 			} else {
 				resp = loadSample("asset_list")
+				w.WriteHeader(http.StatusOK)
+			}
+		case "/v2/videos",
+			"/v2/assets":
+			if r.Method != "POST" {
+				resp = loadSample(type_ + "_list")
+			} else if r.Method == "POST" {
+				if type_ == "video" {
+					bytes, _ := ioutil.ReadAll(r.Body)
+					if strings.Contains(string(bytes), "user_data") {
+						resp = loadSample("new_video2_meta")
+					} else {
+						resp = loadSample("new_video2")
+					}
+				} else if type_ == "asset" {
+					resp = loadSample("asset_created")
+					w.WriteHeader(http.StatusCreated)
+				}
 				w.WriteHeader(http.StatusCreated)
+			} else {
+				w.WriteHeader(http.StatusNotFound)
 			}
 		default:
 			w.WriteHeader(http.StatusNotFound)
@@ -70,6 +96,18 @@ func setupTestApiV2(key string) ApiV2 {
 	return api
 }
 
+func TestMakeReq2(t *testing.T) {
+	assert := require.New(t)
+	api := setupTestApiV2("fake")
+	body := strings.NewReader("")
+	req, err := api.makeRequest("POST", "url", body)
+	assert.Nil(err)
+	assert.Equal("POST", req.Method)
+	req, err = api.makeRequest("GET", "url", body)
+	assert.Nil(err)
+	assert.Equal("GET", req.Method)
+}
+
 func TestCreate2(t *testing.T) {
 	assert := require.New(t)
 	api := setupTestApiV2("fake")
@@ -79,4 +117,14 @@ func TestCreate2(t *testing.T) {
 	video, err := api.Create()
 	assert.Nil(err)
 	assert.Equal(V2_VIDEO_ID, video.Id)
+}
+
+func TestGet2(t *testing.T) {
+	assert := require.New(t)
+	api := setupTestApiV2(TEST_AUTH)
+	_, err := api.GetVideo("")
+	assert.NotNil(err)
+	video, err := api.GetVideo(V2_VIDEO_ID)
+	assert.Nil(err)
+	assert.Equal(video.Id, V2_VIDEO_ID)
 }
