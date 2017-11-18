@@ -24,21 +24,23 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 		resp = []byte(k)
 	} else {
 		switch r.URL.Path {
-		case "/v2/videos",
-			"/v2/assets":
+		case "/v2/assets":
+			if r.Method != "GET" {
+				w.WriteHeader(http.StatusNotFound)
+			} else {
+				resp = loadSample("asset_list")
+				w.WriteHeader(http.StatusCreated)
+			}
+		case "/v2/videos":
 			if r.Method != "POST" {
 				w.WriteHeader(http.StatusNotFound)
 			} else {
-				if strings.Contains(r.URL.Path, "videos") {
 					bytes, _ := ioutil.ReadAll(r.Body)
 					if strings.Contains(string(bytes), "user_data") {
 						resp = loadSample("new_video2_meta")
 					} else {
 						resp = loadSample("new_video2")
 					}
-				} else if strings.Contains(r.URL.Path, "assets") {
-					resp = loadSample("new_asset")
-				}
 				w.WriteHeader(http.StatusCreated)
 			}
 		case "/v2/videos/" + V2_VIDEO_ID,
@@ -52,7 +54,6 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 					resp = loadSample("asset")
 				}
 				w.WriteHeader(http.StatusOK)
-			}
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}

@@ -77,7 +77,9 @@ func parseSynqResp(a api, resp *http.Response, err error, v interface{}) error {
 		log.Println("could not read resp body")
 		return err
 	}
-
+	if resp.StatusCode == 204 { // Delete does not have response body
+		return nil
+	}
 	if resp.StatusCode != 200 && resp.StatusCode != 201 {
 		return a.ParseError(responseAsBytes)
 	}
