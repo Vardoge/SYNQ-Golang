@@ -84,6 +84,9 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 		log.Println("could not parse resp body")
 		return err
 	}
+	if resp.StatusCode == 204 { // Delete does not have response body
+		return nil
+	}
 	if resp.StatusCode != 200 && resp.StatusCode != 201 {
 		var eResp ErrorResp
 		err = json.Unmarshal(responseAsBytes, &eResp)

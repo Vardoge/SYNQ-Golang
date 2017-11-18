@@ -36,6 +36,13 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 				}
 				w.WriteHeader(http.StatusCreated)
 			}
+		case "/v2/assets":
+			if r.Method != "GET" {
+				w.WriteHeader(http.StatusNotFound)
+			} else {
+				resp = loadSample("asset_list")
+				w.WriteHeader(http.StatusCreated)
+			}
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}

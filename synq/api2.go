@@ -28,6 +28,7 @@ type VideoV2 struct {
 	Metadata  map[string]interface{} `json:"metadata"`
 	CreatedAt time.Time              `json:"created_at"`
 	UpdatedAt time.Time              `json:"updated_at"`
+	Assets    []Asset                `json:"assets"`
 	Api       *ApiV2                 `json:"-"`
 }
 
@@ -72,7 +73,7 @@ func (a *ApiV2) CreateAccount(name string, type_ string) string {
 }
 
 func (a *ApiV2) makeRequest(method string, url string, body io.Reader) (req *http.Request, err error) {
-	req, err = http.NewRequest("POST", url, body)
+	req, err = http.NewRequest(method, url, body)
 	if err != nil {
 		return req, err
 	}
