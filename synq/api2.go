@@ -62,6 +62,15 @@ func (a ApiV2) ParseError(bytes []byte) error {
 	return errors.New(resp.Message)
 }
 
+func (a *ApiV2) handleGet(url string, v interface{}) error {
+	body := bytes.NewBufferString("")
+	req, err := a.makeRequest("GET", url, body)
+	if err != nil {
+		return err
+	}
+	return handleReq(a, req, v)
+}
+
 func (a *ApiV2) Create(userdata ...map[string]interface{}) (VideoV2, error) {
 	resp := VideoResp{}
 	video := VideoV2{}
@@ -92,7 +101,7 @@ func (a *ApiV2) Create(userdata ...map[string]interface{}) (VideoV2, error) {
 // Helper function to get details for a video, will create video object
 func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 	var resp VideoResp
-	url := a.getBaseUrl() + "/video/" + id
+	url := a.getBaseUrl() + "/videos/" + id
 	req, err := a.makeRequest("GET", url, nil)
 	if err != nil {
 		return video, err

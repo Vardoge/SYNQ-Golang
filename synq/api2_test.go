@@ -43,15 +43,15 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 			}
 		case "/v2/videos/" + V2_VIDEO_ID,
 			"/v2/assets/" + ASSET_ID:
-			if r.Method != "GET" {
+			if r.Method == "POST" {
 				w.WriteHeader(http.StatusNotFound)
 			} else {
 				if strings.Contains(r.URL.Path, "videos") {
 					resp = loadSample("new_video2_meta")
-					w.WriteHeader(http.StatusOK)
 				} else if strings.Contains(r.URL.Path, "assets") {
 					resp = loadSample("asset")
 				}
+				w.WriteHeader(http.StatusOK)
 			}
 		default:
 			w.WriteHeader(http.StatusNotFound)

@@ -30,6 +30,7 @@ type Asset struct {
 	State    string        `json:"state"`
 	Account  string        `json:"account_id"`
 	Metadata VideoMetadata `json:"metadata"`
+	Video    VideoV2       `json:"-"`
 }
 
 type VideoMetadata struct {
@@ -72,6 +73,30 @@ func (v *VideoV2) AddAsset(asset Asset) error {
 	return nil
 }
 
+func (v *VideoV2) GetAssets() (assets []Asset, err error) {
+	url := v.Api.getBaseUrl() + "/assets"
+	err = v.Api.handleGet(url, assets)
+	return assets, err
+}
+
+func (v *VideoV2) GetAsset(id string) (a Asset, err error) {
+	url := v.Api.getBaseUrl() + "/assets/" + id
+	err = v.Api.handleGet(url, &a)
+	return a, err
+}
+
 func (a *Asset) Update() error {
+	api := a.Video.Api
+	url := api.getBaseUrl() + "/assets/" + a.Id
+	b, _ := json.Marshal(*a)
+	body := bytes.NewBuffer(b)
+	req, err := api.makeRequest("PUT", url, body)
+	if err != nil {
+		return err
+	}
+	err = handleReq(api, req, a)
+	if err != nil {
+		return err
+	}
 	return nil
 }
