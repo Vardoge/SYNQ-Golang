@@ -20,7 +20,7 @@ const (
 func setupTestVideoV2() VideoV2 {
 	api := setupTestApiV2(TEST_AUTH)
 	video, _ := api.Create()
-	setupTestServer("v2")
+	SetupTestServer("v2")
 	video.Api.Url = testServer.URL
 	return video
 }

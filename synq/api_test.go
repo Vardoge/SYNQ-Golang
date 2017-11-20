@@ -59,7 +59,7 @@ func handleV1(w http.ResponseWriter, r *http.Request) {
 func setupTestApi(key string, type_ ...string) Api {
 	api := Api{}
 	api.Key = key
-	setupTestServer(type_...)
+	SetupTestServer(type_...)
 	api.Url = testServer.URL
 	return api
 }

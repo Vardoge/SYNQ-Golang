@@ -99,7 +99,7 @@ func loadSample(name string) (data []byte) {
 	return data
 }
 
-func setupTestServer(type_ ...string) {
+func SetupTestServer(type_ ...string) {
 	if testServer != nil {
 		testServer.Close()
 	}

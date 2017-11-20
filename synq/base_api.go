@@ -25,7 +25,7 @@ type BaseApi struct {
 	Version       string
 }
 
-type api interface {
+type ApiF interface {
 	key() string
 	url() string
 	version() string
@@ -66,7 +66,7 @@ func parseAwsResp(resp *http.Response, err error, v interface{}) error {
 	return errors.New(xmlErr.Message)
 }
 
-func parseSynqResp(a api, resp *http.Response, err error, v interface{}) error {
+func parseSynqResp(a ApiF, resp *http.Response, err error, v interface{}) error {
 	if err != nil {
 		log.Println("could not make http request")
 		return err
@@ -108,6 +108,10 @@ func New(key string, timeouts ...time.Duration) BaseApi {
 	}
 }
 
+func (b *BaseApi) SetUrl(url string) {
+	b.Url = url
+}
+
 func (b BaseApi) timeout(type_ string) time.Duration {
 	if type_ == "upload" {
 		return b.UploadTimeout
@@ -124,13 +128,13 @@ func (b BaseApi) key() string {
 	return b.Key
 }
 
-func handleReq(a api, req *http.Request, v interface{}) error {
+func handleReq(a ApiF, req *http.Request, v interface{}) error {
 	httpClient := &http.Client{Timeout: a.timeout("")}
 	resp, err := httpClient.Do(req)
 	return parseSynqResp(a, resp, err, v)
 }
 
-func handleUploadReq(a api, req *http.Request, v interface{}) error {
+func handleUploadReq(a ApiF, req *http.Request, v interface{}) error {
 	httpClient := &http.Client{Timeout: a.timeout("upload")}
 	resp, err := httpClient.Do(req)
 	return parseAwsResp(resp, err, v)

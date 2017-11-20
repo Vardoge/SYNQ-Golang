@@ -91,7 +91,7 @@ func validateAuth(key string) string {
 func setupTestApiV2(key string) ApiV2 {
 	api := ApiV2{}
 	api.Key = key
-	setupTestServer("v2")
+	SetupTestServer("v2")
 	api.Url = testServer.URL
 	return api
 }
