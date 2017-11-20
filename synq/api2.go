@@ -30,11 +30,11 @@ func NewV2(token string, timeouts ...time.Duration) ApiV2 {
 }
 
 func (a *ApiV2) handleAuth(req *http.Request) {
-	req.Header.Add("Authorization", "Bearer "+a.key())
+	req.Header.Add("Authorization", "Bearer "+a.GetKey())
 }
 
 func (a ApiV2) getBaseUrl() string {
-	return a.url() + "/v2"
+	return a.GetUrl() + "/v2"
 }
 
 func (a *ApiV2) CreateAccount(name string, type_ string) string {

@@ -96,8 +96,8 @@ func (a *Api) Update(id string, source string) (Video, error) {
 }
 
 func (a *Api) makeReq(action string, form url.Values) (*http.Request, error) {
-	form.Set(("api_key"), a.key())
-	urlStr := a.url() + "/v1/video/" + action
+	form.Set(("api_key"), a.GetKey())
+	urlStr := a.GetUrl() + "/v1/video/" + action
 	return http.NewRequest("POST", urlStr, strings.NewReader(form.Encode()))
 }
 

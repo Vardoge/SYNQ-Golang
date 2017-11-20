@@ -26,12 +26,13 @@ type BaseApi struct {
 }
 
 type ApiF interface {
-	key() string
-	url() string
-	timeout(string) time.Duration
-	ParseError([]byte) error
 	Version() string
+	GetKey() string
+	GetUrl() string
+	GetTimeout(string) time.Duration
+	ParseError([]byte) error
 	SetUrl(string)
+	SetKey(string)
 }
 
 type AwsError struct {
@@ -109,7 +110,7 @@ func New(key string, timeouts ...time.Duration) BaseApi {
 	}
 }
 
-func (b *BaseApi) timeout(type_ string) time.Duration {
+func (b *BaseApi) GetTimeout(type_ string) time.Duration {
 	if type_ == "upload" {
 		return b.UploadTimeout
 	} else {
@@ -117,11 +118,11 @@ func (b *BaseApi) timeout(type_ string) time.Duration {
 	}
 }
 
-func (b *BaseApi) url() string {
+func (b *BaseApi) GetUrl() string {
 	return b.Url
 }
 
-func (b *BaseApi) key() string {
+func (b *BaseApi) GetKey() string {
 	return b.Key
 }
 
@@ -129,14 +130,18 @@ func (b *BaseApi) SetUrl(url string) {
 	b.Url = url
 }
 
+func (b *BaseApi) SetKey(key string) {
+	b.Key = key
+}
+
 func handleReq(a ApiF, req *http.Request, v interface{}) error {
-	httpClient := &http.Client{Timeout: a.timeout("")}
+	httpClient := &http.Client{Timeout: a.GetTimeout("")}
 	resp, err := httpClient.Do(req)
 	return parseSynqResp(a, resp, err, v)
 }
 
 func handleUploadReq(a ApiF, req *http.Request, v interface{}) error {
-	httpClient := &http.Client{Timeout: a.timeout("upload")}
+	httpClient := &http.Client{Timeout: a.GetTimeout("upload")}
 	resp, err := httpClient.Do(req)
 	return parseAwsResp(resp, err, v)
 }
