@@ -34,7 +34,7 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 				if type_ == "asset" {
 					resp = loadSample("asset_uploaded")
 				} else {
-					resp = loadSample("new_video2_meta")
+					resp = loadSample("video2")
 				}
 				w.WriteHeader(http.StatusOK)
 			} else if r.Method == "DELETE" {
@@ -127,4 +127,6 @@ func TestGet2(t *testing.T) {
 	video, err := api.GetVideo(V2_VIDEO_ID)
 	assert.Nil(err)
 	assert.Equal(video.Id, V2_VIDEO_ID)
+	assert.Len(video.Assets, 1)
+	assert.Equal(ASSET_ID, video.Assets[0].Id)
 }

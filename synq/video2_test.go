@@ -4,12 +4,12 @@ import (
 	"log"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateAsset(t *testing.T) {
 	log.Println("Testing CreateAsset")
-	assert := assert.New(t)
+	assert := require.New(t)
 	video := setupTestVideoV2()
 	asset, err := video.CreateAsset(ASSET_CREATED, ASSET_TYPE, ASSET_LOCATION)
 	assert.Nil(err)
@@ -19,7 +19,7 @@ func TestCreateAsset(t *testing.T) {
 
 func TestCreateOrUpdateAsset(t *testing.T) {
 	log.Println("Testing CreateAsset")
-	assert := assert.New(t)
+	assert := require.New(t)
 	video := setupTestVideoV2()
 	asset := Asset{State: ASSET_CREATED, Type: ASSET_TYPE, Location: ASSET_LOCATION}
 	err := video.CreateOrUpdateAsset(&asset)
