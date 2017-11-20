@@ -16,7 +16,7 @@ type BadReader struct {
 }
 
 func loadSample(file string) []byte {
-	return test_helper.LoadSample(file, sampleDir)
+	return test_server.LoadSample(file, sampleDir)
 }
 
 func (b BadReader) Read(p []byte) (n int, err error) {

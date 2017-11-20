@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/SYNQfm/SYNQ-Golang/test_helper"
+	"github.com/SYNQfm/SYNQ-Golang/test_server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,7 +20,7 @@ const (
 func setupTestVideoV2() VideoV2 {
 	api := setupTestApiV2(TEST_AUTH)
 	video, _ := api.Create()
-	url := test_helper.SetupServer("v2")
+	url := test_server.SetupServer("v2")
 	video.Api.SetUrl(url)
 	return video
 }

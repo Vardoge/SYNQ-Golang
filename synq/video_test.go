@@ -94,7 +94,7 @@ func TestCreateUploadReq(t *testing.T) {
 
 func TestUploadFile(t *testing.T) {
 	assert := assert.New(t)
-	aws := test_helper.S3Stub()
+	aws := test_server.S3Stub()
 	api := setupTestApi("fake")
 	defer aws.Close()
 	video := Video{Id: testVideoId2V1, Api: &api}

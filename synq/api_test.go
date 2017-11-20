@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/SYNQfm/SYNQ-Golang/test_helper"
+	"github.com/SYNQfm/SYNQ-Golang/test_server"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -26,16 +26,16 @@ const (
 )
 
 func init() {
-	invalidUuid = test_helper.INVALID_UUID
-	testVideoIdV1 = test_helper.VIDEO_ID
-	testVideoId2V1 = test_helper.VIDEO_ID2
-	testApiKeyV1 = test_helper.API_KEY
-	uploadKey = test_helper.UPLOAD_KEY
+	invalidUuid = test_server.INVALID_UUID
+	testVideoIdV1 = test_server.VIDEO_ID
+	testVideoId2V1 = test_server.VIDEO_ID2
+	testApiKeyV1 = test_server.API_KEY
+	uploadKey = test_server.UPLOAD_KEY
 }
 
 func setupTestApi(key string, type_ ...string) Api {
 	api := NewV1(key)
-	url := test_helper.SetupServer(type_...)
+	url := test_server.SetupServer(type_...)
 	api.SetUrl(url)
 	return api
 }
@@ -77,7 +77,7 @@ func TestHandlePost(t *testing.T) {
 	form.Set("test", "value")
 	err := api.handlePost("create", form, &video)
 	assert.Nil(err)
-	reqs, vals := test_helper.GetReqs()
+	reqs, vals := test_server.GetReqs()
 	assert.Len(reqs, 1)
 	r := reqs[0]
 	v := vals[0]
@@ -164,7 +164,7 @@ func TestCreate(t *testing.T) {
 	userdata["importer"] = import_data
 	_, e = api.Create(userdata)
 	assert.Nil(e)
-	reqs, vals := test_helper.GetReqs()
+	reqs, vals := test_server.GetReqs()
 	assert.Len(reqs, 3)
 	assert.Len(vals, 3)
 	req := *reqs[2]
@@ -232,7 +232,7 @@ func TestUpdateVideo(t *testing.T) {
 	assert.Nil(e)
 	val := video.Userdata["user"].(string)
 	assert.Equal("data", val)
-	_, vals := test_helper.GetReqs()
+	_, vals := test_server.GetReqs()
 	v := vals[0]
 	src := v.Get("source")
 	assert.Equal(source, src)

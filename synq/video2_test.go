@@ -4,7 +4,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/SYNQfm/SYNQ-Golang/test_helper"
+	"github.com/SYNQfm/SYNQ-Golang/test_server"
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,7 +28,7 @@ func TestCreateOrUpdateAsset(t *testing.T) {
 	assert.Equal(testAssetId, asset.Id)
 	asset.State = ASSET_UPLOADED
 	err = video.CreateOrUpdateAsset(&asset)
-	reqs, _ := test_helper.GetReqs()
+	reqs, _ := test_server.GetReqs()
 	assert.Nil(err)
 	assert.Len(reqs, 2)
 	req := reqs[1]

@@ -16,14 +16,14 @@ const (
 )
 
 func init() {
-	testAssetId = test_helper.ASSET_ID
-	testVideoIdV2 = test_helper.V2_VIDEO_ID
-	test_helper.SetSampleDir(sampleDir)
+	testAssetId = test_server.ASSET_ID
+	testVideoIdV2 = test_server.V2_VIDEO_ID
+	test_server.SetSampleDir(sampleDir)
 }
 
 func setupTestApiV2(key string) ApiV2 {
 	api := NewV2(key)
-	url := test_helper.SetupServer("v2")
+	url := test_server.SetupServer("v2")
 	api.SetUrl(url)
 	return api
 }
