@@ -9,12 +9,6 @@
 			"revisionTime": "2017-11-18T06:43:29Z"
 		},
 		{
-			"checksumSHA1": "uas+YSVrOQs9OAgpIXoWVFQwOJw=",
-			"path": "github.com/SYNQfm/helpers/test_helper",
-			"revision": "f349e5b879b03043c99c12e15081a2ee6180b68a",
-			"revisionTime": "2017-11-20T22:56:48Z"
-		},
-		{
 			"checksumSHA1": "mrz/kicZiUaHxkyfvC/DyQcr8Do=",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "adab96458c51a58dc1783b3335dcce5461522e75",
