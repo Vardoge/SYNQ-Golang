@@ -68,16 +68,6 @@ func TestGetAsset(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestCreateAsset(t *testing.T) {
-	log.Println("Testing CreateAsset")
-	assert := assert.New(t)
-	video := setupTestVideoV2()
-	asset, err := video.CreateAsset(ASSET_CREATED, ASSET_TYPE, ASSET_LOCATION)
-	assert.Nil(err)
-	assert.NotNil(asset.Id)
-	assert.Equal(ASSET_ID, asset.Id)
-}
-
 func TestUpdate(t *testing.T) {
 	log.Println("Testing Update")
 	assert := assert.New(t)
