@@ -19,7 +19,7 @@ type VideoV2 struct {
 	CreatedAt time.Time              `json:"created_at"`
 	UpdatedAt time.Time              `json:"updated_at"`
 	Api       *ApiV2                 `json:"-"`
-	Assets    []Asset
+	Assets    []Asset                `json:"assets"`
 }
 
 type VideoMetadata struct {
