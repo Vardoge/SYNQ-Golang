@@ -64,17 +64,25 @@ func (v VideoV2) GetAsset(assetId string) (Asset, error) {
 	return asset, err
 }
 
-func (v VideoV2) CreateAsset(state, fileType, location string) (Asset, error) {
-	var asset Asset
+func (v VideoV2) CreateOrUpdateAsset(asset Asset) error {
+	// make sure the API is set
 	asset.Api = *v.Api
-	asset.VideoId = v.Id
-	asset.State = state
-	asset.Type = fileType
-	asset.Location = location
-
 	url := v.Api.getBaseUrl() + "/assets"
 	data, _ := json.Marshal(asset)
 	body := bytes.NewBuffer(data)
 	err := asset.handleAssetReq("POST", url, body)
+	if err == nil {
+		v.Assets = append(v.Assets, asset)
+	}
+	return err
+}
+
+func (v VideoV2) CreateAsset(state, fileType, location string) (Asset, error) {
+	var asset Asset
+	asset.VideoId = v.Id
+	asset.State = state
+	asset.Type = fileType
+	asset.Location = location
+	err := v.CreateOrUpdateAsset(asset)
 	return asset, err
 }
