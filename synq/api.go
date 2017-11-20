@@ -18,7 +18,7 @@ const (
 )
 
 type Api struct {
-	BaseApi
+	*BaseApi
 }
 
 type ErrorResp struct {
@@ -37,7 +37,7 @@ func (a Api) version() string {
 func NewV1(key string, timeouts ...time.Duration) Api {
 	base := New(key, timeouts...)
 	base.Url = DEFAULT_V1_URL
-	return Api{BaseApi: base}
+	return Api{BaseApi: &base}
 }
 
 // Helper function to query for videos

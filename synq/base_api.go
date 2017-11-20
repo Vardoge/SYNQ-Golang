@@ -31,6 +31,7 @@ type ApiF interface {
 	version() string
 	timeout(string) time.Duration
 	ParseError([]byte) error
+	SetUrl(string)
 }
 
 type AwsError struct {
@@ -108,11 +109,7 @@ func New(key string, timeouts ...time.Duration) BaseApi {
 	}
 }
 
-func (b *BaseApi) SetUrl(url string) {
-	b.Url = url
-}
-
-func (b BaseApi) timeout(type_ string) time.Duration {
+func (b *BaseApi) timeout(type_ string) time.Duration {
 	if type_ == "upload" {
 		return b.UploadTimeout
 	} else {
@@ -120,12 +117,16 @@ func (b BaseApi) timeout(type_ string) time.Duration {
 	}
 }
 
-func (b BaseApi) url() string {
+func (b *BaseApi) url() string {
 	return b.Url
 }
 
-func (b BaseApi) key() string {
+func (b *BaseApi) key() string {
 	return b.Key
+}
+
+func (b *BaseApi) SetUrl(url string) {
+	b.Url = url
 }
 
 func handleReq(a ApiF, req *http.Request, v interface{}) error {

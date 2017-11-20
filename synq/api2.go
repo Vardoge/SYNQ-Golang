@@ -16,7 +16,7 @@ const (
 )
 
 type ApiV2 struct {
-	BaseApi
+	*BaseApi
 }
 
 func (a ApiV2) version() string {
@@ -26,7 +26,7 @@ func (a ApiV2) version() string {
 func NewV2(token string, timeouts ...time.Duration) ApiV2 {
 	base := New(token, timeouts...)
 	base.Url = DEFAULT_V2_URL
-	return ApiV2{BaseApi: base}
+	return ApiV2{BaseApi: &base}
 }
 
 func (a *ApiV2) handleAuth(req *http.Request) {
