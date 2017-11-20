@@ -64,7 +64,7 @@ func (v VideoV2) GetAsset(assetId string) (Asset, error) {
 	return asset, err
 }
 
-func (v VideoV2) CreateOrUpdateAsset(asset Asset) error {
+func (v VideoV2) CreateOrUpdateAsset(asset *Asset) error {
 	// make sure the API is set
 	asset.Api = *v.Api
 	url := v.Api.getBaseUrl() + "/assets"
@@ -72,7 +72,7 @@ func (v VideoV2) CreateOrUpdateAsset(asset Asset) error {
 	body := bytes.NewBuffer(data)
 	err := asset.handleAssetReq("POST", url, body)
 	if err == nil {
-		v.Assets = append(v.Assets, asset)
+		v.Assets = append(v.Assets, *asset)
 	}
 	return err
 }
@@ -83,6 +83,6 @@ func (v VideoV2) CreateAsset(state, fileType, location string) (Asset, error) {
 	asset.State = state
 	asset.Type = fileType
 	asset.Location = location
-	err := v.CreateOrUpdateAsset(asset)
+	err := v.CreateOrUpdateAsset(&asset)
 	return asset, err
 }
