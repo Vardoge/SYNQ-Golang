@@ -5,19 +5,8 @@ import (
 	"io/ioutil"
 	"testing"
 
+	"github.com/SYNQfm/SYNQ-Golang/test_helper"
 	"github.com/stretchr/testify/assert"
-)
-
-const (
-	VIDEO_ID          = "45d4063d00454c9fb21e5186a09c3115"
-	VIDEO_ID2         = "55d4062f99454c9fb21e5186a09c2115"
-	API_KEY           = "aba179c14ab349e0bb0d12b7eca5fa24"
-	API_KEY2          = "cba179c14ab349e0bb0d12b7eca5fa25"
-	UPLOAD_KEY        = "projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/uploads/videos/55/d4/55d4062f99454c9fb21e5186a09c2115.mp4"
-	INVALID_UUID      = `{"url": "http://docs.synq.fm/api/v1/errors/invalid_uuid","name": "invalid_uuid","message": "Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'."}`
-	VIDEO_NOT_FOUND   = `{"url": "http://docs.synq.fm/api/v1/errors/not_found_video","name": "not_found_video","message": "Video not found."}`
-	API_KEY_NOT_FOUND = `{"url": "http://docs.synq.fm/api/v1/errors/not_found_api_key","name": "not_found_api_key","message": "API key not found."}`
-	HTTP_NOT_FOUND    = `{"url": "http://docs.synq.fm/api/v1/errors/http_not_found","name": "http_not_found","message": "Not found."}`
 )
 
 func TestDisplay(t *testing.T) {
@@ -39,20 +28,20 @@ func TestDisplay(t *testing.T) {
 func TestGetUploadInfo(t *testing.T) {
 	assert := assert.New(t)
 	api := setupTestApi("fake")
-	video := Video{Id: VIDEO_ID2, Api: &api}
+	video := Video{Id: testVideoId2V1, Api: &api}
 	err := video.GetUploadInfo()
 	assert.NotNil(err)
 	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", err.Error())
-	api.Key = API_KEY
+	api.SetKey(testApiKeyV1)
 	err = video.GetUploadInfo()
 	assert.Nil(err)
 	assert.NotEmpty(video.UploadInfo)
 	assert.Len(video.UploadInfo, 7)
-	assert.Equal(UPLOAD_KEY, video.UploadInfo["key"])
+	assert.Equal(uploadKey, video.UploadInfo["key"])
 	assert.Equal("public-read", video.UploadInfo["acl"])
 	assert.Equal("https://synqfm.s3.amazonaws.com", video.UploadInfo.url())
 	assert.Equal("video/mp4", video.UploadInfo["Content-Type"])
-	assert.Equal(UPLOAD_KEY, video.UploadInfo.dstFileName())
+	assert.Equal(uploadKey, video.UploadInfo.dstFileName())
 }
 
 func TestCreateUploadReqErr(t *testing.T) {
@@ -105,15 +94,15 @@ func TestCreateUploadReq(t *testing.T) {
 
 func TestUploadFile(t *testing.T) {
 	assert := assert.New(t)
-	aws := S3Stub()
+	aws := test_helper.S3Stub()
 	api := setupTestApi("fake")
 	defer aws.Close()
-	video := Video{Id: VIDEO_ID2, Api: &api}
+	video := Video{Id: testVideoId2V1, Api: &api}
 	valid_file := "video.go"
 	err := video.UploadFile(valid_file)
 	assert.NotNil(err)
 	assert.Equal("Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'.", err.Error())
-	api.Key = API_KEY
+	api.SetKey(testApiKeyV1)
 	err = video.UploadFile("myfile.mp4")
 	assert.NotNil(err)
 	assert.Equal("file 'myfile.mp4' does not exist", err.Error())
