@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/SYNQfm/SYNQ-Golang/test_helper"
+	"github.com/SYNQfm/SYNQ-Golang/test_server"
 	"github.com/stretchr/testify/require"
 )
 
