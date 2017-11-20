@@ -30,7 +30,7 @@ type ErrorResp struct {
 	Message string
 }
 
-func (a Api) version() string {
+func (a Api) Version() string {
 	return "v1"
 }
 

@@ -28,9 +28,9 @@ type BaseApi struct {
 type ApiF interface {
 	key() string
 	url() string
-	version() string
 	timeout(string) time.Duration
 	ParseError([]byte) error
+	Version() string
 	SetUrl(string)
 }
 

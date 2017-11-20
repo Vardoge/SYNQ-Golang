@@ -19,7 +19,7 @@ type ApiV2 struct {
 	*BaseApi
 }
 
-func (a ApiV2) version() string {
+func (a ApiV2) Version() string {
 	return "v2"
 }
 
