@@ -59,4 +59,5 @@ func TestGet2(t *testing.T) {
 	assert.Equal(testVideoIdV2, video.Id)
 	assert.Len(video.Assets, 1)
 	assert.Equal(testAssetId, video.Assets[0].Id)
+	assert.NotNil(video.Api)
 }

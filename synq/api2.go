@@ -110,7 +110,9 @@ func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 	if err != nil {
 		return video, err
 	}
-	return resp.Video, nil
+	video = resp.Video
+	video.Api = a
+	return video, nil
 }
 
 func (a *ApiV2) GetAssetList() ([]Asset, error) {
