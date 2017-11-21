@@ -1,6 +1,7 @@
 package synq
 
 import (
+	"encoding/json"
 	"log"
 	"testing"
 
@@ -28,9 +29,16 @@ func TestCreateOrUpdateAsset(t *testing.T) {
 	assert.Equal(testAssetId, asset.Id)
 	asset.State = ASSET_UPLOADED
 	err = video.CreateOrUpdateAsset(&asset)
-	reqs, _ := test_server.GetReqs()
+	reqs, vals := test_server.GetReqs()
 	assert.Nil(err)
 	assert.Len(reqs, 2)
+	assert.Len(vals, 2)
 	req := reqs[1]
+	val := vals[1]
 	assert.Equal("PUT", req.Method)
+	a := Asset{}
+	body := val.Get("body")
+	json.Unmarshal([]byte(body), &a)
+	assert.Equal(asset.State, a.State)
+	assert.Equal(asset.Location, a.Location)
 }

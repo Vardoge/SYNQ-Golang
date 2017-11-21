@@ -184,6 +184,11 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 		if strings.Contains(r.URL.Path, "assets") {
 			type_ = "asset"
 		}
+		bytes, _ := ioutil.ReadAll(r.Body)
+		body_str := string(bytes)
+		v := url.Values{}
+		v.Add("body", body_str)
+		testValues = append(testValues, v)
 		switch r.URL.Path {
 		case "/v2/videos/" + V2_VIDEO_ID,
 			"/v2/assets/" + ASSET_ID:
@@ -212,8 +217,7 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 				resp = LoadSample(type_ + "_list")
 			} else if r.Method == "POST" {
 				if type_ == "video" {
-					bytes, _ := ioutil.ReadAll(r.Body)
-					if strings.Contains(string(bytes), "user_data") {
+					if strings.Contains(body_str, "user_data") {
 						resp = LoadSample("new_video2_meta")
 					} else {
 						resp = LoadSample("new_video2")
