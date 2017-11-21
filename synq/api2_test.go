@@ -43,7 +43,7 @@ func TestCreate2(t *testing.T) {
 	api := setupTestApiV2("fake")
 	_, err := api.Create()
 	assert.NotNil(err)
-	api.Key = TEST_AUTH
+	api.SetKey(testAuth)
 	video, err := api.Create()
 	assert.Nil(err)
 	assert.Equal(testVideoIdV2, video.Id)
@@ -51,7 +51,7 @@ func TestCreate2(t *testing.T) {
 
 func TestGet2(t *testing.T) {
 	assert := require.New(t)
-	api := setupTestApiV2(TEST_AUTH)
+	api := setupTestApiV2(testAuth)
 	_, err := api.GetVideo("")
 	assert.NotNil(err)
 	video, err := api.GetVideo(testVideoIdV2)

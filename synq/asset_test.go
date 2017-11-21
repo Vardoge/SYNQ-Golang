@@ -18,7 +18,7 @@ const (
 )
 
 func setupTestVideoV2() VideoV2 {
-	api := setupTestApiV2(TEST_AUTH)
+	api := setupTestApiV2(testAuth)
 	video, _ := api.Create()
 	url := test_server.SetupServer("v2")
 	video.Api.SetUrl(url)
@@ -31,7 +31,7 @@ func handleAsset(w http.ResponseWriter, r *http.Request) {
 func TestGetAssetList(t *testing.T) {
 	log.Println("Testing GetAssetList")
 	assert := require.New(t)
-	api := setupTestApiV2(TEST_AUTH)
+	api := setupTestApiV2(testAuth)
 	assets, err := api.GetAssetList()
 	assert.Nil(err)
 	assert.NotEmpty(assets)
