@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/SYNQfm/helpers/common"
 )
 
 const (
@@ -24,20 +25,14 @@ type BaseApi struct {
 	Version       string
 }
 
-type api interface {
-	key() string
-	url() string
-	version() string
-	timeout(string) time.Duration
-}
-
-type ErrorResp struct {
-	//"url": "http://docs.synq.fm/api/v1/error/some_error_code",
-	//"name": "Some error occurred.",
-	//"message": "A lengthy, human-readable description of the error that has occurred."
-	Url     string
-	Name    string
-	Message string
+type ApiF interface {
+	Version() string
+	GetKey() string
+	GetUrl() string
+	GetTimeout(string) time.Duration
+	ParseError([]byte) error
+	SetUrl(string)
+	SetKey(string)
 }
 
 type AwsError struct {
@@ -73,7 +68,7 @@ func parseAwsResp(resp *http.Response, err error, v interface{}) error {
 	return errors.New(xmlErr.Message)
 }
 
-func parseSynqResp(resp *http.Response, err error, v interface{}) error {
+func parseSynqResp(a ApiF, resp *http.Response, err error, v interface{}) error {
 	if err != nil {
 		log.Println("could not make http request")
 		return err
@@ -81,27 +76,20 @@ func parseSynqResp(resp *http.Response, err error, v interface{}) error {
 
 	responseAsBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Println("could not parse resp body")
+		log.Println("could not read resp body")
 		return err
 	}
 	if resp.StatusCode == 204 { // Delete does not have response body
 		return nil
 	}
 	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		var eResp ErrorResp
-		err = json.Unmarshal(responseAsBytes, &eResp)
-		if err != nil {
-			log.Println("could not parse error response")
-			return errors.New(fmt.Sprintf("could not parse : %s", string(responseAsBytes)))
-		}
-		log.Printf("Received %v\n", eResp)
-		return errors.New(eResp.Message)
-
+		return a.ParseError(responseAsBytes)
 	}
+
 	err = json.Unmarshal(responseAsBytes, &v)
 	if err != nil {
 		log.Printf("could not parse response : %s\n", err.Error())
-		return errors.New(fmt.Sprintf("could not parse : %s", string(responseAsBytes)))
+		return common.NewError("could not parse : %s", string(responseAsBytes))
 	}
 	return nil
 }
@@ -122,7 +110,7 @@ func New(key string, timeouts ...time.Duration) BaseApi {
 	}
 }
 
-func (b BaseApi) timeout(type_ string) time.Duration {
+func (b *BaseApi) GetTimeout(type_ string) time.Duration {
 	if type_ == "upload" {
 		return b.UploadTimeout
 	} else {
@@ -130,22 +118,30 @@ func (b BaseApi) timeout(type_ string) time.Duration {
 	}
 }
 
-func (b BaseApi) url() string {
+func (b *BaseApi) GetUrl() string {
 	return b.Url
 }
 
-func (b BaseApi) key() string {
+func (b *BaseApi) GetKey() string {
 	return b.Key
 }
 
-func handleReq(a api, req *http.Request, v interface{}) error {
-	httpClient := &http.Client{Timeout: a.timeout("")}
-	resp, err := httpClient.Do(req)
-	return parseSynqResp(resp, err, v)
+func (b *BaseApi) SetUrl(url string) {
+	b.Url = url
 }
 
-func handleUploadReq(a api, req *http.Request, v interface{}) error {
-	httpClient := &http.Client{Timeout: a.timeout("upload")}
+func (b *BaseApi) SetKey(key string) {
+	b.Key = key
+}
+
+func handleReq(a ApiF, req *http.Request, v interface{}) error {
+	httpClient := &http.Client{Timeout: a.GetTimeout("")}
+	resp, err := httpClient.Do(req)
+	return parseSynqResp(a, resp, err, v)
+}
+
+func handleUploadReq(a ApiF, req *http.Request, v interface{}) error {
+	httpClient := &http.Client{Timeout: a.GetTimeout("upload")}
 	resp, err := httpClient.Do(req)
 	return parseAwsResp(resp, err, v)
 }

@@ -2,10 +2,15 @@ package synq
 
 import (
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
+
 	"time"
+
+	"github.com/SYNQfm/helpers/common"
 )
 
 const (
@@ -13,17 +18,26 @@ const (
 )
 
 type Api struct {
-	BaseApi
+	*BaseApi
 }
 
-func (a Api) version() string {
+type ErrorResp struct {
+	//"url": "http://docs.synq.fm/api/v1/error/some_error_code",
+	//"name": "Some error occurred.",
+	//"message": "A lengthy, human-readable description of the error that has occurred."
+	Url     string
+	Name    string
+	Message string
+}
+
+func (a Api) Version() string {
 	return "v1"
 }
 
 func NewV1(key string, timeouts ...time.Duration) Api {
 	base := New(key, timeouts...)
 	base.Url = DEFAULT_V1_URL
-	return Api{BaseApi: base}
+	return Api{BaseApi: &base}
 }
 
 // Helper function to query for videos
@@ -52,6 +66,17 @@ func (a *Api) Create(userdata ...map[string]interface{}) (Video, error) {
 	return video, nil
 }
 
+func (a Api) ParseError(bytes []byte) error {
+	var eResp ErrorResp
+	err := json.Unmarshal(bytes, &eResp)
+	if err != nil {
+		log.Printf("could not parse error response : %s\n", err.Error())
+		return common.NewError("could not parse : %s", string(bytes))
+	}
+	log.Printf("Received %v\n", eResp)
+	return errors.New(eResp.Message)
+}
+
 // Helper function to get details for a video, will create video object
 func (a *Api) GetVideo(id string) (Video, error) {
 	video := Video{}
@@ -71,8 +96,8 @@ func (a *Api) Update(id string, source string) (Video, error) {
 }
 
 func (a *Api) makeReq(action string, form url.Values) (*http.Request, error) {
-	form.Set(("api_key"), a.key())
-	urlStr := a.url() + "/v1/video/" + action
+	form.Set(("api_key"), a.GetKey())
+	urlStr := a.GetUrl() + "/v1/video/" + action
 	return http.NewRequest("POST", urlStr, strings.NewReader(form.Encode()))
 }
 
