@@ -31,6 +31,7 @@ const (
 	V2_INVALID_AUTH   = `{"message" : "invalid auth"}`
 	V2_VIDEO_ID       = "9e9dc8c8-f705-41db-88da-b3034894deb9"
 	ASSET_ID          = "01823629-bcf2-4c34-b714-ae21e1a4647f"
+	TEST_AUTH         = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3Rlc3QuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDU3MjE4MjFiM2ExYWFmYmUxNTlkZGE2NSIsImF1ZCI6InRESzZBdUF0QVc0ckFySzhOSTltMXdJRW5WQU9RcjUxIiwiZXhwIjoxNDkzNDM5NTExLCJpYXQiOjE0NjE4MTcxMTF9.29JkFxoHqCRPIH2wVbT-ZNIMBK8xXLwkjbLmyWxpquE"
 )
 
 func SetSampleDir(sampleDir string) {

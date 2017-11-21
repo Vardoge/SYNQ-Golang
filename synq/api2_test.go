@@ -10,14 +10,12 @@ import (
 
 var testAssetId string
 var testVideoIdV2 string
-
-const (
-	TEST_AUTH = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3Rlc3QuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDU3MjE4MjFiM2ExYWFmYmUxNTlkZGE2NSIsImF1ZCI6InRESzZBdUF0QVc0ckFySzhOSTltMXdJRW5WQU9RcjUxIiwiZXhwIjoxNDkzNDM5NTExLCJpYXQiOjE0NjE4MTcxMTF9.29JkFxoHqCRPIH2wVbT-ZNIMBK8xXLwkjbLmyWxpquE"
-)
+var testAuth string
 
 func init() {
 	testAssetId = test_server.ASSET_ID
 	testVideoIdV2 = test_server.V2_VIDEO_ID
+	testAuth = test_server.TEST_AUTH
 	test_server.SetSampleDir(sampleDir)
 }
 
