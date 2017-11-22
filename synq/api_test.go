@@ -85,6 +85,7 @@ func TestHandlePost(t *testing.T) {
 	assert.Equal("/v1/video/create", r.RequestURI)
 	assert.Equal("value", v.Get("test"))
 	assert.Equal("fake", v.Get("api_key"))
+	assert.Equal("application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
 }
 
 func TestParseSynqResp(t *testing.T) {

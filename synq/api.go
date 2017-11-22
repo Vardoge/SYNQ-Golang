@@ -100,7 +100,9 @@ func (a *Api) makeReq(action string, form url.Values) (*http.Request, error) {
 	form.Set("api_key", a.GetKey())
 	urlStr := a.GetUrl() + "/v1/video/" + action
 	req, err := http.NewRequest("POST", urlStr, strings.NewReader(form.Encode()))
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	if err == nil {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	}
 	return req, err
 }
 
