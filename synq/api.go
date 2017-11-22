@@ -28,6 +28,7 @@ type ErrorResp struct {
 	Url     string
 	Name    string
 	Message string
+	Details map[string]interface{}
 }
 
 func (a Api) Version() string {
@@ -96,9 +97,11 @@ func (a *Api) Update(id string, source string) (Video, error) {
 }
 
 func (a *Api) makeReq(action string, form url.Values) (*http.Request, error) {
-	form.Set(("api_key"), a.GetKey())
+	form.Set("api_key", a.GetKey())
 	urlStr := a.GetUrl() + "/v1/video/" + action
-	return http.NewRequest("POST", urlStr, strings.NewReader(form.Encode()))
+	req, err := http.NewRequest("POST", urlStr, strings.NewReader(form.Encode()))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	return req, err
 }
 
 func (a *Api) handlePost(action string, form url.Values, v interface{}) error {

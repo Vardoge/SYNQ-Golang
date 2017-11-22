@@ -52,6 +52,7 @@ func TestMakeReq(t *testing.T) {
 	body, err := ioutil.ReadAll(req.Body)
 	assert.Nil(err)
 	assert.Equal("api_key=fake", string(body))
+	assert.Equal("application/x-www-form-urlencoded", req.Header.Get("Content-Type"))
 }
 
 func TestHandlePostFail(t *testing.T) {
