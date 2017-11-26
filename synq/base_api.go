@@ -30,7 +30,7 @@ type ApiF interface {
 	GetKey() string
 	GetUrl() string
 	GetTimeout(string) time.Duration
-	ParseError([]byte) error
+	ParseError(int, []byte) error
 	SetUrl(string)
 	SetKey(string)
 }
@@ -79,19 +79,21 @@ func parseSynqResp(a ApiF, resp *http.Response, err error, v interface{}) error 
 		log.Println("could not read resp body")
 		return err
 	}
-	if resp.StatusCode == 204 { // Delete does not have response body
+	switch resp.StatusCode {
+	case 204:
+		// Delete, missing does not have response body
 		return nil
+	case 200,
+		201:
+		err = json.Unmarshal(responseAsBytes, &v)
+		if err != nil {
+			log.Printf("could not parse response : %s\n", err.Error())
+			return common.NewError("could not parse : %s", string(responseAsBytes))
+		}
+		return nil
+	default:
+		return a.ParseError(resp.StatusCode, responseAsBytes)
 	}
-	if resp.StatusCode != 200 && resp.StatusCode != 201 {
-		return a.ParseError(responseAsBytes)
-	}
-
-	err = json.Unmarshal(responseAsBytes, &v)
-	if err != nil {
-		log.Printf("could not parse response : %s\n", err.Error())
-		return common.NewError("could not parse : %s", string(responseAsBytes))
-	}
-	return nil
 }
 
 func New(key string, timeouts ...time.Duration) BaseApi {

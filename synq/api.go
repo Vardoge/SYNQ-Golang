@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
 	"time"
 
 	"github.com/SYNQfm/helpers/common"
@@ -33,6 +32,17 @@ type ErrorResp struct {
 
 func (a Api) Version() string {
 	return "v1"
+}
+
+func (a Api) ParseError(status int, bytes []byte) error {
+	var eResp ErrorResp
+	err := json.Unmarshal(bytes, &eResp)
+	if err != nil {
+		log.Printf("could not parse error response : %s\n", err.Error())
+		return common.NewError("could not parse %d error : %s", status, string(bytes))
+	}
+	log.Printf("Received %v\n", eResp)
+	return errors.New(eResp.Message)
 }
 
 func NewV1(key string, timeouts ...time.Duration) Api {
@@ -65,17 +75,6 @@ func (a *Api) Create(userdata ...map[string]interface{}) (Video, error) {
 	}
 	video.Api = a
 	return video, nil
-}
-
-func (a Api) ParseError(bytes []byte) error {
-	var eResp ErrorResp
-	err := json.Unmarshal(bytes, &eResp)
-	if err != nil {
-		log.Printf("could not parse error response : %s\n", err.Error())
-		return common.NewError("could not parse : %s", string(bytes))
-	}
-	log.Printf("Received %v\n", eResp)
-	return errors.New(eResp.Message)
 }
 
 // Helper function to get details for a video, will create video object

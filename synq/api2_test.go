@@ -61,3 +61,11 @@ func TestGet2(t *testing.T) {
 	assert.Equal(testAssetId, video.Assets[0].Id)
 	assert.NotNil(video.Api)
 }
+
+func TestParseErrorV2(t *testing.T) {
+	assert := require.New(t)
+	api := setupTestApiV2(testAuth)
+	bytes := []byte{}
+	err := api.ParseError(404, bytes)
+	assert.Equal("404 Item not found", err.Error())
+}

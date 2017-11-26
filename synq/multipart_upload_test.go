@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -335,10 +336,17 @@ x-amz-date:Fri, 30 Jun 2017 14:03:55 UTC
 		const expectedError = `Post http://0.0.0.0:0/uploader/signature/` +
 			`e3c71a23462f07fea2ef317dcd3b7a9b?token=568575f9c000b533292adc88f5a2321a:` +
 			` dial tcp 0.0.0.0:0: getsockopt: connection refused`
+		const expectedMacError = `Post http://0.0.0.0:0/uploader/signature/` +
+			`e3c71a23462f07fea2ef317dcd3b7a9b?token=568575f9c000b533292adc88f5a2321a:` +
+			` dial tcp 0.0.0.0:0: connect: can't assign requested address`
 
 		// TODO(mastensg): check errors by some other method than string matching
 		assert.Equal([]byte(nil), signature)
-		assert.Equal(expectedError, err.Error())
+		if runtime.GOOS == "darwin" {
+			assert.Equal(expectedMacError, err.Error())
+		} else {
+			assert.Equal(expectedError, err.Error())
+		}
 	}
 
 	// always internal server error
