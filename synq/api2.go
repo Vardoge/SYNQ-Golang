@@ -52,7 +52,7 @@ func (a *ApiV2) makeRequest(method string, url string, body io.Reader) (req *htt
 
 func (a ApiV2) ParseError(status int, bytes []byte) error {
 	if status == 404 {
-		return errors.New("Item not found")
+		return errors.New("404 Item not found")
 	}
 	type Resp struct {
 		Message string `json:"message"`
