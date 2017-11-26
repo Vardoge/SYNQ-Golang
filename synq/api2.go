@@ -50,14 +50,17 @@ func (a *ApiV2) makeRequest(method string, url string, body io.Reader) (req *htt
 	return req, nil
 }
 
-func (a ApiV2) ParseError(bytes []byte) error {
+func (a ApiV2) ParseError(status int, bytes []byte) error {
+	if status == 404 {
+		return errors.New("Item not found")
+	}
 	type Resp struct {
 		Message string `json:"message"`
 	}
 	resp := Resp{}
 	err := json.Unmarshal(bytes, &resp)
 	if err != nil {
-		return common.NewError("could not parse : %s", string(bytes))
+		return common.NewError("could not parse error %d : %s", status, string(bytes))
 	}
 	return errors.New(resp.Message)
 }
