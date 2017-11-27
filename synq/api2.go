@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -62,7 +63,11 @@ func (a ApiV2) ParseError(status int, bytes []byte) error {
 	if err != nil {
 		return common.NewError("could not parse error %d : %s", status, string(bytes))
 	}
-	return errors.New(resp.Message)
+	msg := resp.Message
+	if msg == "" {
+		msg = fmt.Sprintf("Failed with status %d", status)
+	}
+	return errors.New(msg)
 }
 
 func (a *ApiV2) handleGet(url string, v interface{}) error {
@@ -104,7 +109,8 @@ func (a *ApiV2) Create(userdata ...map[string]interface{}) (VideoV2, error) {
 // Helper function to get details for a video, will create video object
 func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 	var resp VideoResp
-	url := a.getBaseUrl() + "/videos/" + id
+	uuid := common.ConvertToUUIDFormat(id)
+	url := a.getBaseUrl() + "/videos/" + uuid
 	req, err := a.makeRequest("GET", url, nil)
 	if err != nil {
 		return video, err
