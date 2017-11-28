@@ -31,6 +31,7 @@ func init() {
 	testVideoId2V1 = test_server.VIDEO_ID2
 	testApiKeyV1 = test_server.API_KEY
 	uploadKey = test_server.UPLOAD_KEY
+	test_server.SetSampleDir(sampleDir)
 }
 
 func setupTestApi(key string, type_ ...string) Api {
