@@ -111,7 +111,7 @@ func (a *ApiV2) GetVideos(accountId string) (videos []VideoV2, err error) {
 	var resp VideoList
 	path := "/videos"
 	if accountId != "" {
-		path = "/" + accountId + path
+		path = "/accounts/" + accountId + path
 	}
 	url := a.getBaseUrl() + path
 	req, err := a.makeRequest("GET", url, nil)
