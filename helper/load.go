@@ -2,7 +2,6 @@ package helper
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
 	"log"
 	"os"
@@ -48,8 +47,19 @@ func LoadVideosByQuery(query, name string, c common.Cacheable, api synq.Api) (vi
 	return videos, err
 }
 
+// fow now, the query will be the account id
 func LoadVideosByQueryV2(query, name string, c common.Cacheable, api synq.ApiV2) (videos []synq.VideoV2, err error) {
-	return videos, errors.New("v2 query currently not implemented")
+	ok := LoadFromCache(name, c, &videos)
+	if ok {
+		return videos, nil
+	}
+	log.Printf("get all videos (filter by account '%s')\n", query)
+	videos, err = api.GetVideos(query)
+	if err != nil {
+		return videos, err
+	}
+	SaveToCache(name, c, videos)
+	return videos, err
 }
 
 func LoadVideo(id string, c common.Cacheable, api synq.Api) (video synq.Video, err error) {

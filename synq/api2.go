@@ -20,6 +20,10 @@ type ApiV2 struct {
 	*BaseApi
 }
 
+type VideoList struct {
+	Videos []VideoV2 `json:"data"`
+}
+
 func (a ApiV2) Version() string {
 	return "v2"
 }
@@ -101,6 +105,28 @@ func (a *ApiV2) Create(body ...[]byte) (VideoV2, error) {
 	video = resp.Video
 	video.Api = a
 	return video, nil
+}
+
+func (a *ApiV2) GetVideos(accountId string) (videos []VideoV2, err error) {
+	var resp VideoList
+	path = "/videos"
+	if accountId != "" {
+		path = "/" + accountId + path
+	}
+	url := a.getBaseUrl() + path
+	req, err := a.makeRequest("GET", url, nil)
+	if err != nil {
+		return video, err
+	}
+	err = handleReq(a, req, &resp)
+	if err != nil {
+		return videos, err
+	}
+	for _, v := range resp.Videos {
+		v.Api = a
+		videos = append(videos, v)
+	}
+	return videos, nil
 }
 
 // Helper function to get details for a video, will create video object
