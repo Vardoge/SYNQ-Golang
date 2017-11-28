@@ -13,22 +13,13 @@ type VideoResp struct {
 }
 
 type VideoV2 struct {
-	Id        string    `json:"id"`
-	Userdata  Metadata  `json:"user_data"`
-	Metadata  Metadata  `json:"metadata"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Api       *ApiV2    `json:"-"`
-	Assets    []Asset   `json:"assets"`
-}
-
-type Metadata []byte
-
-func (m Metadata) MarshalJSON() ([]byte, error) {
-	if len(m) > 0 {
-		return m, nil
-	}
-	return []byte("{}"), nil
+	Id        string          `json:"id"`
+	Userdata  json.RawMessage `json:"user_data"`
+	Metadata  json.RawMessage `json:"metadata"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
+	Api       *ApiV2          `json:"-"`
+	Assets    []Asset         `json:"assets"`
 }
 
 func (v VideoV2) Value() (driver.Value, error) {

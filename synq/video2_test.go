@@ -9,6 +9,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestMarshalVideo(t *testing.T) {
+	assert := require.New(t)
+	video := setupTestVideoV2()
+	video.Metadata = []byte(`{"test":true}`)
+	bytes, err := json.Marshal(video)
+	assert.Nil(err)
+	v := VideoV2{}
+	json.Unmarshal(bytes, &v)
+	assert.Equal(video.Metadata, v.Metadata)
+}
+
 func TestCreateAsset(t *testing.T) {
 	log.Println("Testing CreateAsset")
 	assert := require.New(t)
