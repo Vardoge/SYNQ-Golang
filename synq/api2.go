@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -46,6 +47,9 @@ func (a *ApiV2) makeRequest(method string, url string, body io.Reader) (req *htt
 	if err != nil {
 		return req, err
 	}
+	if method == "POST" {
+		req.Header.Add("content-type", "application/json")
+	}
 	a.handleAuth(req)
 	return req, nil
 }
@@ -62,7 +66,11 @@ func (a ApiV2) ParseError(status int, bytes []byte) error {
 	if err != nil {
 		return common.NewError("could not parse error %d : %s", status, string(bytes))
 	}
-	return errors.New(resp.Message)
+	msg := resp.Message
+	if msg == "" {
+		msg = fmt.Sprintf("Failed with status %d", status)
+	}
+	return errors.New(msg)
 }
 
 func (a *ApiV2) handleGet(url string, v interface{}) error {
@@ -74,21 +82,15 @@ func (a *ApiV2) handleGet(url string, v interface{}) error {
 	return handleReq(a, req, v)
 }
 
-func (a *ApiV2) Create(userdata ...map[string]interface{}) (VideoV2, error) {
+func (a *ApiV2) Create(body ...[]byte) (VideoV2, error) {
 	resp := VideoResp{}
 	video := VideoV2{}
 	url := a.getBaseUrl() + "/videos"
-	body := bytes.NewBuffer([]byte("{"))
-	if len(userdata) > 0 {
-		body.WriteString(`"user_data":`)
-		b, err := json.Marshal(userdata[0])
-		if err != nil {
-			return video, err
-		}
-		body.Write(b)
+	buf := bytes.NewBufferString("")
+	if len(body) > 0 {
+		buf.Write(body[0])
 	}
-	body.WriteString("}")
-	req, err := a.makeRequest("POST", url, body)
+	req, err := a.makeRequest("POST", url, buf)
 	if err != nil {
 		return video, err
 	}
@@ -104,7 +106,11 @@ func (a *ApiV2) Create(userdata ...map[string]interface{}) (VideoV2, error) {
 // Helper function to get details for a video, will create video object
 func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 	var resp VideoResp
-	url := a.getBaseUrl() + "/videos/" + id
+	if id == "" || (len(id) != 32 && len(id) != 36) {
+		return video, errors.New("video id is blank")
+	}
+	uuid := common.ConvertToUUIDFormat(id)
+	url := a.getBaseUrl() + "/videos/" + uuid
 	req, err := a.makeRequest("GET", url, nil)
 	if err != nil {
 		return video, err

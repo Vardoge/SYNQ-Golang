@@ -13,18 +13,13 @@ type VideoResp struct {
 }
 
 type VideoV2 struct {
-	Id        string                 `json:"id"`
-	Userdata  map[string]interface{} `json:"user_data"`
-	Metadata  map[string]interface{} `json:"metadata"`
-	CreatedAt time.Time              `json:"created_at"`
-	UpdatedAt time.Time              `json:"updated_at"`
-	Api       *ApiV2                 `json:"-"`
-	Assets    []Asset                `json:"assets"`
-}
-
-type VideoMetadata struct {
-	JobId    string `json:"job_id"`
-	JobState string `json:"job_state"`
+	Id        string          `json:"id"`
+	Userdata  json.RawMessage `json:"user_data"`
+	Metadata  json.RawMessage `json:"metadata"`
+	CreatedAt time.Time       `json:"created_at"`
+	UpdatedAt time.Time       `json:"updated_at"`
+	Api       *ApiV2          `json:"-"`
+	Assets    []Asset         `json:"assets"`
 }
 
 func (v VideoV2) Value() (driver.Value, error) {
