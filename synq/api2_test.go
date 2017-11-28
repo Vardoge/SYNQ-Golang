@@ -10,13 +10,14 @@ import (
 
 var testAssetId string
 var testVideoIdV2 string
+var testVideoId2V2 string
 var testAuth string
 
 func init() {
 	testAssetId = test_server.ASSET_ID
 	testVideoIdV2 = test_server.V2_VIDEO_ID
+	testVideoId2V2 = test_server.V2_VIDEO_ID2
 	testAuth = test_server.TEST_AUTH
-	test_server.SetSampleDir(sampleDir)
 }
 
 func setupTestApiV2(key string) ApiV2 {
@@ -60,6 +61,16 @@ func TestGet2(t *testing.T) {
 	assert.Len(video.Assets, 1)
 	assert.Equal(testAssetId, video.Assets[0].Id)
 	assert.NotNil(video.Api)
+}
+
+func TestGetVideos(t *testing.T) {
+	assert := require.New(t)
+	api := setupTestApiV2(testAuth)
+	videos, err := api.GetVideos("")
+	assert.Nil(err)
+	assert.Len(videos, 2)
+	assert.Equal(testVideoIdV2, videos[0].Id)
+	assert.Equal(testVideoId2V2, videos[1].Id)
 }
 
 func TestParseErrorV2(t *testing.T) {
