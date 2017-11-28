@@ -27,7 +27,7 @@ func setupTestApiV2(key string) ApiV2 {
 
 func TestMakeReq2(t *testing.T) {
 	assert := require.New(t)
-	api := test_server.SetupServerAndApiV2("fake")
+	api := setupTestApiV2("fake")
 	body := strings.NewReader("")
 	req, err := api.makeRequest("POST", "url", body)
 	assert.Nil(err)
@@ -39,7 +39,7 @@ func TestMakeReq2(t *testing.T) {
 
 func TestCreate2(t *testing.T) {
 	assert := require.New(t)
-	api := test_server.SetupServerAndApiV2("fake")
+	api := setupTestApiV2("fake")
 	_, err := api.Create()
 	assert.NotNil(err)
 	api.SetKey(testAuth)
@@ -50,7 +50,7 @@ func TestCreate2(t *testing.T) {
 
 func TestGet2(t *testing.T) {
 	assert := require.New(t)
-	api := test_server.SetupServerAndApiV2(testAuth)
+	api := setupTestApiV2(testAuth)
 	_, err := api.GetVideo("")
 	assert.NotNil(err)
 	video, err := api.GetVideo(testVideoIdV2)
@@ -63,7 +63,7 @@ func TestGet2(t *testing.T) {
 
 func TestParseErrorV2(t *testing.T) {
 	assert := require.New(t)
-	api := test_server.SetupServerAndApiV2(testAuth)
+	api := setupTestApiV2(testAuth)
 	bytes := []byte{}
 	err := api.ParseError(404, bytes)
 	assert.Equal("404 Item not found", err.Error())

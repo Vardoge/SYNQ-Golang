@@ -20,21 +20,23 @@ type Cache struct {
 	Dir string
 }
 
+func init() {
+	test_server.SetSampleDir(sampleDir)
+	testAuth = test_server.TEST_AUTH
+}
+
 func setup() (synq.ApiV2, Cache) {
 	os.RemoveAll(cacheDir)
 	os.MkdirAll(cacheDir, 0755)
 	cache := Cache{Dir: cacheDir}
-	api := test_server.SetupServerAndApiV2(testAuth)
+	api := synq.NewV2(testAuth)
+	url := test_server.SetupServer("v2")
+	api.SetUrl(url)
 	return api, cache
 }
 
 func (c Cache) GetCacheFile(name string) string {
 	return c.Dir + "/" + name + ".json"
-}
-
-func init() {
-	test_server.SetSampleDir(sampleDir)
-	testAuth = test_server.TEST_AUTH
 }
 
 func TestLoadVideo(t *testing.T) {

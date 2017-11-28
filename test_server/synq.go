@@ -7,8 +7,6 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
-
-	"github.com/SYNQfm/SYNQ-Golang/synq"
 )
 
 var defaultSampleDir = "sample"
@@ -54,13 +52,6 @@ func LoadSample(name string, sampleDir ...string) (data []byte) {
 		log.Panicf("could not load sample file %s : '%s'", name, err.Error())
 	}
 	return data
-}
-
-func SetupServerAndApiV2(key string) synq.ApiV2 {
-	api := synq.NewV2(key)
-	url := SetupServer("v2")
-	api.SetUrl(url)
-	return api
 }
 
 func SetupServer(version ...string) string {
