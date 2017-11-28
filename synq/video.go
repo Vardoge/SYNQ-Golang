@@ -109,10 +109,6 @@ func (u Uploader) url() string {
 	return u["uploader_url"]
 }
 
-func (v Video) ID() string {
-	return v.Id
-}
-
 // Calls the /v1/video/details API to load Video object information
 func (v *Video) GetVideo() error {
 	form := url.Values{}
