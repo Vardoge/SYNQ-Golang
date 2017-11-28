@@ -109,14 +109,14 @@ func (a *ApiV2) Create(body ...[]byte) (VideoV2, error) {
 
 func (a *ApiV2) GetVideos(accountId string) (videos []VideoV2, err error) {
 	var resp VideoList
-	path = "/videos"
+	path := "/videos"
 	if accountId != "" {
 		path = "/" + accountId + path
 	}
 	url := a.getBaseUrl() + path
 	req, err := a.makeRequest("GET", url, nil)
 	if err != nil {
-		return video, err
+		return videos, err
 	}
 	err = handleReq(a, req, &resp)
 	if err != nil {
