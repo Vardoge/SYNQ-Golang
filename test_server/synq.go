@@ -197,7 +197,11 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 				if type_ == "asset" {
 					resp = LoadSample("asset_uploaded")
 				} else {
-					resp = LoadSample("video2")
+					if r.Method == "PUT" {
+						resp = LoadSample("video2_update")
+					} else {
+						resp = LoadSample("video2")
+					}
 				}
 				w.WriteHeader(http.StatusOK)
 			} else if r.Method == "DELETE" {
