@@ -1,10 +1,10 @@
 {
   "data": {
     "user_data": {
-      "type": "test",
-      "description": "test in postman"
+      "type": "test2",
+      "description": "test in postman2"
     },
-    "metadata": {},
+    "metadata": {"type":"show"},
     "id": "9e9dc8c8-f705-41db-88da-b3034894deb9",
     "assets": [
       {

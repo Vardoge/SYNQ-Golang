@@ -20,6 +20,22 @@ func TestMarshalVideo(t *testing.T) {
 	assert.Equal(video.Metadata, v.Metadata)
 }
 
+func TestVideoUpdate(t *testing.T) {
+	assert := require.New(t)
+	video := setupTestVideoV2()
+	video.Metadata = json.RawMessage(`{"meta":"new"}`)
+	video.Userdata = json.RawMessage(`{"user":"new"}`)
+	// this is just fake, the updated value will come from a hard coded json
+	err := video.Update()
+	assert.Nil(err)
+	assert.Equal(`{"type":"show"}`, string(video.Metadata))
+	assert.Contains(string(video.Userdata), "test2")
+	reqs, vals := test_server.GetReqs()
+	assert.Len(reqs, 1)
+	assert.Len(vals, 1)
+	assert.Equal(`{"metadata":{"meta":"new"},"user_data":{"user":"new"}}`, vals[0].Get("body"))
+}
+
 func TestCreateAsset(t *testing.T) {
 	log.Println("Testing CreateAsset")
 	assert := require.New(t)

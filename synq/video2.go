@@ -51,6 +51,29 @@ func (v *VideoV2) GetVideoAssetList() error {
 	return nil
 }
 
+func (v *VideoV2) Update() error {
+	url := v.Api.getBaseUrl() + "/videos/" + v.Id
+	type Update struct {
+		Metadata json.RawMessage `json:"metadata"`
+		Userdata json.RawMessage `json:"user_data"`
+	}
+	update := Update{Metadata: v.Metadata, Userdata: v.Userdata}
+	b, _ := json.Marshal(update)
+	body := bytes.NewBuffer(b)
+	req, err := v.Api.makeRequest("PUT", url, body)
+	if err != nil {
+		return err
+	}
+	resp := VideoResp{}
+	err = handleReq(v.Api, req, &resp)
+	if err != nil {
+		return err
+	}
+	v.Metadata = resp.Video.Metadata
+	v.Userdata = resp.Video.Userdata
+	return nil
+}
+
 func (v VideoV2) GetAsset(assetId string) (Asset, error) {
 	url := v.Api.getBaseUrl() + "/assets/" + assetId
 	var asset Asset
