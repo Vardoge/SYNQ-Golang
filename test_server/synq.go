@@ -153,10 +153,10 @@ func handleV1(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusBadRequest)
 					resp = []byte(ke)
 				} else {
-					resp, _ = ioutil.ReadFile("../sample/video.json")
+					resp = LoadSample("video")
 				}
 			case "/v1/video/create":
-				resp, _ = ioutil.ReadFile("../sample/new_video.json")
+				resp = LoadSample("new_video")
 			case "/v1/video/upload",
 				"/v1/video/uploader",
 				"/v1/video/update",
