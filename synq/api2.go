@@ -29,7 +29,7 @@ func (a ApiV2) Version() string {
 }
 
 func NewV2(token string, timeouts ...time.Duration) ApiV2 {
-	base := New(token, timeouts...)
+	base := NewBase(token, timeouts...)
 	base.Url = DEFAULT_V2_URL
 	return ApiV2{BaseApi: &base}
 }

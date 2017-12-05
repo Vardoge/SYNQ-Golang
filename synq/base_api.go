@@ -96,7 +96,7 @@ func parseSynqResp(a ApiF, resp *http.Response, err error, v interface{}) error 
 	}
 }
 
-func New(key string, timeouts ...time.Duration) BaseApi {
+func NewBase(key string, timeouts ...time.Duration) BaseApi {
 	timeout := time.Duration(DEFAULT_TIMEOUT_MS) * time.Millisecond
 	up_timeout := time.Duration(DEFAULT_UPLOAD_MS) * time.Millisecond
 	if len(timeouts) > 1 {
