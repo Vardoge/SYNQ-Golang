@@ -27,3 +27,8 @@ jobs:
             else
               goveralls -coverprofile="${SYNQ_DIR}"/"${REPO}"/overalls.coverprofile -service circle-ci -repotoken "${COVERALLS_TOKEN}"
             fi
+      - run:
+          name: Build CLI
+          command: |
+            cd cli
+            go build
