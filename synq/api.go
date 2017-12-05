@@ -45,8 +45,12 @@ func (a Api) ParseError(status int, bytes []byte) error {
 	return errors.New(eResp.Message)
 }
 
+func New(key string, timeouts ...time.Duration) Api {
+	return NewV1(key, timeouts...)
+}
+
 func NewV1(key string, timeouts ...time.Duration) Api {
-	base := New(key, timeouts...)
+	base := NewBase(key, timeouts...)
 	base.Url = DEFAULT_V1_URL
 	return Api{BaseApi: &base}
 }
