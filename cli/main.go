@@ -37,7 +37,7 @@ func main() {
 		log.Println("missing 'api_key'")
 		os.Exit(1)
 	}
-	api := synq.New(api_key)
+	api := synq.NewV1(api_key)
 	log.Printf("using %s API\n")
 	switch cmd {
 	case "details":
