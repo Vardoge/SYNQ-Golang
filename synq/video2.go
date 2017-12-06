@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -119,4 +120,14 @@ func (v *VideoV2) CreateAsset(state, fileType, location string) (Asset, error) {
 	asset.Location = location
 	err := v.CreateOrUpdateAsset(&asset)
 	return asset, err
+}
+
+// Helper function to display information about a file
+func (v *VideoV2) Display() (str string) {
+	if v.Id == "" {
+		str = fmt.Sprintf("Empty Video\n")
+	} else {
+		str = fmt.Sprintf("Video %s\n\tAssets : %d\n", v.Id, len(v.Assets))
+	}
+	return str
 }

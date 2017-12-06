@@ -175,8 +175,11 @@ func handleV1(w http.ResponseWriter, r *http.Request) {
 
 func handleV2(w http.ResponseWriter, r *http.Request) {
 	var resp []byte
-	auth := r.Header.Get("Authorization")
-	k := validateAuth(auth)
+	var k string
+	if r.URL.Path != "/v2/login" {
+		auth := r.Header.Get("Authorization")
+		k = validateAuth(auth)
+	}
 	if k != "" {
 		w.WriteHeader(http.StatusBadRequest)
 		resp = []byte(k)
@@ -235,6 +238,12 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
+		case "/v2/login":
+			if r.Method == "POST" && !strings.Contains(body_str, "fake") {
+				resp = LoadSample("login")
+			} else {
+				w.WriteHeader(http.StatusNotFound)
+			}
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
@@ -244,7 +253,7 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 
 func SynqStub(version string) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println("here in synq response", r.RequestURI)
+		log.Printf("here in synq response %s (server %s)", r.RequestURI, version)
 		testReqs = append(testReqs, r)
 		if version == "v2" {
 			handleV2(w, r)
