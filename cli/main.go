@@ -15,7 +15,7 @@ var cli common.Cli
 
 func init() {
 	cli = common.NewCli()
-	cli.String("command", "", "one of: details, upload_info, upload, create, uploader_info, uploader, query or create_and_then_multipart_upload")
+	cli.String("command", "", "for v2 'get_video', for v1 : details, upload_info, upload, create, uploader_info, uploader, query or create_and_then_multipart_upload")
 	cli.String("api_key", "", "pass the synq api key")
 	cli.String("user", "", "user to use")
 	cli.String("password", "", "password to use")
@@ -37,9 +37,11 @@ func handleV2(api synq.ApiV2) {
 	var video synq.VideoV2
 	vid := cli.GetString("video_id")
 	switch cli.Command {
-	case "details":
+	case "get_video":
 		log.Printf("getting video %s\n", vid)
 		video, err = api.GetVideo(vid)
+	default:
+		err = errors.New("unknown command '" + cli.Command + "'")
 	}
 	handleError(err)
 	log.Printf(video.Display())

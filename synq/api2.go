@@ -101,26 +101,39 @@ func (a *ApiV2) handleGet(url string, v interface{}) error {
 	return handleReq(a, req, v)
 }
 
-func Login(email, password string, timeouts ...time.Duration) (api ApiV2, err error) {
-	resp := login(email, password)
-	api = NewV2(resp.Token, timeouts...)
+func Login(email, password string, serverUrl ...string) (ApiV2, error) {
+	var api ApiV2
+	resp, err := login(email, password, serverUrl...)
+	if err != nil {
+		return api, err
+	}
+	api = NewV2(resp.Token)
 	api.TokenExpiry = resp.TokenExpiry
 	return api, nil
 }
 
-func login(email, password string) LoginResp {
+func login(user, password string, serverUrl ...string) (LoginResp, error) {
 	var r LoginResp
-	u := DEFAULT_V2_URL + "/v2/login"
+	var u string
+	if len(serverUrl) > 0 {
+		u = serverUrl[0]
+	} else {
+		u = DEFAULT_V2_URL
+	}
+	u = u + "/v2/login"
 	form := url.Values{}
-	form.Add("email", email)
+	form.Add("email", user)
 	form.Add("password", password)
 	resp, e := http.PostForm(u, form)
 	if e != nil {
-		return r
+		return r, e
+	}
+	if resp.StatusCode != 200 {
+		return r, common.NewError("error getting login %d", resp.StatusCode)
 	}
 	bytes, _ := ioutil.ReadAll(resp.Body)
 	_ = json.Unmarshal(bytes, &r)
-	return r
+	return r, nil
 }
 
 func (a *ApiV2) Create(body ...[]byte) (VideoV2, error) {
