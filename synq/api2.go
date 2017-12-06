@@ -6,7 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/SYNQfm/helpers/common"
@@ -18,10 +21,18 @@ const (
 
 type ApiV2 struct {
 	*BaseApi
+	Email       string
+	Password    string
+	TokenExpiry time.Time
 }
 
 type VideoList struct {
 	Videos []VideoV2 `json:"data"`
+}
+
+type LoginResp struct {
+	Token       string    `json:"jwt"`
+	TokenExpiry time.Time `json:"exp"`
 }
 
 func (a ApiV2) Version() string {
@@ -52,7 +63,11 @@ func (a *ApiV2) makeRequest(method string, url string, body io.Reader) (req *htt
 		return req, err
 	}
 	if method == "POST" {
-		req.Header.Add("content-type", "application/json")
+		if strings.Contains(url, "/login") {
+			req.Header.Add("content-type", "application/x-www-form-urlencoded")
+		} else {
+			req.Header.Add("content-type", "application/json")
+		}
 	}
 	a.handleAuth(req)
 	return req, nil
@@ -84,6 +99,28 @@ func (a *ApiV2) handleGet(url string, v interface{}) error {
 		return err
 	}
 	return handleReq(a, req, v)
+}
+
+func Login(email, password string, timeouts ...time.Duration) (api ApiV2, err error) {
+	resp := login(email, password)
+	api = NewV2(resp.Token, timeouts...)
+	api.TokenExpiry = resp.TokenExpiry
+	return api, nil
+}
+
+func login(email, password string) LoginResp {
+	var r LoginResp
+	u := DEFAULT_V2_URL + "/v2/login"
+	form := url.Values{}
+	form.Add("email", email)
+	form.Add("password", password)
+	resp, e := http.PostForm(u, form)
+	if e != nil {
+		return r
+	}
+	bytes, _ := ioutil.ReadAll(resp.Body)
+	_ = json.Unmarshal(bytes, &r)
+	return r
 }
 
 func (a *ApiV2) Create(body ...[]byte) (VideoV2, error) {

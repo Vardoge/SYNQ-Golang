@@ -24,7 +24,7 @@ import (
 )
 
 func main() {
-  api := synq.NewV2("myapikey")
+  api, _ := synq.Login("email", "password")
   video, _ := api.GetVideo("myvideo")
   log.Printf("video returned %v", video)
 }

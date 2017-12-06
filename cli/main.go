@@ -3,13 +3,27 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"flag"
 	"io/ioutil"
 	"log"
 	"os"
 
 	"github.com/SYNQfm/SYNQ-Golang/synq"
+	"github.com/SYNQfm/helpers/common"
 )
+
+var cli common.Cli
+
+func init() {
+	cli = common.NewCli()
+	cli.String("command", "", "one of: details, upload_info, upload, create, uploader_info, uploader, query or create_and_then_multipart_upload")
+	cli.String("api_key", "", "pass the synq api key")
+	cli.String("user", "", "user to use")
+	cli.String("password", "", "password to use")
+	cli.String("video_id", "", "pass in the video id to get data about")
+	cli.String("file", "", "path to file you want to upload or userdata")
+	cli.String("query", "", "query string to use")
+	cli.Parse()
+}
 
 func handleError(err error) {
 	if err != nil {
@@ -18,28 +32,25 @@ func handleError(err error) {
 	}
 }
 
-func main() {
+func handleV2(api synq.ApiV2) {
 	var err error
-	var video synq.Video
-	var (
-		c = flag.String("command", "", "one of: details, upload_info, upload, create, uploader_info, uploader, query or create_and_then_multipart_upload")
-		a = flag.String("api_key", "", "pass the synq api key")
-		v = flag.String("video_id", "", "pass in the video id to get data about")
-		f = flag.String("file", "", "path to file you want to upload or userdata")
-		q = flag.String("query", "", "query string to use")
-	)
-	flag.Parse()
-	cmd := *c
-	vid := *v
-	api_key := *a
-	file := *f
-	if api_key == "" {
-		log.Println("missing 'api_key'")
-		os.Exit(1)
+	var video synq.VideoV2
+	vid := cli.GetString("video_id")
+	switch cli.Command {
+	case "details":
+		log.Printf("getting video %s\n", vid)
+		video, err = api.GetVideo(vid)
 	}
-	api := synq.NewV1(api_key)
-	log.Printf("using %s API\n")
-	switch cmd {
+	handleError(err)
+	log.Printf(video.Display())
+}
+
+func handleV1(api synq.Api) {
+	var video synq.Video
+	var err error
+	vid := cli.GetString("video_id")
+	file := cli.GetString("file")
+	switch cli.Command {
 	case "details":
 		if vid == "" {
 			log.Println("missing video id")
@@ -53,7 +64,8 @@ func main() {
 		video.Id = vid
 		err = video.GetUploadInfo()
 	case "query":
-		videos, err := api.Query(*q)
+		q := cli.GetString("query")
+		videos, err := api.Query(q)
 		handleError(err)
 		log.Printf("Found %d videos\n", len(videos))
 		for _, video := range videos {
@@ -129,8 +141,26 @@ func main() {
 
 		video, err = api.GetVideo(video.Id)
 	default:
-		err = errors.New("unknown command '" + cmd + "'")
+		err = errors.New("unknown command '" + cli.Command + "'")
 	}
 	handleError(err)
 	log.Printf(video.Display())
+}
+
+func main() {
+	user := cli.GetString("user")
+	password := cli.GetString("password")
+	if user != "" && password != "" {
+		api, err := synq.Login(user, password)
+		handleError(err)
+		handleV2(api)
+	} else {
+		api_key := cli.GetString("api_key")
+		if api_key == "" {
+			log.Println("missing api_key")
+			os.Exit(1)
+		}
+		api := synq.NewV1(api_key)
+		handleV1(api)
+	}
 }

@@ -39,6 +39,12 @@ func TestMakeReq2(t *testing.T) {
 	assert.Equal("GET", req.Method)
 }
 
+func TestLogin(t *testing.T) {
+	assert := require.New(t)
+	_, err := Login("fake", "fake")
+	assert.NotNil(err)
+}
+
 func TestCreate2(t *testing.T) {
 	assert := require.New(t)
 	api := setupTestApiV2("fake")
