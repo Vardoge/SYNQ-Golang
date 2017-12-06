@@ -21,7 +21,7 @@ const (
 
 type ApiV2 struct {
 	*BaseApi
-	Email       string
+	User        string
 	Password    string
 	TokenExpiry time.Time
 }
@@ -101,14 +101,16 @@ func (a *ApiV2) handleGet(url string, v interface{}) error {
 	return handleReq(a, req, v)
 }
 
-func Login(email, password string, serverUrl ...string) (ApiV2, error) {
+func Login(user, password string, serverUrl ...string) (ApiV2, error) {
 	var api ApiV2
-	resp, err := login(email, password, serverUrl...)
+	resp, err := login(user, password, serverUrl...)
 	if err != nil {
 		return api, err
 	}
 	api = NewV2(resp.Token)
 	api.TokenExpiry = resp.TokenExpiry
+	api.User = user
+	api.Password = password
 	return api, nil
 }
 
