@@ -30,6 +30,10 @@ type VideoList struct {
 	Videos []VideoV2 `json:"data"`
 }
 
+type ErrorRespV2 struct {
+	Message string `json:"message"`
+}
+
 type LoginResp struct {
 	Token       string    `json:"jwt"`
 	TokenExpiry time.Time `json:"exp"`
