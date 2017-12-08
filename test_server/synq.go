@@ -32,6 +32,7 @@ const (
 	V2_VIDEO_ID       = "9e9dc8c8-f705-41db-88da-b3034894deb9"
 	V2_VIDEO_ID2      = "eee2bc43-e973-4f73-857d-7c0bb111a834"
 	ASSET_ID          = "01823629-bcf2-4c34-b714-ae21e1a4647f"
+	ASSET_ID2         = "fc3e5d9a-a90e-49cc-0c67-224372a59cee"
 	TEST_AUTH         = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3Rlc3QuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDU3MjE4MjFiM2ExYWFmYmUxNTlkZGE2NSIsImF1ZCI6InRESzZBdUF0QVc0ckFySzhOSTltMXdJRW5WQU9RcjUxIiwiZXhwIjoxNDkzNDM5NTExLCJpYXQiOjE0NjE4MTcxMTF9.29JkFxoHqCRPIH2wVbT-ZNIMBK8xXLwkjbLmyWxpquE"
 )
 
@@ -63,8 +64,7 @@ func SetupServer(version ...string) string {
 	if testServer != nil {
 		testServer.Close()
 	}
-	testReqs = testReqs[:0]
-	testValues = testValues[:0]
+	ResetReqs()
 	if ver == "generic" {
 		testServer = ServerStub()
 	} else {
@@ -75,6 +75,11 @@ func SetupServer(version ...string) string {
 
 func GetReqs() ([]*http.Request, []url.Values) {
 	return testReqs, testValues
+}
+
+func ResetReqs() {
+	testReqs = testReqs[:0]
+	testValues = testValues[:0]
 }
 
 func validKey(key string) string {
