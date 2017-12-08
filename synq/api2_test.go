@@ -73,6 +73,21 @@ func TestGet2(t *testing.T) {
 	assert.NotNil(video.Api)
 }
 
+func TestGetAssetByApi(t *testing.T) {
+	assert := require.New(t)
+	api := setupTestApiV2(testAuth)
+	_, err := api.GetAsset("")
+	assert.NotNil(err)
+	asset, err := api.GetAsset(testAssetId)
+	assert.Nil(err)
+	video := asset.Video
+	assert.Equal(testAssetId, asset.Id)
+	assert.Equal(testVideoIdV2, video.Id)
+	assert.Len(video.Assets, 1)
+	assert.Equal(testAssetId, video.Assets[0].Id)
+	assert.NotNil(video.Api)
+}
+
 func TestGetVideos(t *testing.T) {
 	assert := require.New(t)
 	api := setupTestApiV2(testAuth)
