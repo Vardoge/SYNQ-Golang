@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	DEFAULT_V2_URL = "http://b9n2fsyd6jbfihx82.stoplight-proxy.io"
+	DEFAULT_V2_URL       = "http://b9n2fsyd6jbfihx82.stoplight-proxy.io"
+	DEFAULT_UPLOADER_URL = "http://s6krcbatzuuhmspse.stoplight-proxy.io"
 )
 
 type ApiV2 struct {
