@@ -25,6 +25,7 @@ type Asset struct {
 	UpdatedAt string          `json:"updated_at"`
 	Metadata  json.RawMessage `json:"metadata"`
 	Api       ApiV2           `json:"-"`
+	Video     VideoV2         `json:"-"`
 }
 
 func (a *Asset) Update() error {

@@ -207,6 +207,34 @@ func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 	return video, nil
 }
 
+// Helper function to get an Asset
+func (a *ApiV2) GetAsset(id string) (asset Asset, err error) {
+	var resp AssetResponse
+	if id == "" || (len(id) != 32 && len(id) != 36) {
+		return asset, errors.New("video id is blank")
+	}
+	uuid := common.ConvertToUUIDFormat(id)
+	url := a.getBaseUrl() + "/assets/" + uuid
+	req, err := a.makeRequest("GET", url, nil)
+	if err != nil {
+		return asset, err
+	}
+	err = handleReq(a, req, &resp)
+	if err != nil {
+		return asset, err
+	}
+	asset = *resp.Asset
+	// now get the video
+	video, err := a.GetVideo(asset.VideoId)
+	if err != nil {
+		return asset, err
+	}
+	video.Api = a
+	asset.Video = video
+	return asset, nil
+
+}
+
 func (a *ApiV2) GetAssetList() ([]Asset, error) {
 	list := AssetList{}
 	url := a.getBaseUrl() + "/assets"
