@@ -85,7 +85,7 @@ func (v VideoV2) GetAsset(assetId string) (Asset, error) {
 
 func (v *VideoV2) FindAsset(location string) (Asset, bool) {
 	for _, a := range v.Assets {
-		if a.Location == location && a.Id != "" {
+		if (a.Location == location || a.Id == location) && a.Id != "" {
 			return a, true
 		}
 	}
