@@ -69,3 +69,13 @@ func TestCreateOrUpdateAsset(t *testing.T) {
 	assert.Equal(asset.State, a.State)
 	assert.Equal(asset.Location, a.Location)
 }
+
+func TestUploadInfo(t *testing.T) {
+	log.Println("Testing UploadInfo V2")
+	assert := require.New(t)
+	video := setupTestVideoV2()
+	asset, err := video.UploadInfo("video/mp4")
+	assert.Nil(err)
+	assert.Len(video.Assets, 1)
+	assert.Equal(asset.Id, video.Assets[0].Id)
+}

@@ -15,17 +15,18 @@ type AssetList struct {
 }
 
 type Asset struct {
-	AccountId string          `json:"account_id"`
-	VideoId   string          `json:"video_id"`
-	Id        string          `json:"id"`
-	Location  string          `json:"location"`
-	State     string          `json:"state"`
-	Type      string          `json:"type"`
-	CreatedAt string          `json:"created_at"`
-	UpdatedAt string          `json:"updated_at"`
-	Metadata  json.RawMessage `json:"metadata"`
-	Api       ApiV2           `json:"-"`
-	Video     VideoV2         `json:"-"`
+	AccountId        string           `json:"account_id"`
+	VideoId          string           `json:"video_id"`
+	Id               string           `json:"id"`
+	Location         string           `json:"location"`
+	State            string           `json:"state"`
+	Type             string           `json:"type"`
+	CreatedAt        string           `json:"created_at"`
+	UpdatedAt        string           `json:"updated_at"`
+	Metadata         json.RawMessage  `json:"metadata"`
+	Api              ApiV2            `json:"-"`
+	Video            VideoV2          `json:"-"`
+	UploadParameters UploadParameters `json:"-"`
 }
 
 func (a *Asset) Update() error {

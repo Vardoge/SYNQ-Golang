@@ -24,6 +24,7 @@ type ApiV2 struct {
 	*BaseApi
 	User        string
 	Password    string
+	UploadUrl   string
 	TokenExpiry time.Time
 }
 
