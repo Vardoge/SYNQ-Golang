@@ -23,6 +23,11 @@ type VideoV2 struct {
 	Assets    []Asset         `json:"assets"`
 }
 
+type UnicornParam struct {
+	Ctype   string `json:"content_type"`
+	AssetId string `json:"asset_id"`
+}
+
 func (v VideoV2) Value() (driver.Value, error) {
 	json, err := json.Marshal(v)
 	return json, err
@@ -116,10 +121,9 @@ func (v *VideoV2) CreateOrUpdateAsset(asset *Asset) error {
 // it will be used instead (assuming it exists)
 func (v *VideoV2) GetUploadParams(ctype string, assetId ...string) (up UploadParameters, err error) {
 	api := v.Api
-	params := struct {
-		Ctype   string `json:"content_type"`
-		AssetId string `json:"asset_id"`
-	}{Ctype: ctype}
+	params := UnicornParam{
+		Ctype: ctype,
+	}
 
 	if len(assetId) > 0 {
 		params.AssetId = assetId[0]
@@ -139,7 +143,7 @@ func (v *VideoV2) GetUploadParams(ctype string, assetId ...string) (up UploadPar
 // This will call Unicorn's /v2/video/<id>/upload API, which will
 // create an asset and create a signed S3 location to upload to, including
 // the signature url for multipart uploads
-func (v *VideoV2) GetAssetForUpload(ctype string) (asset Asset, err error) {
+func (v *VideoV2) CreateAssetForUpload(ctype string) (asset Asset, err error) {
 	up, err := v.GetUploadParams(ctype)
 	if err != nil {
 		return asset, err

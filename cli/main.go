@@ -5,7 +5,9 @@ import (
 	"errors"
 	"io/ioutil"
 	"log"
+	"mime"
 	"os"
+	"path/filepath"
 
 	"github.com/SYNQfm/SYNQ-Golang/synq"
 	"github.com/SYNQfm/helpers/common"
@@ -17,11 +19,14 @@ func init() {
 	cli = common.NewCli()
 	cli.String("command", "", "for v2 'get_video', for v1 : details, upload_info, upload, create, uploader_info, uploader, query or create_and_then_multipart_upload")
 	cli.String("api_key", "", "pass the synq api key")
+	cli.String("upload_url", "", "upload url to use")
 	cli.String("user", "", "user to use")
 	cli.String("password", "", "password to use")
-	cli.String("video_id", "", "pass in the video id to get data about")
+	cli.String("video_id", "", "video id to access")
+	cli.String("asset_id", "", "asset id to access")
 	cli.String("file", "", "path to file you want to upload or userdata")
 	cli.String("query", "", "query string to use")
+	cli.String("version", "v2", "version to use")
 	cli.Parse()
 }
 
@@ -36,7 +41,38 @@ func handleV2(api synq.ApiV2) {
 	var err error
 	var video synq.VideoV2
 	vid := cli.GetString("video_id")
+	aid := cli.GetString("asset_id")
 	switch cli.Command {
+	case "upload":
+		var asset synq.Asset
+		upload_url := cli.GetString("upload_url")
+		if upload_url == "" {
+			err = errors.New("missing upload_url")
+			break
+		}
+		api.UploadUrl = upload_url
+		file := cli.GetString("file")
+		if file == "" {
+			err = errors.New("file missing")
+			break
+		}
+		ext := filepath.Ext(file)
+		ctype := mime.TypeByExtension(ext)
+		if aid == "" {
+			log.Printf("getting video %s\n", vid)
+			video, err = api.GetVideo(vid)
+			if err == nil {
+				log.Printf("creating new asset for %s\n", ctype)
+				asset, err = video.CreateAssetForUpload(ctype)
+			}
+		} else {
+			log.Printf("getting existing asset %s\n", aid)
+			asset, err = api.GetAsset(aid)
+		}
+		if err == nil {
+			log.Printf("uploading file %s\n", file)
+			err = asset.UploadFile(file)
+		}
 	case "get_video":
 		log.Printf("getting video %s\n", vid)
 		video, err = api.GetVideo(vid)
@@ -162,7 +198,12 @@ func main() {
 			log.Println("missing api_key")
 			os.Exit(1)
 		}
-		api := synq.NewV1(api_key)
-		handleV1(api)
+		if cli.GetString("version") == "v2" {
+			api := synq.NewV2(api_key)
+			handleV2(api)
+		} else {
+			api := synq.NewV1(api_key)
+			handleV1(api)
+		}
 	}
 }

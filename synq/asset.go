@@ -65,7 +65,7 @@ func (a *Asset) UploadFile(fileName string) error {
 	if a.UploadParameters.Key == "" {
 		// if the location exists, get the upload parameters again
 		if a.Location != "" && a.Type != "" {
-			up, err := a.Video.GetUploadParams(a.Type)
+			up, err := a.Video.GetUploadParams(a.Type, a.Id)
 			if err != nil {
 				return err
 			}

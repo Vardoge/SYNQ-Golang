@@ -116,11 +116,28 @@ func TestHandleAssetReq(t *testing.T) {
 func TestAssetUploadFile(t *testing.T) {
 	assert := require.New(t)
 	video := setupTestVideoV2()
-	asset := Asset{Video: video}
+	asset := Asset{
+		Id:    test_server.ASSET_ID,
+		Video: video,
+	}
 	fileName := sampleDir + "/test.mp4"
 	err := asset.UploadFile(fileName)
 	assert.NotNil(err)
 	assert.Equal("upload parameters is invalid", err.Error())
+	// set the upload parameters to check it sends the rigth request
+	asset.Type = "video/mp4"
+	asset.Location = "test"
+	err = asset.UploadFile("fake")
+	assert.NotNil(err)
+	reqs, vals := test_server.GetReqs()
+	assert.Len(reqs, 1)
+	val := vals[0]
+	assert.Equal("/v2/videos/9e9dc8c8-f705-41db-88da-b3034894deb9/upload", reqs[0].URL.Path)
+	body := val["body"][0]
+	var p UnicornParam
+	json.Unmarshal([]byte(body), &p)
+	assert.Equal(asset.Type, p.Ctype)
+	assert.Equal(asset.Id, p.AssetId)
 	setupTestParams(&asset)
 	err = asset.UploadFile("fake")
 	assert.NotNil(err)
