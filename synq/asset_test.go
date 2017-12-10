@@ -1,6 +1,7 @@
 package synq
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"testing"
@@ -22,6 +23,16 @@ func setupTestVideoV2() VideoV2 {
 	video, _ := api.Create()
 	test_server.ResetReqs()
 	return video
+}
+
+func setupTestParams(asset *Asset) {
+	bytes := test_server.LoadSampleV2("upload")
+	up := UploadParameters{}
+	json.Unmarshal(bytes, &up)
+	s3Server := test_server.S3Stub()
+	up.Action = s3Server.URL
+	up.SignatureUrl = asset.Video.Api.GetUrl()
+	asset.UploadParameters = up
 }
 
 func handleAsset(w http.ResponseWriter, r *http.Request) {
@@ -100,4 +111,20 @@ func TestHandleAssetReq(t *testing.T) {
 	err := asset.handleAssetReq("GET", url, nil)
 	assert.Nil(err)
 	assert.Equal(ogAsset, asset)
+}
+
+func TestAssetUploadFile(t *testing.T) {
+	assert := require.New(t)
+	video := setupTestVideoV2()
+	asset := Asset{Video: video}
+	fileName := sampleDir + "/test.mp4"
+	err := asset.UploadFile(fileName)
+	assert.NotNil(err)
+	assert.Equal("upload parameters is invalid", err.Error())
+	setupTestParams(&asset)
+	err = asset.UploadFile("fake")
+	assert.NotNil(err)
+	assert.Equal("file 'fake' does not exist", err.Error())
+	err = asset.UploadFile(fileName)
+	assert.Nil(err)
 }

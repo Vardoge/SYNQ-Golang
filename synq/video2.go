@@ -112,25 +112,35 @@ func (v *VideoV2) CreateOrUpdateAsset(asset *Asset) error {
 	}
 }
 
-// This will call Unicorn's /v2/video/<id>/upload API, which will
-// create an asset and create a signed S3 location to upload to, including
-// the signature url for multipart uploads
-func (v *VideoV2) GetAssetForUpload(ctype string) (asset Asset, err error) {
-	var up UploadParameters
+// This will get the upload params for a sepcific video, if assetId is passed in
+// it will be used instead (assuming it exists)
+func (v *VideoV2) GetUploadParams(ctype string, assetId ...string) (up UploadParameters, err error) {
 	api := v.Api
 	params := struct {
-		Ctype string `json:"content_type"`
+		Ctype   string `json:"content_type"`
+		AssetId string `json:"asset_id"`
 	}{Ctype: ctype}
 
+	if len(assetId) > 0 {
+		params.AssetId = assetId[0]
+	}
 	url := api.UploadUrl + "/v2/videos/" + v.Id + "/upload"
 	data, _ := json.Marshal(params)
 	body := bytes.NewBuffer(data)
 
 	req, err := api.makeRequest("POST", url, body)
 	if err != nil {
-		return asset, err
+		return up, err
 	}
 	err = handleReq(api, req, &up)
+	return up, err
+}
+
+// This will call Unicorn's /v2/video/<id>/upload API, which will
+// create an asset and create a signed S3 location to upload to, including
+// the signature url for multipart uploads
+func (v *VideoV2) GetAssetForUpload(ctype string) (asset Asset, err error) {
+	up, err := v.GetUploadParams(ctype)
 	if err != nil {
 		return asset, err
 	}

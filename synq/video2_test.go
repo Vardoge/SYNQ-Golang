@@ -78,4 +78,6 @@ func TestGetAssetForUpload(t *testing.T) {
 	assert.Nil(err)
 	assert.Len(video.Assets, 1)
 	assert.Equal(asset.Id, video.Assets[0].Id)
+	assert.Equal("uploads/9e/9d/9e9dc8c8f70541db88dab3034894deb9/01823629bcf24c34b714ae21e1a4647f.mp4", asset.UploadParameters.Key)
+	assert.Equal("https://synq-bruce.s3.amazonaws.com", asset.UploadParameters.Action)
 }

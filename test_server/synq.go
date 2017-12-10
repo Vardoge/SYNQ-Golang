@@ -41,6 +41,10 @@ func SetSampleDir(sampleDir string) {
 	defaultSampleDir = sampleDir
 }
 
+func LoadSampleV2(name string) []byte {
+	return LoadSample(name, defaultSampleDir+"/v2")
+}
+
 func LoadSample(name string, sampleDir ...string) (data []byte) {
 	sDir := defaultSampleDir
 	if len(sampleDir) > 0 {
@@ -228,7 +232,7 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 			if r.Method != "POST" {
 				w.WriteHeader(http.StatusNotFound)
 			} else {
-				resp = LoadSample("upload", defaultSampleDir+"/v2")
+				resp = LoadSampleV2("upload")
 				w.WriteHeader(http.StatusOK)
 			}
 		case "/v2/videos",

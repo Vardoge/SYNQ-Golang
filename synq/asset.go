@@ -61,9 +61,18 @@ func (a *Asset) handleAssetReq(method, url string, body io.Reader) error {
 	return nil
 }
 
-func (a *Asset) UploadFile(fileName string, ctype string) error {
+func (a *Asset) UploadFile(fileName string) error {
 	if a.UploadParameters.Key == "" {
-		return errors.New("upload parameters is invalid")
+		// if the location exists, get the upload parameters again
+		if a.Location != "" && a.Type != "" {
+			up, err := a.Video.GetUploadParams(a.Type)
+			if err != nil {
+				return err
+			}
+			a.UploadParameters = up
+		} else {
+			return errors.New("upload parameters is invalid")
+		}
 	}
 	f, err := os.Open(fileName)
 	defer f.Close()
