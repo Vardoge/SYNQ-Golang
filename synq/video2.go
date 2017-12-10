@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 	"time"
 )
 
@@ -116,14 +115,14 @@ func (v *VideoV2) CreateOrUpdateAsset(asset *Asset) error {
 // This will call Unicorn's /v2/video/<id>/upload API, which will
 // create an asset and create a signed S3 location to upload to, including
 // the signature url for multipart uploads
-func (v *VideoV2) UploadInfo(ctype string) (asset Asset, err error) {
+func (v *VideoV2) GetAssetForUpload(ctype string) (asset Asset, err error) {
 	var up UploadParameters
 	api := v.Api
 	params := struct {
 		Ctype string `json:"content_type"`
 	}{Ctype: ctype}
 
-	url := api.UploadUrl + "/videos/" + v.Id + "/upload"
+	url := api.UploadUrl + "/v2/videos/" + v.Id + "/upload"
 	data, _ := json.Marshal(params)
 	body := bytes.NewBuffer(data)
 
@@ -142,27 +141,6 @@ func (v *VideoV2) UploadInfo(ctype string) (asset Asset, err error) {
 	}
 	asset.UploadParameters = up
 	v.Assets = append(v.Assets, asset)
-	return asset, nil
-}
-
-func (v *VideoV2) UploadFile(fileName string, ctype string) (asset Asset, err error) {
-	asset, err = v.UploadInfo(ctype)
-	if err != nil {
-		return asset, err
-	}
-
-	f, err := os.Open(fileName)
-	defer f.Close()
-	if os.IsNotExist(err) {
-		return asset, errors.New("file '" + fileName + "' does not exist")
-	}
-
-	params := asset.UploadParameters
-	aws, err := NewAwsUpload(params)
-	if err != nil {
-		return asset, err
-	}
-	aws.Upload(f)
 	return asset, nil
 }
 

@@ -224,6 +224,13 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 				resp = LoadSample("asset_list")
 				w.WriteHeader(http.StatusOK)
 			}
+		case "/v2/videos/" + V2_VIDEO_ID + "/upload":
+			if r.Method != "POST" {
+				w.WriteHeader(http.StatusNotFound)
+			} else {
+				resp = LoadSample("upload", defaultSampleDir+"/v2")
+				w.WriteHeader(http.StatusOK)
+			}
 		case "/v2/videos",
 			"/v2/assets":
 			if r.Method != "POST" {

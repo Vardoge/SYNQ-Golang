@@ -3,10 +3,10 @@
     "Content-Type": "video/mp4",
     "acl": "public-read",
     "action": "https://synq-bruce.s3.amazonaws.com",
-    "key": "uploads/83/e9/83e985394ae54061bb58a7452fd6e034/0a5b6ca91d78487d91c72a7544a8c160.mp4",
+    "key": "uploads/9e/9d/9e9dc8c8f70541db88dab3034894deb9/01823629bcf24c34b714ae21e1a4647f.mp4",
     "policy": "eyJjb25kaXRpb25zIjpbeyJhY2wiOiJwdWJsaWMtcmVhZCJ9LHsiYnVja2V0Ijoic3lucS1icnVjZSJ9LHsiQ29udGVudC1UeXBlIjoidmlkZW8vbXA0In0seyJrZXkiOiJ1cGxvYWRzLzgzL2U5LzgzZTk4NTM5NGFlNTQwNjFiYjU4YTc0NTJmZDZlMDM0LzBhNWI2Y2E5MWQ3ODQ4N2Q5MWM3MmE3NTQ0YThjMTYwLm1wNCJ9LHsic3VjY2Vzc19hY3Rpb25fc3RhdHVzIjoiMjAwIn0sWyJjb250ZW50LWxlbmd0aC1yYW5nZSIsMCwxMDk5NTExNjI3Nzc2XV0sImV4cGlyYXRpb24iOiIyMDE3LTEyLTA5VDEzOjU1OjE0LjAxOFoifQ==",
     "signature": "b/oZfyGywnzkHylgKXteyzPdfgA=",
-    "signature_url": "/uploader/signature/83e98539-4ae5-4061-bb58-a7452fd6e034?type=video/mp4&token=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJha2thIiwiZXhwIjoxNTE0OTUzODU3LCJpYXQiOjE1MTI1MzQ2NTcsImlzcyI6ImFra2EiLCJqdGkiOiI1ODk2MDYzYy00NjEwLTQxZjMtYjQwZS04MDgyMDRlYzg2YWQiLCJuYmYiOjE1MTI1MzQ2NTYsInN1YiI6ImVmMWY0NGExLTNjNzgtNDY5ZC1iNzJkLWEzNDEwMzIwNjc2ZiIsInR5cCI6ImFjY2VzcyJ9.v6sqbwP949teemFoA7pUEQoWLMXGj_j4qxJdq9emMNGBU0H_OjKN684FaH4MbPPyoXJV7btZu3GT7og6eQfRQg",
-    "asset_id" : "0a5b6ca9-1d78-487d-91c7-2a7544a8c160",
+    "signature_url": "/v2/assets/01823629bcf24c34b714ae21e1a4647f/signature?type=video/mp4&token=eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJha2thIiwiZXhwIjoxNTE0OTUzODU3LCJpYXQiOjE1MTI1MzQ2NTcsImlzcyI6ImFra2EiLCJqdGkiOiI1ODk2MDYzYy00NjEwLTQxZjMtYjQwZS04MDgyMDRlYzg2YWQiLCJuYmYiOjE1MTI1MzQ2NTYsInN1YiI6ImVmMWY0NGExLTNjNzgtNDY5ZC1iNzJkLWEzNDEwMzIwNjc2ZiIsInR5cCI6ImFjY2VzcyJ9.v6sqbwP949teemFoA7pUEQoWLMXGj_j4qxJdq9emMNGBU0H_OjKN684FaH4MbPPyoXJV7btZu3GT7og6eQfRQg",
+    "asset_id" : "01823629-bcf2-4c34-b714-ae21e1a4647f",
     "success_action_status": "200"
 }

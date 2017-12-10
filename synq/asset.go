@@ -3,7 +3,9 @@ package synq
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
+	"os"
 )
 
 type AssetResponse struct {
@@ -57,4 +59,23 @@ func (a *Asset) handleAssetReq(method, url string, body io.Reader) error {
 	}
 
 	return nil
+}
+
+func (a *Asset) UploadFile(fileName string, ctype string) error {
+	if a.UploadParameters.Key == "" {
+		return errors.New("upload parameters is invalid")
+	}
+	f, err := os.Open(fileName)
+	defer f.Close()
+	if os.IsNotExist(err) {
+		return errors.New("file '" + fileName + "' does not exist")
+	}
+
+	params := a.UploadParameters
+	aws, err := NewAwsUpload(params)
+	if err != nil {
+		return err
+	}
+	_, err = aws.Upload(f)
+	return err
 }
