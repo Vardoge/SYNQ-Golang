@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/SYNQfm/SYNQ-Golang/helper"
 	"github.com/SYNQfm/SYNQ-Golang/synq"
 	"github.com/SYNQfm/helpers/common"
 )
@@ -17,16 +18,16 @@ var cli common.Cli
 
 func init() {
 	cli = common.NewCli()
-	cli.String("command", "", "for v2 'get_video', for v1 : details, upload_info, upload, create, uploader_info, uploader, query or create_and_then_multipart_upload")
+	cli.DefaultSetup("for v2 'upload', get_video', for v1 : details, upload_info, upload, create, uploader_info, uploader, query or create_and_then_multipart_upload", "upload")
+	cli.String("version", "v2", "version to use")
 	cli.String("api_key", "", "pass the synq api key")
-	cli.String("upload_url", "", "upload url to use")
+	cli.String("upload_url", synq.DEFAULT_UPLOADER_URL, "upload url to use")
 	cli.String("user", "", "user to use")
 	cli.String("password", "", "password to use")
 	cli.String("video_id", "", "video id to access")
 	cli.String("asset_id", "", "asset id to access")
 	cli.String("file", "", "path to file you want to upload or userdata")
 	cli.String("query", "", "query string to use")
-	cli.String("version", "v2", "version to use")
 	cli.Parse()
 }
 
@@ -48,39 +49,49 @@ func handleV2(api synq.ApiV2) {
 		upload_url := cli.GetString("upload_url")
 		if upload_url == "" {
 			err = errors.New("missing upload_url")
-			break
+			handleError(err)
 		}
 		api.UploadUrl = upload_url
 		file := cli.GetString("file")
 		if file == "" {
 			err = errors.New("file missing")
-			break
+			handleError(err)
 		}
 		ext := filepath.Ext(file)
 		ctype := mime.TypeByExtension(ext)
 		if aid == "" {
 			log.Printf("getting video %s\n", vid)
-			video, err = api.GetVideo(vid)
+			video, err = helper.LoadVideoV2(vid, cli, api)
 			if err == nil {
 				log.Printf("creating new asset for %s\n", ctype)
 				asset, err = video.CreateAssetForUpload(ctype)
 			}
 		} else {
 			log.Printf("getting existing asset %s\n", aid)
-			asset, err = api.GetAsset(aid)
+			asset, err = helper.LoadAsset(aid, cli, api)
 		}
-		if err == nil {
-			log.Printf("uploading file %s\n", file)
+		handleError(err)
+		params := synq.UnicornParam{
+			Ctype:   ctype,
+			AssetId: asset.Id,
+		}
+		up, e := helper.LoadUploadParameters(asset.VideoId, params, cli, api)
+		handleError(e)
+		log.Printf("Got upload params for %s", up.Key)
+		asset.UploadParameters = up
+
+		cli.Printf("uploading file %s\n", file)
+		if !cli.Simulate {
 			err = asset.UploadFile(file)
 		}
 	case "get_video":
 		log.Printf("getting video %s\n", vid)
 		video, err = api.GetVideo(vid)
+		handleError(err)
+		log.Printf(video.Display())
 	default:
 		err = errors.New("unknown command '" + cli.Command + "'")
 	}
-	handleError(err)
-	log.Printf(video.Display())
 }
 
 func handleV1(api synq.Api) {

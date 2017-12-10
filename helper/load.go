@@ -2,9 +2,11 @@ package helper
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/SYNQfm/SYNQ-Golang/synq"
 	"github.com/SYNQfm/helpers/common"
@@ -78,18 +80,77 @@ func LoadVideo(id string, c common.Cacheable, api synq.Api) (video synq.Video, e
 	return video, nil
 }
 
-func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.VideoV2, err error) {
-	ok := LoadFromCache(id, c, &video)
+func LoadObjectV2(id string, obj interface{}, c common.Cacheable, api synq.ApiV2) error {
+	ok := LoadFromCache(id, c, obj)
 	if ok {
-		video.Api = &api
-		return video, nil
+		return nil
 	}
 	// need to use the v1 api to get the raw video data
-	log.Printf("Getting video %s", id)
-	video, e := api.GetVideo(id)
-	if e != nil {
-		return video, e
+	if _, ok := obj.(*synq.VideoV2); ok {
+		log.Printf("Getting video %s\n", id)
+		video, err := api.GetVideo(id)
+		if err != nil {
+			return err
+		}
+		obj = &video
+	} else if _, ok := obj.(*synq.Asset); ok {
+		log.Printf("Getting asset %s\n", id)
+		asset, err := api.GetAsset(id)
+		if err != nil {
+			return err
+		}
+		obj = &asset
+	} else if up, ok := obj.(*UpObj); ok {
+		vid := strings.Split(id, "_")[0]
+		log.Printf("Getting UploadParameters for video id %s, %+v\n", vid, up)
+		params, err := api.GetUploadParams(vid, up.ReqParams)
+		if err != nil {
+			return err
+		}
+		up.UploadParams = params
+		obj = &up
+	} else {
+		return errors.New("obj type is unknown")
 	}
-	SaveToCache(id, c, video)
+	SaveToCache(id, c, obj)
+	return nil
+}
+
+func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.VideoV2, err error) {
+	err = LoadObjectV2(id, &video, c, api)
+	if err != nil {
+		return video, err
+	}
+	video.Api = &api
 	return video, nil
+}
+
+type UpObj struct {
+	UploadParams synq.UploadParameters `json:"upload_params"`
+	ReqParams    synq.UnicornParam     `json:"request_params"`
+}
+
+func LoadUploadParameters(id string, req synq.UnicornParam, c common.Cacheable, api synq.ApiV2) (up synq.UploadParameters, err error) {
+	obj := UpObj{
+		ReqParams: req,
+	}
+	err = LoadObjectV2(id+"_up", &obj, c, api)
+	if err != nil {
+		return up, err
+	}
+	return obj.UploadParams, err
+}
+
+func LoadAsset(id string, c common.Cacheable, api synq.ApiV2) (asset synq.Asset, err error) {
+	err = LoadObjectV2(id, &asset, c, api)
+	if err != nil {
+		return asset, err
+	}
+	asset.Api = api
+	video, e2 := LoadVideoV2(asset.VideoId, c, api)
+	if e2 != nil {
+		return asset, e2
+	}
+	asset.Video = video
+	return asset, nil
 }

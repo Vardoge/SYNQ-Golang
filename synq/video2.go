@@ -23,11 +23,6 @@ type VideoV2 struct {
 	Assets    []Asset         `json:"assets"`
 }
 
-type UnicornParam struct {
-	Ctype   string `json:"content_type"`
-	AssetId string `json:"asset_id"`
-}
-
 func (v VideoV2) Value() (driver.Value, error) {
 	json, err := json.Marshal(v)
 	return json, err
@@ -124,20 +119,10 @@ func (v *VideoV2) GetUploadParams(ctype string, assetId ...string) (up UploadPar
 	params := UnicornParam{
 		Ctype: ctype,
 	}
-
 	if len(assetId) > 0 {
 		params.AssetId = assetId[0]
 	}
-	url := api.UploadUrl + "/v2/videos/" + v.Id + "/upload"
-	data, _ := json.Marshal(params)
-	body := bytes.NewBuffer(data)
-
-	req, err := api.makeRequest("POST", url, body)
-	if err != nil {
-		return up, err
-	}
-	err = handleReq(api, req, &up)
-	return up, err
+	return api.GetUploadParams(v.Id, params)
 }
 
 // This will call Unicorn's /v2/video/<id>/upload API, which will
