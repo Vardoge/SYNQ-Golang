@@ -24,6 +24,7 @@ func setupTestApiV2(key string) ApiV2 {
 	api := NewV2(key)
 	url := test_server.SetupServer("v2")
 	api.SetUrl(url)
+	api.UploadUrl = url
 	return api
 }
 

@@ -1,6 +1,7 @@
 package synq
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"testing"
@@ -20,9 +21,18 @@ const (
 func setupTestVideoV2() VideoV2 {
 	api := setupTestApiV2(testAuth)
 	video, _ := api.Create()
-	url := test_server.SetupServer("v2")
-	video.Api.SetUrl(url)
+	test_server.ResetReqs()
 	return video
+}
+
+func setupTestParams(asset *Asset) {
+	bytes := test_server.LoadSampleV2("upload")
+	up := UploadParameters{}
+	json.Unmarshal(bytes, &up)
+	s3Server := test_server.S3Stub()
+	up.Action = s3Server.URL
+	up.SignatureUrl = asset.Video.Api.GetUrl()
+	asset.UploadParameters = up
 }
 
 func handleAsset(w http.ResponseWriter, r *http.Request) {
@@ -101,4 +111,40 @@ func TestHandleAssetReq(t *testing.T) {
 	err := asset.handleAssetReq("GET", url, nil)
 	assert.Nil(err)
 	assert.Equal(ogAsset, asset)
+}
+
+func TestAssetUploadFile(t *testing.T) {
+	assert := require.New(t)
+	video := setupTestVideoV2()
+	asset := Asset{
+		Id:    test_server.ASSET_ID,
+		Video: video,
+	}
+	fileName := sampleDir + "/test.mp4"
+	err := asset.UploadFile(fileName)
+	assert.NotNil(err)
+	assert.Equal("invalid upload url, can not upload file", err.Error())
+	asset.Api.UploadUrl = "http://test.com"
+	err = asset.UploadFile(fileName)
+	assert.Equal("upload parameters is invalid", err.Error())
+	// set the upload parameters to check it sends the rigth request
+	asset.Type = "video/mp4"
+	asset.Location = "test"
+	err = asset.UploadFile("fake")
+	assert.NotNil(err)
+	reqs, vals := test_server.GetReqs()
+	assert.Len(reqs, 1)
+	val := vals[0]
+	assert.Equal("/v2/videos/9e9dc8c8-f705-41db-88da-b3034894deb9/upload", reqs[0].URL.Path)
+	body := val["body"][0]
+	var p UnicornParam
+	json.Unmarshal([]byte(body), &p)
+	assert.Equal(asset.Type, p.Ctype)
+	assert.Equal(asset.Id, p.AssetId)
+	setupTestParams(&asset)
+	err = asset.UploadFile("fake")
+	assert.NotNil(err)
+	assert.Equal("file 'fake' does not exist", err.Error())
+	//err = asset.UploadFile(fileName)
+	//assert.Nil(err)
 }

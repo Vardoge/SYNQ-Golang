@@ -8,7 +8,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -18,19 +17,31 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
-type UploadInfo map[string]string
+type UploadParameters struct {
+	Action         string `json:"action"`
+	AwsAccessKeyId string `json:"AWSAccessKeyId"`
+	ContentType    string `json:"Content-Type"`
+	Policy         string `json:"policy"`
+	Signature      string `json:"signature"`
+	Acl            string `json:"acl"`
+	Key            string `json:"key"`
+	SuccessStatus  string `json:"success_action_status"`
+	SignatureUrl   string `json:"signature_url"`
+	VideoId        string `json:"video_id"`
+	AssetId        string `json:"asset_id"`
+}
 
 // This is the struct that contains all the AWS settings
 type AwsUpload struct {
-	UploadInfo     UploadInfo
+	UploadParams   UploadParameters
 	UploaderFormat string
 	Uploader       *s3manager.Uploader
 }
 
 // UploadInfo is retrieved from the Unicorn API, so we're creating an AwsUpload from it
-func NewAwsUpload(info UploadInfo) (*AwsUpload, error) {
+func NewAwsUpload(params UploadParameters) (*AwsUpload, error) {
 	au := &AwsUpload{
-		UploadInfo:     info,
+		UploadParams:   params,
 		UploaderFormat: UploaderSignatureUrlFormat,
 	}
 	provider := credentials.StaticProvider{}
@@ -63,31 +74,28 @@ func NewAwsUpload(info UploadInfo) (*AwsUpload, error) {
 }
 
 func (a *AwsUpload) Url() string {
-	return a.UploadInfo["action"]
-}
-
-func (a *AwsUpload) UploaderUrl() string {
-	return a.UploadInfo["uploader_url"]
+	return a.UploadParams.Action
 }
 
 func (a *AwsUpload) Key() string {
-	return a.UploadInfo["key"]
+	return a.UploadParams.Key
 }
 
 func (a *AwsUpload) Acl() string {
-	return a.UploadInfo["acl"]
+	return a.UploadParams.Acl
 }
 
 func (a *AwsUpload) ContentType() string {
-	return a.UploadInfo["Content-Type"]
+	return a.UploadParams.ContentType
 }
 
 func (a *AwsUpload) AwsKeyId() string {
-	return a.UploadInfo["AWSAccessKeyId"]
+	return a.UploadParams.AwsAccessKeyId
 }
 
 func (a *AwsUpload) UploaderSigUrl() string {
-	return strings.Replace(a.UploaderUrl(), "/uploader/", "/uploader/signature/", 1)
+	// take the UploadParams signature and append it to the uploader url
+	return a.UploadParams.SignatureUrl
 }
 
 // bucketOfUploadAction parses an "action" URL as received with GetUploadInfo,

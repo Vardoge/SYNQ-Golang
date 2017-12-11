@@ -104,6 +104,11 @@ func bucketOfUploadAction(actionURL string) (string, error) {
 		return "", err
 	}
 
+	if u.Hostname() == "127.0.0.1" {
+		// this is a test server, return a fake bucket
+		return "synq-abucket", nil
+	}
+
 	hs := strings.Split(u.Host, ".")
 	if len(hs) != 4 {
 		return "", errors.New("Invalid action URL. " +
@@ -144,6 +149,11 @@ func regionOfUploadAction(actionURL string) (string, error) {
 	u, err := url.Parse(actionURL)
 	if err != nil {
 		return "", err
+	}
+
+	if u.Hostname() == "127.0.0.1" {
+		// if its a test server, return us-east-1
+		return "us-east-1", nil
 	}
 
 	hs := strings.Split(u.Host, ".")

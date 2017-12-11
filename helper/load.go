@@ -84,12 +84,49 @@ func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.Vide
 		video.Api = &api
 		return video, nil
 	}
-	// need to use the v1 api to get the raw video data
-	log.Printf("Getting video %s", id)
-	video, e := api.GetVideo(id)
-	if e != nil {
-		return video, e
+	log.Printf("Getting video %s\n", id)
+	video, err = api.GetVideo(id)
+	if err != nil {
+		return video, err
 	}
-	SaveToCache(id, c, video)
+	SaveToCache(id, c, &video)
+	video.Api = &api
 	return video, nil
+}
+
+func LoadUploadParameters(id string, req synq.UnicornParam, c common.Cacheable, api synq.ApiV2) (up synq.UploadParameters, err error) {
+	lookId := id
+	if req.AssetId != "" {
+		lookId = req.AssetId
+	}
+	ok := LoadFromCache(lookId+"_up", c, &up)
+	if ok {
+		return up, nil
+	}
+	log.Printf("Getting upload parameters for %s\n", id)
+	up, err = api.GetUploadParams(id, req)
+	if err != nil {
+		return up, err
+	}
+	SaveToCache(lookId+"_up", c, &up)
+	return up, nil
+}
+
+func LoadAsset(id string, c common.Cacheable, api synq.ApiV2) (asset synq.Asset, err error) {
+	ok := LoadFromCache(id, c, &asset)
+	if !ok {
+		log.Printf("Getting asset %s\n", id)
+		asset, err = api.GetAsset(id)
+		if err != nil {
+			return asset, err
+		}
+	}
+	asset.Api = api
+	video, e2 := LoadVideoV2(asset.VideoId, c, api)
+	if e2 != nil {
+		return asset, e2
+	}
+	asset.Video = video
+	SaveToCache(id, c, &asset)
+	return asset, nil
 }

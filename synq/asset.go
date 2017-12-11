@@ -3,7 +3,11 @@ package synq
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
+	"log"
+	"os"
+	"strings"
 )
 
 type AssetResponse struct {
@@ -15,17 +19,18 @@ type AssetList struct {
 }
 
 type Asset struct {
-	AccountId string          `json:"account_id"`
-	VideoId   string          `json:"video_id"`
-	Id        string          `json:"id"`
-	Location  string          `json:"location"`
-	State     string          `json:"state"`
-	Type      string          `json:"type"`
-	CreatedAt string          `json:"created_at"`
-	UpdatedAt string          `json:"updated_at"`
-	Metadata  json.RawMessage `json:"metadata"`
-	Api       ApiV2           `json:"-"`
-	Video     VideoV2         `json:"-"`
+	AccountId        string           `json:"account_id"`
+	VideoId          string           `json:"video_id"`
+	Id               string           `json:"id"`
+	Location         string           `json:"location"`
+	State            string           `json:"state"`
+	Type             string           `json:"type"`
+	CreatedAt        string           `json:"created_at"`
+	UpdatedAt        string           `json:"updated_at"`
+	Metadata         json.RawMessage  `json:"metadata"`
+	Api              ApiV2            `json:"-"`
+	Video            VideoV2          `json:"-"`
+	UploadParameters UploadParameters `json:"-"`
 }
 
 func (a *Asset) Update() error {
@@ -56,4 +61,40 @@ func (a *Asset) handleAssetReq(method, url string, body io.Reader) error {
 	}
 
 	return nil
+}
+
+func (a *Asset) UploadFile(fileName string) error {
+	if a.Api.UploadUrl == "" {
+		return errors.New("invalid upload url, can not upload file")
+	}
+	if a.UploadParameters.Key == "" {
+		// if the location exists, get the upload parameters again
+		if a.Location != "" && a.Type != "" {
+			up, err := a.Video.GetUploadParams(a.Type, a.Id)
+			if err != nil {
+				return err
+			}
+			a.UploadParameters = up
+		} else {
+			return errors.New("upload parameters is invalid")
+		}
+	}
+	f, err := os.Open(fileName)
+	defer f.Close()
+	if os.IsNotExist(err) {
+		return errors.New("file '" + fileName + "' does not exist")
+	}
+
+	params := a.UploadParameters
+	if !strings.Contains(params.SignatureUrl, "http") {
+		sigUrl := a.Api.UploadUrl + params.SignatureUrl
+		log.Printf("Updating sig url to include host '%s'\n", a.Api.UploadUrl)
+		params.SignatureUrl = sigUrl
+	}
+	aws, err := NewAwsUpload(params)
+	if err != nil {
+		return err
+	}
+	_, err = aws.Upload(f)
+	return err
 }

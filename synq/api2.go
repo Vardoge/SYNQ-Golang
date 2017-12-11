@@ -24,6 +24,7 @@ type ApiV2 struct {
 	*BaseApi
 	User        string
 	Password    string
+	UploadUrl   string
 	TokenExpiry time.Time
 }
 
@@ -38,6 +39,11 @@ type ErrorRespV2 struct {
 type LoginResp struct {
 	Token       string    `json:"jwt"`
 	TokenExpiry time.Time `json:"exp"`
+}
+
+type UnicornParam struct {
+	Ctype   string `json:"content_type"`
+	AssetId string `json:"asset_id"`
 }
 
 func (a ApiV2) Version() string {
@@ -240,4 +246,17 @@ func (a *ApiV2) GetAssetList() ([]Asset, error) {
 	url := a.getBaseUrl() + "/assets"
 	err := a.handleGet(url, &list)
 	return list.Assets, err
+}
+
+func (a *ApiV2) GetUploadParams(vid string, params UnicornParam) (up UploadParameters, err error) {
+	url := a.UploadUrl + "/v2/videos/" + vid + "/upload"
+	data, _ := json.Marshal(params)
+	body := bytes.NewBuffer(data)
+
+	req, err := a.makeRequest("POST", url, body)
+	if err != nil {
+		return up, err
+	}
+	err = handleReq(a, req, &up)
+	return up, err
 }
