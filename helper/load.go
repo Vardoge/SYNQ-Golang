@@ -110,24 +110,17 @@ func LoadUploadParameters(id string, req synq.UnicornParam, c common.Cacheable, 
 
 func LoadAsset(id string, c common.Cacheable, api synq.ApiV2) (asset synq.Asset, err error) {
 	ok := LoadFromCache(id, c, &asset)
-	if ok {
-		asset.Api = api
-		return asset, nil
-	}
-	log.Printf("Getting asset %s\n", id)
-	asset, err = api.GetAsset(id)
-	if err != nil {
-		return asset, err
+	if !ok {
+		log.Printf("Getting asset %s\n", id)
+		asset, err = api.GetAsset(id)
+		if err != nil {
+			return asset, err
+		}
 	}
 	asset.Api = api
 	video, e2 := LoadVideoV2(asset.VideoId, c, api)
 	if e2 != nil {
 		return asset, e2
-	}
-	log.Printf("Getting asset %s\n", id)
-	asset, err = api.GetAsset(id)
-	if err != nil {
-		return asset, err
 	}
 	asset.Video = video
 	SaveToCache(id, c, &asset)

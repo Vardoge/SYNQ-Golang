@@ -84,6 +84,7 @@ func handleV2(api synq.ApiV2) {
 		if !cli.Simulate {
 			err = asset.UploadFile(file)
 			handleError(err)
+			log.Printf("uploaded file %s\n", file)
 		}
 	case "get_video":
 		log.Printf("getting video %s\n", vid)

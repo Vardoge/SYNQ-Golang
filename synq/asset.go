@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"log"
 	"os"
+	"strings"
 )
 
 type AssetResponse struct {
@@ -62,6 +64,9 @@ func (a *Asset) handleAssetReq(method, url string, body io.Reader) error {
 }
 
 func (a *Asset) UploadFile(fileName string) error {
+	if a.Api.UploadUrl == "" {
+		return errors.New("invalid upload url, can not upload file")
+	}
 	if a.UploadParameters.Key == "" {
 		// if the location exists, get the upload parameters again
 		if a.Location != "" && a.Type != "" {
@@ -81,10 +86,15 @@ func (a *Asset) UploadFile(fileName string) error {
 	}
 
 	params := a.UploadParameters
+	if !strings.Contains(params.SignatureUrl, "http") {
+		sigUrl := a.Api.UploadUrl + params.SignatureUrl
+		log.Println("Updating sig url to ", sigUrl)
+		params.SignatureUrl = sigUrl
+	}
 	aws, err := NewAwsUpload(params)
 	if err != nil {
 		return err
 	}
-	_, err = aws.Upload(f)
+	_, err := aws.Upload(f)
 	return err
 }

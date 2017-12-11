@@ -94,6 +94,7 @@ func (a *AwsUpload) AwsKeyId() string {
 }
 
 func (a *AwsUpload) UploaderSigUrl() string {
+	// take the UploadParams signature and append it to the uploader url
 	return a.UploadParams.SignatureUrl
 }
 
