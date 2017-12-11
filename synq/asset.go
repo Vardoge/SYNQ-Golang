@@ -88,7 +88,7 @@ func (a *Asset) UploadFile(fileName string) error {
 	params := a.UploadParameters
 	if !strings.Contains(params.SignatureUrl, "http") {
 		sigUrl := a.Api.UploadUrl + params.SignatureUrl
-		log.Println("Updating sig url to ", sigUrl)
+		log.Printf("Updating sig url to include host '%s'\n", a.Api.UploadUrl)
 		params.SignatureUrl = sigUrl
 	}
 	aws, err := NewAwsUpload(params)
