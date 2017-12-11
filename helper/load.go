@@ -95,7 +95,11 @@ func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.Vide
 }
 
 func LoadUploadParameters(id string, req synq.UnicornParam, c common.Cacheable, api synq.ApiV2) (up synq.UploadParameters, err error) {
-	ok := LoadFromCache(id+"_up", c, &up)
+	lookId := id
+	if req.AssetId != "" {
+		lookId = req.AssetId
+	}
+	ok := LoadFromCache(lookId+"_up", c, &up)
 	if ok {
 		return up, nil
 	}
@@ -104,7 +108,7 @@ func LoadUploadParameters(id string, req synq.UnicornParam, c common.Cacheable, 
 	if err != nil {
 		return up, err
 	}
-	SaveToCache(id+"_up", c, &up)
+	SaveToCache(lookId+"_up", c, &up)
 	return up, nil
 }
 

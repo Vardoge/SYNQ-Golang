@@ -59,12 +59,26 @@ func handleV2(api synq.ApiV2) {
 		}
 		ext := filepath.Ext(file)
 		ctype := mime.TypeByExtension(ext)
+		if ctype == "" {
+			handleError(errors.New("can not find cypte for " + ext))
+		}
 		if aid == "" {
-			log.Printf("getting video %s\n", vid)
 			video, err = helper.LoadVideoV2(vid, cli, api)
 			if err == nil {
-				log.Printf("creating new asset for %s\n", ctype)
-				asset, err = video.CreateAssetForUpload(ctype)
+				var found synq.Asset
+				for _, a := range video.Assets {
+					if ctype == a.Type {
+						found = a
+						break
+					}
+				}
+				if found.Id != "" {
+					log.Printf("using existing asset %s for '%s'\n", found.Id, ctype)
+					asset = found
+				} else {
+					log.Printf("creating new asset with ctype '%s'\n", ctype)
+					asset, err = video.CreateAssetForUpload(ctype)
+				}
 			}
 		} else {
 			log.Printf("getting existing asset %s\n", aid)
