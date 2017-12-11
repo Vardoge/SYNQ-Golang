@@ -95,6 +95,6 @@ func (a *Asset) UploadFile(fileName string) error {
 	if err != nil {
 		return err
 	}
-	_, err := aws.Upload(f)
+	_, err = aws.Upload(f)
 	return err
 }
