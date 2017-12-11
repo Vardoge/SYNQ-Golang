@@ -123,6 +123,9 @@ func TestAssetUploadFile(t *testing.T) {
 	fileName := sampleDir + "/test.mp4"
 	err := asset.UploadFile(fileName)
 	assert.NotNil(err)
+	assert.Equal("invalid upload url, can not upload file", err.Error())
+	asset.Api.UploadUrl = "http://test.com"
+	err = asset.UploadFile(fileName)
 	assert.Equal("upload parameters is invalid", err.Error())
 	// set the upload parameters to check it sends the rigth request
 	asset.Type = "video/mp4"
