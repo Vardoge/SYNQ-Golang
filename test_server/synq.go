@@ -104,14 +104,27 @@ func validVideo(id string) string {
 	return ""
 }
 
-func validateAuth(key string) string {
-	if !strings.Contains(key, "Bearer ") {
-		return V2_INVALID_AUTH
+func validateAuth(r *http.Request) string {
+	// no auth needed for login
+	if r.URL.Path == "/v2/login" {
+		return ""
 	}
-	ret := strings.Split(key, "Bearer ")
-	k := ret[1]
-	if k == "fake" {
-		return V2_INVALID_AUTH
+	auth := r.Header.Get("Authorization")
+	if auth == "" {
+		// check if "token" is in url
+		auth = r.URL.Query().Get("token")
+		if auth != TEST_AUTH {
+			return V2_INVALID_AUTH
+		}
+	} else {
+		if !strings.Contains(auth, "Bearer ") {
+			return V2_INVALID_AUTH
+		}
+		ret := strings.Split(auth, "Bearer ")
+		k := ret[1]
+		if k == "fake" {
+			return V2_INVALID_AUTH
+		}
 	}
 	return ""
 }
@@ -185,10 +198,7 @@ func handleV1(w http.ResponseWriter, r *http.Request) {
 func handleV2(w http.ResponseWriter, r *http.Request) {
 	var resp []byte
 	var k string
-	if r.URL.Path != "/v2/login" {
-		auth := r.Header.Get("Authorization")
-		k = validateAuth(auth)
-	}
+	k = validateAuth(r)
 	if k != "" {
 		w.WriteHeader(http.StatusBadRequest)
 		resp = []byte(k)
@@ -221,6 +231,8 @@ func handleV2(w http.ResponseWriter, r *http.Request) {
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
+		case "/v2/assets/" + ASSET_ID + "/signature":
+			resp = []byte(`{"signature":"abcd"}`)
 		case "/v2/videos/" + V2_VIDEO_ID + "/assets":
 			if r.Method != "GET" {
 				w.WriteHeader(http.StatusNotFound)

@@ -196,7 +196,7 @@ func (a *ApiV2) GetVideos(accountId string) (videos []VideoV2, err error) {
 func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 	var resp VideoResp
 	if id == "" || (len(id) != 32 && len(id) != 36) {
-		return video, errors.New("video id is blank")
+		return video, common.NewError("video id '%s' is invalid", id)
 	}
 	uuid := common.ConvertToUUIDFormat(id)
 	url := a.getBaseUrl() + "/videos/" + uuid
@@ -249,6 +249,9 @@ func (a *ApiV2) GetAssetList() ([]Asset, error) {
 }
 
 func (a *ApiV2) GetUploadParams(vid string, params UnicornParam) (up UploadParameters, err error) {
+	if a.UploadUrl == "" {
+		return up, errors.New("UploadUrl is blank")
+	}
 	url := a.UploadUrl + "/v2/videos/" + vid + "/upload"
 	data, _ := json.Marshal(params)
 	body := bytes.NewBuffer(data)

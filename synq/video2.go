@@ -116,6 +116,9 @@ func (v *VideoV2) CreateOrUpdateAsset(asset *Asset) error {
 // it will be used instead (assuming it exists)
 func (v *VideoV2) GetUploadParams(ctype string, assetId ...string) (up UploadParameters, err error) {
 	api := v.Api
+	if api == nil {
+		return up, errors.New("api is blank")
+	}
 	params := UnicornParam{
 		Ctype: ctype,
 	}
