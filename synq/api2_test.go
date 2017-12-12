@@ -66,6 +66,7 @@ func TestGet2(t *testing.T) {
 	api := setupTestApiV2(testAuth)
 	_, err := api.GetVideo("")
 	assert.NotNil(err)
+	assert.Equal("video id '' is invalid", err.Error())
 	video, err := api.GetVideo(testVideoIdV2)
 	assert.Nil(err)
 	assert.Equal(testVideoIdV2, video.Id)
@@ -79,6 +80,7 @@ func TestGetAssetByApi(t *testing.T) {
 	api := setupTestApiV2(testAuth)
 	_, err := api.GetAsset("")
 	assert.NotNil(err)
+	assert.Equal("asset id '' is invalid", err.Error())
 	asset, err := api.GetAsset(testAssetId)
 	assert.Nil(err)
 	video := asset.Video
