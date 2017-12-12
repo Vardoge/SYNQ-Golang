@@ -121,8 +121,9 @@ func LoadAsset(id string, c common.Cacheable, api synq.ApiV2) (asset synq.Asset,
 		if err != nil {
 			return asset, err
 		}
+	} else {
+		asset.Api = api
 	}
-	asset.Api = api
 	if asset.Video.Id == "" {
 		video, err := LoadVideoV2(asset.VideoId, c, api)
 		if err != nil {
