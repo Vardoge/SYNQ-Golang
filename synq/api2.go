@@ -218,7 +218,7 @@ func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 func (a *ApiV2) GetAsset(id string) (asset Asset, err error) {
 	var resp AssetResponse
 	if id == "" || (len(id) != 32 && len(id) != 36) {
-		return asset, errors.New("video id is blank")
+		return asset, common.NewError("asset id '%s' is invalid", id)
 	}
 	uuid := common.ConvertToUUIDFormat(id)
 	url := a.getBaseUrl() + "/assets/" + uuid
@@ -236,7 +236,6 @@ func (a *ApiV2) GetAsset(id string) (asset Asset, err error) {
 	if err != nil {
 		return asset, err
 	}
-	video.Api = a
 	asset.Video = video
 	return asset, nil
 

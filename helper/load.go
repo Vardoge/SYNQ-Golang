@@ -123,11 +123,13 @@ func LoadAsset(id string, c common.Cacheable, api synq.ApiV2) (asset synq.Asset,
 		}
 	}
 	asset.Api = api
-	video, e2 := LoadVideoV2(asset.VideoId, c, api)
-	if e2 != nil {
-		return asset, e2
+	if asset.Video.Id == "" {
+		video, err := LoadVideoV2(asset.VideoId, c, api)
+		if err != nil {
+			return asset, err
+		}
+		asset.Video = video
 	}
-	asset.Video = video
 	SaveToCache(id, c, &asset)
 	return asset, nil
 }
