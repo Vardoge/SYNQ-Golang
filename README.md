@@ -24,7 +24,10 @@ import (
 )
 
 func main() {
-  api, _ := synq.Login("email", "password")
+  // create API using username and password
+  api := synq.Login("email", "password")
+  // create API using a valid token
+  api = synq.NewV2("token")
   video, _ := api.GetVideo("myvideo")
   log.Printf("video returned %v", video)
 }
@@ -130,32 +133,4 @@ V1 Video [JSON](https://github.com/SYNQfm/SYNQ-Golang/blob/master/sample/video.j
 
 ## Usage (CLI)
 
-You can also exercise the code via the command line using our `cli`
-
-Here's the build and usage
-```
-cd cli
-go build
-./cli -h
-
-Usage of ./cli:
-  -api_key string
-      pass the synq api key
-  -command string
-      one of: details, upload_info, upload, create, uploader_info, uploader, query or create_and_then_multipart_upload
-  -file string
-      path to file you want to upload or userdata
-  -query string
-      query string to use
-  -video_id string
-      pass in the video id to get data about
-```
-
-```bash
-# Create a new video object
-./cli -api_key=<key> -command create
-# Upload a file
-./cli -api_key=<key> -video_id=<vid> -file <file name> -command upload
-# Get details for a video
-./cli -api_key=<key> -video_id=<vid> -command details
-```
+You can also exercise the code via the command line using our `cli`.  View our more detailed [readme](https://github.com/SYNQfm/SYNQ-Golang/blob/master/cli/README.md)
