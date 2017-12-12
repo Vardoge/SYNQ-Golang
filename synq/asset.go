@@ -8,6 +8,8 @@ import (
 	"log"
 	"os"
 	"strings"
+
+	"github.com/SYNQfm/SYNQ-Golang/upload"
 )
 
 type AssetResponse struct {
@@ -19,18 +21,18 @@ type AssetList struct {
 }
 
 type Asset struct {
-	AccountId        string           `json:"account_id"`
-	VideoId          string           `json:"video_id"`
-	Id               string           `json:"id"`
-	Location         string           `json:"location"`
-	State            string           `json:"state"`
-	Type             string           `json:"type"`
-	CreatedAt        string           `json:"created_at"`
-	UpdatedAt        string           `json:"updated_at"`
-	Metadata         json.RawMessage  `json:"metadata"`
-	Api              ApiV2            `json:"-"`
-	Video            VideoV2          `json:"-"`
-	UploadParameters UploadParameters `json:"-"`
+	AccountId        string                  `json:"account_id"`
+	VideoId          string                  `json:"video_id"`
+	Id               string                  `json:"id"`
+	Location         string                  `json:"location"`
+	State            string                  `json:"state"`
+	Type             string                  `json:"type"`
+	CreatedAt        string                  `json:"created_at"`
+	UpdatedAt        string                  `json:"updated_at"`
+	Metadata         json.RawMessage         `json:"metadata"`
+	Api              ApiV2                   `json:"-"`
+	Video            VideoV2                 `json:"-"`
+	UploadParameters upload.UploadParameters `json:"-"`
 }
 
 func (a *Asset) Update() error {
@@ -91,7 +93,7 @@ func (a *Asset) UploadFile(fileName string) error {
 		log.Printf("Updating sig url to include host '%s'\n", a.Api.UploadUrl)
 		params.SignatureUrl = sigUrl
 	}
-	aws, err := NewAwsUpload(params)
+	aws, err := upload.CreatorFn(params)
 	if err != nil {
 		return err
 	}
