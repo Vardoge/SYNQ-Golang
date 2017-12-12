@@ -1,4 +1,4 @@
-package synq
+package upload
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -16,6 +17,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
+
+type AwsUploadF interface {
+	Upload(io.Reader) (*s3manager.UploadOutput, error)
+}
 
 type UploadParameters struct {
 	Action         string `json:"action"`
@@ -31,18 +36,22 @@ type UploadParameters struct {
 	AssetId        string `json:"asset_id"`
 }
 
-// This is the struct that contains all the AWS settings
-type AwsUpload struct {
-	UploadParams   UploadParameters
-	UploaderFormat string
-	Uploader       *s3manager.Uploader
+var CreatorFn func(UploadParameters) (AwsUploadF, error)
+
+func init() {
+	CreatorFn = NewAwsUpload
 }
 
-// UploadInfo is retrieved from the Unicorn API, so we're creating an AwsUpload from it
-func NewAwsUpload(params UploadParameters) (*AwsUpload, error) {
+// This is the struct that contains all the AWS settings
+type AwsUpload struct {
+	UploadParams UploadParameters
+	Uploader     *s3manager.Uploader
+}
+
+// UploadParameters is retrieved from the Unicorn API, so we're creating an AwsUpload from the settings
+func NewAwsUpload(params UploadParameters) (AwsUploadF, error) {
 	au := &AwsUpload{
-		UploadParams:   params,
-		UploaderFormat: UploaderSignatureUrlFormat,
+		UploadParams: params,
 	}
 	provider := credentials.StaticProvider{}
 	provider.Value.AccessKeyID = multipartUploadAwsAccessKeyId
@@ -110,7 +119,7 @@ func (a *AwsUpload) UploaderSigUrl() string {
 //         }
 //         fmt.Println(bucket) // prints synqfm
 func (a AwsUpload) GetBucket() (string, error) {
-	return bucketOfUploadAction(a.Url())
+	return BucketOfUploadAction(a.Url())
 }
 
 // regionOfUploadAction parses an "action" URL as received with GetUploadInfo,
@@ -129,7 +138,7 @@ func (a AwsUpload) GetBucket() (string, error) {
 //         }
 //         fmt.Println(region) // prints us-east-1
 func (a AwsUpload) GetRegion() (string, error) {
-	return regionOfUploadAction(a.Url())
+	return RegionOfUploadAction(a.Url())
 }
 
 func (a *AwsUpload) Upload(body io.Reader) (*s3manager.UploadOutput, error) {
@@ -258,7 +267,6 @@ func (a *AwsUpload) SignRequest(r *http.Request) error {
 // multipart upload requests.
 func (a *AwsUpload) UploaderSignature(headers string) ([]byte, error) {
 	url := a.UploaderSigUrl()
-
 	// construct request body
 	reqStruct := UploaderSignatureRequest{Headers: headers}
 	reqBody, err := json.Marshal(reqStruct)
@@ -269,6 +277,7 @@ func (a *AwsUpload) UploaderSignature(headers string) ([]byte, error) {
 	// perform request
 	resp, err := http.Post(url, "application/json", bytes.NewReader(reqBody))
 	if err != nil {
+		log.Printf("could not call %s : %s\n", url, err.Error())
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -276,12 +285,14 @@ func (a *AwsUpload) UploaderSignature(headers string) ([]byte, error) {
 	if resp.StatusCode != http.StatusOK {
 		// TODO(mastensg): report status and maybe body
 		// TODO(mastensg): handle known error responses specifically
+		log.Printf("invalid response code %d from response\n", resp.StatusCode)
 		return nil, errors.New("HTTP response status not OK.")
 	}
 
 	// read response
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		log.Println("error reading response body", err.Error())
 		return nil, err
 	}
 
@@ -289,8 +300,9 @@ func (a *AwsUpload) UploaderSignature(headers string) ([]byte, error) {
 	respStruct := UploaderSignatureResponse{}
 	err = json.Unmarshal(respBody, &respStruct)
 	if err != nil {
+		log.Println("error unmarshaling", err.Error())
 		return nil, err
 	}
-
+	log.Println("Signature", respStruct.Signature)
 	return []byte(respStruct.Signature), nil
 }

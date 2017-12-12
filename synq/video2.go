@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/SYNQfm/SYNQ-Golang/upload"
 )
 
 type VideoResp struct {
@@ -114,8 +116,11 @@ func (v *VideoV2) CreateOrUpdateAsset(asset *Asset) error {
 
 // This will get the upload params for a sepcific video, if assetId is passed in
 // it will be used instead (assuming it exists)
-func (v *VideoV2) GetUploadParams(ctype string, assetId ...string) (up UploadParameters, err error) {
+func (v *VideoV2) GetUploadParams(ctype string, assetId ...string) (up upload.UploadParameters, err error) {
 	api := v.Api
+	if api == nil {
+		return up, errors.New("api is blank")
+	}
 	params := UnicornParam{
 		Ctype: ctype,
 	}

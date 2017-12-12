@@ -11,6 +11,8 @@ import (
 	"net/url"
 	"os"
 	"time"
+
+	"github.com/SYNQfm/SYNQ-Golang/upload"
 )
 
 type Player struct {
@@ -255,7 +257,7 @@ func (v *Video) MultipartUpload(fileName string) error {
 	awsAccessKeyId := v.UploadInfo["AWSAccessKeyId"]
 	contentType := v.UploadInfo["Content-Type"]
 	key := v.UploadInfo["key"]
-	if _, err := multipartUpload(f, acl, actionURL, awsAccessKeyId, contentType, key, uploaderURL, v.Id); err != nil {
+	if _, err := upload.MultipartUpload(f, acl, actionURL, awsAccessKeyId, contentType, key, uploaderURL, v.Id); err != nil {
 		return err
 	}
 

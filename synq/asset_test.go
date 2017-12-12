@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/SYNQfm/SYNQ-Golang/test_server"
+	"github.com/SYNQfm/SYNQ-Golang/upload"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,6 +19,10 @@ const (
 	ASSET_LOCATION = "https://s3.amazonaws.com/synq-jessica/uploads/01/82/01823629bcf24c34b714ae21e1a4647f/01823629bcf24c34b714ae21e1a4647f.mp4"
 )
 
+func init() {
+	upload.CreatorFn = test_server.NewTestAwsUpload
+}
+
 func setupTestVideoV2() VideoV2 {
 	api := setupTestApiV2(testAuth)
 	video, _ := api.Create()
@@ -27,7 +32,7 @@ func setupTestVideoV2() VideoV2 {
 
 func setupTestParams(asset *Asset) {
 	bytes := test_server.LoadSampleV2("upload")
-	up := UploadParameters{}
+	up := upload.UploadParameters{}
 	json.Unmarshal(bytes, &up)
 	s3Server := test_server.S3Stub()
 	up.Action = s3Server.URL
@@ -145,6 +150,9 @@ func TestAssetUploadFile(t *testing.T) {
 	err = asset.UploadFile("fake")
 	assert.NotNil(err)
 	assert.Equal("file 'fake' does not exist", err.Error())
-	//err = asset.UploadFile(fileName)
-	//assert.Nil(err)
+	err = asset.UploadFile(fileName)
+	assert.Nil(err)
+	recvParams := test_server.GetParams()
+	assert.Len(recvParams, 1)
+	assert.Equal(asset.UploadParameters, recvParams[0])
 }

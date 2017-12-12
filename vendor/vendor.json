@@ -3,10 +3,10 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "tSqEkTS3A8UtbPL6tPHmtg4yVCo=",
+			"checksumSHA1": "7x/1KV6vQ6Z2Alkda07RRaKvV3c=",
 			"path": "github.com/SYNQfm/helpers/common",
-			"revision": "b5225e7c1b480f473b8724530dfd3cea7a9bc928",
-			"revisionTime": "2017-12-03T05:18:36Z"
+			"revision": "373d98aa7266ce8e822891dd628c211753a7500d",
+			"revisionTime": "2017-12-12T01:48:37Z"
 		},
 		{
 			"checksumSHA1": "mrz/kicZiUaHxkyfvC/DyQcr8Do=",
