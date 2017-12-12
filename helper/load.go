@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/SYNQfm/SYNQ-Golang/synq"
+	"github.com/SYNQfm/SYNQ-Golang/upload"
 	"github.com/SYNQfm/helpers/common"
 )
 
@@ -94,7 +95,7 @@ func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.Vide
 	return video, nil
 }
 
-func LoadUploadParameters(id string, req synq.UnicornParam, c common.Cacheable, api synq.ApiV2) (up synq.UploadParameters, err error) {
+func LoadUploadParameters(id string, req synq.UnicornParam, c common.Cacheable, api synq.ApiV2) (up upload.UploadParameters, err error) {
 	lookId := id
 	if req.AssetId != "" {
 		lookId = req.AssetId
