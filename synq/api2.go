@@ -171,8 +171,9 @@ func (a *ApiV2) Create(body ...[]byte) (VideoV2, error) {
 	return video, nil
 }
 
-func (a *ApiV2) GetVideos(accountId string) (videos []VideoV2, err error) {
-	var resp VideoList
+// This is an internal function to load videos, and can take in any object to
+// render it.  This is so that we can return various objects if needed
+func (a *ApiV2) getVideos(obj interface{}, accountId string) error {
 	path := "/videos"
 	if accountId != "" {
 		path = "/accounts/" + accountId + path
@@ -180,9 +181,18 @@ func (a *ApiV2) GetVideos(accountId string) (videos []VideoV2, err error) {
 	url := a.getBaseUrl() + path
 	req, err := a.makeRequest("GET", url, nil)
 	if err != nil {
-		return videos, err
+		return err
 	}
-	err = handleReq(a, req, &resp)
+	err = handleReq(a, req, &obj)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (a *ApiV2) GetVideos(accountId string) (videos []VideoV2, err error) {
+	var resp VideoList
+	err = a.getVideos(&resp, accountId)
 	if err != nil {
 		return videos, err
 	}
@@ -193,10 +203,21 @@ func (a *ApiV2) GetVideos(accountId string) (videos []VideoV2, err error) {
 	return videos, nil
 }
 
+func (a *ApiV2) GetRawVideos(accountId string) (raw []json.RawMessage, err error) {
+	resp := struct {
+		Videos []json.RawMessage `json:"data"`
+	}{}
+	err = a.getVideos(&resp, accountId)
+	if err != nil {
+		return raw, err
+	}
+	return resp.Videos, nil
+}
+
 // Helper function to get details for a video, will create video object
 func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 	var resp VideoResp
-	if id == "" || (len(id) != 32 && len(id) != 36) {
+	if !common.ValidUUID(id) {
 		return video, common.NewError("video id '%s' is invalid", id)
 	}
 	uuid := common.ConvertToUUIDFormat(id)
@@ -217,7 +238,7 @@ func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 // Helper function to get an Asset
 func (a *ApiV2) GetAsset(id string) (asset Asset, err error) {
 	var resp AssetResponse
-	if id == "" || (len(id) != 32 && len(id) != 36) {
+	if !common.ValidUUID(id) {
 		return asset, common.NewError("asset id '%s' is invalid", id)
 	}
 	uuid := common.ConvertToUUIDFormat(id)
@@ -236,7 +257,6 @@ func (a *ApiV2) GetAsset(id string) (asset Asset, err error) {
 	if err != nil {
 		return asset, err
 	}
-	video.Api = a
 	asset.Video = video
 	return asset, nil
 
