@@ -98,12 +98,16 @@ func LoadAsset(id string, c common.Cacheable, api synq.ApiV2) (asset synq.Asset,
 	} else {
 		asset.Api = api
 	}
+
 	if asset.Video.Id == "" {
 		video, err := LoadVideoV2(asset.VideoId, c, api)
 		if err != nil {
 			return asset, err
 		}
 		asset.Video = video
+	} else {
+		// cache the video for re-use later
+		common.SaveToCache(asset.Video.Id, c, &asset.Video)
 	}
 	common.SaveToCache(id, c, &asset)
 	return asset, nil

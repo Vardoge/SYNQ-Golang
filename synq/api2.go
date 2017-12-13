@@ -217,7 +217,7 @@ func (a *ApiV2) GetRawVideos(accountId string) (raw []json.RawMessage, err error
 // Helper function to get details for a video, will create video object
 func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 	var resp VideoResp
-	if id == "" || (len(id) != 32 && len(id) != 36) {
+	if !common.ValidUUID(id) {
 		return video, common.NewError("video id '%s' is invalid", id)
 	}
 	uuid := common.ConvertToUUIDFormat(id)
@@ -238,7 +238,7 @@ func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 // Helper function to get an Asset
 func (a *ApiV2) GetAsset(id string) (asset Asset, err error) {
 	var resp AssetResponse
-	if id == "" || (len(id) != 32 && len(id) != 36) {
+	if !common.ValidUUID(id) {
 		return asset, common.NewError("asset id '%s' is invalid", id)
 	}
 	uuid := common.ConvertToUUIDFormat(id)
