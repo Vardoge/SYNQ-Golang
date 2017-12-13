@@ -171,6 +171,8 @@ func (a *ApiV2) Create(body ...[]byte) (VideoV2, error) {
 	return video, nil
 }
 
+// This is an internal function to load videos, and can take in any object to
+// render it.  This is so that we can return various objects if needed
 func (a *ApiV2) getVideos(obj interface{}, accountId string) error {
 	path := "/videos"
 	if accountId != "" {

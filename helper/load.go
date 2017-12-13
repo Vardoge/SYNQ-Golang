@@ -1,41 +1,15 @@
 package helper
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"log"
-	"os"
 
 	"github.com/SYNQfm/SYNQ-Golang/synq"
 	"github.com/SYNQfm/SYNQ-Golang/upload"
 	"github.com/SYNQfm/helpers/common"
 )
 
-func LoadFromCache(name string, c common.Cacheable, obj interface{}) bool {
-	cacheFile := c.GetCacheFile(name)
-	if cacheFile != "" {
-		if _, e := os.Stat(cacheFile); e == nil {
-			log.Printf("loading from cached file %s\n", cacheFile)
-			bytes, _ := ioutil.ReadFile(cacheFile)
-			json.Unmarshal(bytes, obj)
-			return true
-		}
-	}
-	return false
-}
-
-func SaveToCache(name string, c common.Cacheable, obj interface{}) bool {
-	cacheFile := c.GetCacheFile(name)
-	if cacheFile != "" {
-		data, _ := json.Marshal(obj)
-		ioutil.WriteFile(cacheFile, data, 0755)
-		return true
-	}
-	return false
-}
-
 func LoadVideosByQuery(query, name string, c common.Cacheable, api synq.Api) (videos []synq.Video, err error) {
-	ok := LoadFromCache(name, c, &videos)
+	ok := common.LoadFromCache(name, c, &videos)
 	if ok {
 		return videos, nil
 	}
@@ -44,13 +18,13 @@ func LoadVideosByQuery(query, name string, c common.Cacheable, api synq.Api) (vi
 	if err != nil {
 		return videos, err
 	}
-	SaveToCache(name, c, videos)
+	common.SaveToCache(name, c, videos)
 	return videos, err
 }
 
 // fow now, the query will be the account id
 func LoadVideosByQueryV2(query, name string, c common.Cacheable, api synq.ApiV2) (videos []synq.VideoV2, err error) {
-	ok := LoadFromCache(name, c, &videos)
+	ok := common.LoadFromCache(name, c, &videos)
 	if ok {
 		return videos, nil
 	}
@@ -59,12 +33,12 @@ func LoadVideosByQueryV2(query, name string, c common.Cacheable, api synq.ApiV2)
 	if err != nil {
 		return videos, err
 	}
-	SaveToCache(name, c, videos)
+	common.SaveToCache(name, c, videos)
 	return videos, err
 }
 
 func LoadVideo(id string, c common.Cacheable, api synq.Api) (video synq.Video, err error) {
-	ok := LoadFromCache(id, c, &video)
+	ok := common.LoadFromCache(id, c, &video)
 	if ok {
 		video.Api = &api
 		return video, nil
@@ -75,12 +49,12 @@ func LoadVideo(id string, c common.Cacheable, api synq.Api) (video synq.Video, e
 	if e != nil {
 		return video, e
 	}
-	SaveToCache(id, c, &video)
+	common.SaveToCache(id, c, &video)
 	return video, nil
 }
 
 func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.VideoV2, err error) {
-	ok := LoadFromCache(id, c, &video)
+	ok := common.LoadFromCache(id, c, &video)
 	if ok {
 		video.Api = &api
 		return video, nil
@@ -90,7 +64,7 @@ func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.Vide
 	if err != nil {
 		return video, err
 	}
-	SaveToCache(id, c, &video)
+	common.SaveToCache(id, c, &video)
 	video.Api = &api
 	return video, nil
 }
@@ -100,7 +74,7 @@ func LoadUploadParameters(id string, req synq.UnicornParam, c common.Cacheable, 
 	if req.AssetId != "" {
 		lookId = req.AssetId
 	}
-	ok := LoadFromCache(lookId+"_up", c, &up)
+	ok := common.LoadFromCache(lookId+"_up", c, &up)
 	if ok {
 		return up, nil
 	}
@@ -109,12 +83,12 @@ func LoadUploadParameters(id string, req synq.UnicornParam, c common.Cacheable, 
 	if err != nil {
 		return up, err
 	}
-	SaveToCache(lookId+"_up", c, &up)
+	common.SaveToCache(lookId+"_up", c, &up)
 	return up, nil
 }
 
 func LoadAsset(id string, c common.Cacheable, api synq.ApiV2) (asset synq.Asset, err error) {
-	ok := LoadFromCache(id, c, &asset)
+	ok := common.LoadFromCache(id, c, &asset)
 	if !ok {
 		log.Printf("Getting asset %s\n", id)
 		asset, err = api.GetAsset(id)
@@ -131,6 +105,6 @@ func LoadAsset(id string, c common.Cacheable, api synq.ApiV2) (asset synq.Asset,
 		}
 		asset.Video = video
 	}
-	SaveToCache(id, c, &asset)
+	common.SaveToCache(id, c, &asset)
 	return asset, nil
 }
