@@ -39,13 +39,12 @@ func handleError(err error) {
 }
 
 func handleV2(api synq.ApiV2) {
-	var err error
-	var video synq.VideoV2
 	vid := cli.GetString("video_id")
 	aid := cli.GetString("asset_id")
 	switch cli.Command {
 	case "upload":
 		var asset synq.Asset
+		var err error
 		upload_url := cli.GetString("upload_url")
 		if upload_url == "" {
 			err = errors.New("missing upload_url")
@@ -63,7 +62,7 @@ func handleV2(api synq.ApiV2) {
 			handleError(errors.New("can not find cypte for " + ext))
 		}
 		if aid == "" {
-			video, err = helper.LoadVideoV2(vid, cli, api)
+			video, err := helper.LoadVideoV2(vid, cli, api)
 			if err == nil {
 				var found synq.Asset
 				for _, a := range video.Assets {
@@ -100,13 +99,20 @@ func handleV2(api synq.ApiV2) {
 			handleError(err)
 			log.Printf("uploaded file %s\n", file)
 		}
+	case "get_raw_videos":
+		log.Printf("getting all videos (raw format)")
+		videos, err := api.GetRawVideos("")
+		handleError(err)
+		log.Printf("found %d\n", len(videos))
+		bytes, _ := json.Marshal(videos)
+		ioutil.WriteFile(cli.CacheDir+"/raw.json", bytes, 0755)
 	case "get_video":
 		log.Printf("getting video %s\n", vid)
-		video, err = api.GetVideo(vid)
+		video, err := api.GetVideo(vid)
 		handleError(err)
 		log.Printf(video.Display())
 	default:
-		err = errors.New("unknown command '" + cli.Command + "'")
+		handleError(errors.New("unknown command '" + cli.Command + "'"))
 	}
 }
 
