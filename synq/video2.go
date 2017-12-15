@@ -15,15 +15,20 @@ type VideoResp struct {
 	Video VideoV2 `json:"data"`
 }
 
+type Account struct {
+	Id string `json:"account_id"`
+}
+
 type VideoV2 struct {
 	Id                string          `json:"id"`
 	Userdata          json.RawMessage `json:"user_data"`
 	Metadata          json.RawMessage `json:"metadata"`
-	CompletenessScore float64         `json:"completeness_score"`
 	CreatedAt         time.Time       `json:"created_at"`
 	UpdatedAt         time.Time       `json:"updated_at"`
 	Api               *ApiV2          `json:"-"`
 	Assets            []Asset         `json:"assets"`
+	Accounts          []Account       `json:"video_accounts"`
+	CompletenessScore float64         `json:"completeness_score"`
 }
 
 func (v VideoV2) Value() (driver.Value, error) {
@@ -77,6 +82,27 @@ func (v *VideoV2) Update() error {
 	v.Metadata = resp.Video.Metadata
 	v.Userdata = resp.Video.Userdata
 	v.CompletenessScore = resp.Video.CompletenessScore
+	return nil
+}
+
+func (v *VideoV2) AddAccount(accountId string) error {
+	url := v.Api.getBaseUrl() + "/videos/" + v.Id
+	account := Account{Id: accountId}
+	update := struct {
+		Accounts []Account `json:"video_accounts"`
+	}{}
+	update.Accounts = append(v.Accounts, account)
+	b, _ := json.Marshal(update)
+	body := bytes.NewBuffer(b)
+	req, err := v.Api.makeRequest("PUT", url, body)
+	if err != nil {
+		return err
+	}
+	resp := VideoResp{}
+	err = handleReq(v.Api, req, &resp)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
