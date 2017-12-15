@@ -27,7 +27,6 @@ type VideoV2 struct {
 	UpdatedAt         time.Time       `json:"updated_at"`
 	Api               *ApiV2          `json:"-"`
 	Assets            []Asset         `json:"assets"`
-	Accounts          []Account       `json:"video_accounts"`
 	CompletenessScore float64         `json:"completeness_score"`
 }
 
@@ -91,7 +90,7 @@ func (v *VideoV2) AddAccount(accountId string) error {
 	update := struct {
 		Accounts []Account `json:"video_accounts"`
 	}{}
-	update.Accounts = append(v.Accounts, account)
+	update.Accounts = append(update.Accounts, account)
 	b, _ := json.Marshal(update)
 	body := bytes.NewBuffer(b)
 	req, err := v.Api.makeRequest("PUT", url, body)
