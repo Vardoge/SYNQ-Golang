@@ -20,14 +20,15 @@ type Account struct {
 }
 
 type VideoV2 struct {
-	Id        string          `json:"id"`
-	Userdata  json.RawMessage `json:"user_data"`
-	Metadata  json.RawMessage `json:"metadata"`
-	CreatedAt time.Time       `json:"created_at"`
-	UpdatedAt time.Time       `json:"updated_at"`
-	Api       *ApiV2          `json:"-"`
-	Assets    []Asset         `json:"assets"`
-	Accounts  []Account       `json:"video_accounts"`
+	Id                string          `json:"id"`
+	Userdata          json.RawMessage `json:"user_data"`
+	Metadata          json.RawMessage `json:"metadata"`
+	CreatedAt         time.Time       `json:"created_at"`
+	UpdatedAt         time.Time       `json:"updated_at"`
+	Api               *ApiV2          `json:"-"`
+	Assets            []Asset         `json:"assets"`
+	Accounts          []Account       `json:"video_accounts"`
+	CompletenessScore float64         `json:"completeness_score"`
 }
 
 func (v VideoV2) Value() (driver.Value, error) {
@@ -62,10 +63,11 @@ func (v *VideoV2) GetVideoAssetList() error {
 func (v *VideoV2) Update() error {
 	url := v.Api.getBaseUrl() + "/videos/" + v.Id
 	type Update struct {
-		Metadata json.RawMessage `json:"metadata"`
-		Userdata json.RawMessage `json:"user_data"`
+		Metadata          json.RawMessage `json:"metadata"`
+		Userdata          json.RawMessage `json:"user_data"`
+		CompletenessScore float64         `json:"completeness_score"`
 	}
-	update := Update{Metadata: v.Metadata, Userdata: v.Userdata}
+	update := Update{Metadata: v.Metadata, Userdata: v.Userdata, CompletenessScore: v.CompletenessScore}
 	b, _ := json.Marshal(update)
 	body := bytes.NewBuffer(b)
 	req, err := v.Api.makeRequest("PUT", url, body)
@@ -79,6 +81,7 @@ func (v *VideoV2) Update() error {
 	}
 	v.Metadata = resp.Video.Metadata
 	v.Userdata = resp.Video.Userdata
+	v.CompletenessScore = resp.Video.CompletenessScore
 	return nil
 }
 
