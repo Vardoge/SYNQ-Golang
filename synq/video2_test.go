@@ -25,6 +25,7 @@ func TestVideoUpdate(t *testing.T) {
 	video := setupTestVideoV2()
 	video.Metadata = json.RawMessage(`{"meta":"new"}`)
 	video.Userdata = json.RawMessage(`{"user":"new"}`)
+	video.CompletenessScore = 95.4
 	// this is just fake, the updated value will come from a hard coded json
 	err := video.Update()
 	assert.Nil(err)
@@ -33,7 +34,7 @@ func TestVideoUpdate(t *testing.T) {
 	reqs, vals := test_server.GetReqs()
 	assert.Len(reqs, 1)
 	assert.Len(vals, 1)
-	assert.Equal(`{"metadata":{"meta":"new"},"user_data":{"user":"new"}}`, vals[0].Get("body"))
+	assert.Equal(`{"metadata":{"meta":"new"},"user_data":{"user":"new"},"completeness_score":95.4}`, vals[0].Get("body"))
 }
 
 func TestCreateAsset(t *testing.T) {
