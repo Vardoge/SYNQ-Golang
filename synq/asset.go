@@ -30,6 +30,7 @@ type Asset struct {
 	CreatedAt        string                  `json:"created_at"`
 	UpdatedAt        string                  `json:"updated_at"`
 	Metadata         json.RawMessage         `json:"metadata"`
+	VmafScore        float64                 `json:"vmaf_score"`
 	Api              ApiV2                   `json:"-"`
 	Video            VideoV2                 `json:"-"`
 	UploadParameters upload.UploadParameters `json:"-"`
