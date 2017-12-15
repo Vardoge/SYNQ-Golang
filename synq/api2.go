@@ -74,7 +74,7 @@ func (a *ApiV2) makeRequest(method string, url string, body io.Reader) (req *htt
 	if err != nil {
 		return req, err
 	}
-	if method == "POST" {
+	if method == "POST" || method == "PUT" {
 		if strings.Contains(url, "/login") {
 			req.Header.Add("content-type", "application/x-www-form-urlencoded")
 		} else {

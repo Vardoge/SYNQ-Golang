@@ -111,6 +111,17 @@ func handleV2(api synq.ApiV2) {
 		video, err := api.GetVideo(vid)
 		handleError(err)
 		log.Println(video.Display())
+	case "update":
+		id := "4a15e1fc-a422-466d-8cad-677c1605983c"
+		video, _ := api.GetVideo(id)
+		log.Printf("Got video %s", video.Id)
+		video.CompletenessScore = 10.1
+		err := video.Update()
+		if err != nil {
+			log.Printf("Got error %s", err.Error)
+		} else {
+			log.Printf("Got video score %.1f\n", video.CompletenessScore)
+		}
 	default:
 		handleError(errors.New("unknown command '" + cli.Command + "'"))
 	}

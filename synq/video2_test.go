@@ -33,6 +33,8 @@ func TestVideoUpdate(t *testing.T) {
 	assert.Contains(string(video.Userdata), "test2")
 	reqs, vals := test_server.GetReqs()
 	assert.Len(reqs, 1)
+	req := reqs[0]
+	assert.Equal("application/json", req.Header.Get("Content-Type"))
 	assert.Len(vals, 1)
 	assert.Equal(`{"metadata":{"meta":"new"},"user_data":{"user":"new"},"completeness_score":95.4}`, vals[0].Get("body"))
 }
