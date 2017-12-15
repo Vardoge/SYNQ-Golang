@@ -110,7 +110,7 @@ func handleV2(api synq.ApiV2) {
 		log.Printf("getting video %s\n", vid)
 		video, err := api.GetVideo(vid)
 		handleError(err)
-		log.Printf(video.Display())
+		log.Println(video.Display())
 	default:
 		handleError(errors.New("unknown command '" + cli.Command + "'"))
 	}
@@ -140,7 +140,7 @@ func handleV1(api synq.Api) {
 		handleError(err)
 		log.Printf("Found %d videos\n", len(videos))
 		for _, video := range videos {
-			log.Printf(video.Display())
+			log.Println(video.Display())
 		}
 		os.Exit(0)
 	case "upload":
@@ -215,7 +215,7 @@ func handleV1(api synq.Api) {
 		err = errors.New("unknown command '" + cli.Command + "'")
 	}
 	handleError(err)
-	log.Printf(video.Display())
+	log.Println(video.Display())
 }
 
 func main() {
