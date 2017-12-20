@@ -7,6 +7,7 @@ import (
 
 	"github.com/SYNQfm/SYNQ-Golang/test_server"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDisplay(t *testing.T) {
@@ -93,8 +94,9 @@ func TestCreateUploadReq(t *testing.T) {
 }
 
 func TestUploadFile(t *testing.T) {
-	assert := assert.New(t)
-	aws := test_server.S3Stub()
+	assert := require.New(t)
+	aws := test_server.SetupServer("s3")
+	aws.SampleDir = DEFAULT_SAMPLE_DIR
 	api := setupTestApi("fake")
 	defer aws.Close()
 	video := Video{Id: testVideoId2V1, Api: &api}
@@ -106,7 +108,7 @@ func TestUploadFile(t *testing.T) {
 	err = video.UploadFile("myfile.mp4")
 	assert.NotNil(err)
 	assert.Equal("file 'myfile.mp4' does not exist", err.Error())
-	video.UploadInfo.setURL(aws.URL)
+	video.UploadInfo.setURL(aws.GetUrl())
 	err = video.UploadFile(valid_file)
 	assert.Nil(err)
 	// use an invalid key and it should return an error
@@ -114,5 +116,4 @@ func TestUploadFile(t *testing.T) {
 	err = video.UploadFile(valid_file)
 	assert.NotNil(err)
 	assert.Equal("At least one of the pre-conditions you specified did not hold", err.Error())
-
 }

@@ -12,6 +12,7 @@ var testAssetId string
 var testVideoIdV2 string
 var testVideoId2V2 string
 var testAuth string
+var testServer *test_server.TestServer
 
 func init() {
 	testAssetId = test_server.ASSET_ID
@@ -22,7 +23,8 @@ func init() {
 
 func setupTestApiV2(key string) ApiV2 {
 	api := NewV2(key)
-	url := test_server.SetupServer("v2")
+	testServer = test_server.SetupServer("v2", DEFAULT_SAMPLE_DIR)
+	url := testServer.GetUrl()
 	api.SetUrl(url)
 	api.UploadUrl = url
 	return api
@@ -42,7 +44,9 @@ func TestMakeReq2(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	assert := require.New(t)
-	url := test_server.SetupServer("v2")
+	server := test_server.SetupServer("v2", DEFAULT_SAMPLE_DIR)
+	url := server.GetUrl()
+	defer server.Close()
 	_, err := Login("fake", "fake", url)
 	assert.NotNil(err)
 	api, e := Login("user", "pass", url)

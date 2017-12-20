@@ -3,11 +3,14 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"mime"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/SYNQfm/SYNQ-Golang/helper"
 	"github.com/SYNQfm/SYNQ-Golang/synq"
@@ -41,6 +44,7 @@ func handleError(err error) {
 func handleV2(api synq.ApiV2) {
 	vid := cli.GetString("video_id")
 	aid := cli.GetString("asset_id")
+	ret := common.NewRet(cli.Command)
 	switch cli.Command {
 	case "upload":
 		var asset synq.Asset
@@ -99,18 +103,35 @@ func handleV2(api synq.ApiV2) {
 			handleError(err)
 			log.Printf("uploaded file %s\n", file)
 		}
-	case "get_raw_videos":
-		log.Printf("getting all videos (raw format)")
-		videos, err := api.GetRawVideos("")
+	case "get_raw_videos",
+		"get_videos":
+		api.PageSize = 500
+		raw := strings.Contains(cli.Command, "raw")
+		str := fmt.Sprintf("getting all videos (page size %d)", api.PageSize)
+		name := "videos"
+		if raw {
+			str = str + " (raw format)"
+			name = name + "_raw"
+		}
+		var bytes []byte
+		var err error
+		vidCt := 0
+		log.Println(str)
+		if raw {
+			var videos []json.RawMessage
+			videos, err = api.GetRawVideos("")
+			vidCt = len(videos)
+			bytes, _ = json.Marshal(videos)
+		} else {
+			var videos []synq.VideoV2
+			videos, err = api.GetVideos("")
+			bytes, _ = json.Marshal(videos)
+		}
 		handleError(err)
-		log.Printf("found %d\n", len(videos))
-		bytes, _ := json.Marshal(videos)
-		ioutil.WriteFile(cli.CacheDir+"/raw.json", bytes, 0755)
-	case "get_video":
-		log.Printf("getting video %s\n", vid)
-		video, err := api.GetVideo(vid)
-		handleError(err)
-		log.Println(video.Display())
+		log.Printf("found %d\n", vidCt)
+		ret.AddFor("videos", vidCt)
+		ret.AddDurFor("videos", time.Since(ret.Start))
+		ioutil.WriteFile(cli.CacheDir+"/"+name+".json", bytes, 0755)
 	case "update":
 		id := "4a15e1fc-a422-466d-8cad-677c1605983c"
 		video, _ := api.GetVideo(id)
@@ -125,6 +146,7 @@ func handleV2(api synq.ApiV2) {
 	default:
 		handleError(errors.New("unknown command '" + cli.Command + "'"))
 	}
+	log.Println(ret.String())
 }
 
 func handleV1(api synq.Api) {
@@ -243,10 +265,10 @@ func main() {
 			os.Exit(1)
 		}
 		if cli.GetString("version") == "v2" {
-			api := synq.NewV2(api_key)
+			api := synq.NewV2(api_key, cli.Timeout)
 			handleV2(api)
 		} else {
-			api := synq.NewV1(api_key)
+			api := synq.NewV1(api_key, cli.Timeout)
 			handleV1(api)
 		}
 	}

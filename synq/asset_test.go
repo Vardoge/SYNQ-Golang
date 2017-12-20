@@ -26,16 +26,17 @@ func init() {
 func setupTestVideoV2() VideoV2 {
 	api := setupTestApiV2(testAuth)
 	video, _ := api.Create()
-	test_server.ResetReqs()
+	// reset
+	testServer.Reset()
 	return video
 }
 
 func setupTestParams(asset *Asset) {
-	bytes := test_server.LoadSampleV2("upload")
 	up := upload.UploadParameters{}
+	s3Server := test_server.SetupServer("s3")
+	bytes := test_server.LoadSampleDir("upload", DEFAULT_SAMPLE_DIR+"/v2/")
 	json.Unmarshal(bytes, &up)
-	s3Server := test_server.S3Stub()
-	up.Action = s3Server.URL
+	up.Action = s3Server.GetUrl()
 	up.SignatureUrl = asset.Video.Api.GetUrl()
 	asset.UploadParameters = up
 }
@@ -125,7 +126,7 @@ func TestAssetUploadFile(t *testing.T) {
 		Id:    test_server.ASSET_ID,
 		Video: video,
 	}
-	fileName := sampleDir + "/test.mp4"
+	fileName := DEFAULT_SAMPLE_DIR + "/test.mp4"
 	err := asset.UploadFile(fileName)
 	assert.NotNil(err)
 	assert.Equal("invalid upload url, can not upload file", err.Error())
@@ -137,7 +138,7 @@ func TestAssetUploadFile(t *testing.T) {
 	asset.Location = "test"
 	err = asset.UploadFile("fake")
 	assert.NotNil(err)
-	reqs, vals := test_server.GetReqs()
+	reqs, vals := testServer.GetReqs()
 	assert.Len(reqs, 1)
 	val := vals[0]
 	assert.Equal("/v2/videos/9e9dc8c8-f705-41db-88da-b3034894deb9/upload", reqs[0].URL.Path)

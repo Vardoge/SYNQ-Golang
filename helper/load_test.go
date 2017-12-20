@@ -21,7 +21,6 @@ type Cache struct {
 }
 
 func init() {
-	test_server.SetSampleDir(sampleDir)
 	testAuth = test_server.TEST_AUTH
 }
 
@@ -30,7 +29,8 @@ func setup() (synq.ApiV2, Cache) {
 	os.MkdirAll(cacheDir, 0755)
 	cache := Cache{Dir: cacheDir}
 	api := synq.NewV2(testAuth)
-	url := test_server.SetupServer("v2")
+	server := test_server.SetupServer("v2", sampleDir)
+	url := server.GetUrl()
 	api.SetUrl(url)
 	api.UploadUrl = url
 	return api, cache
