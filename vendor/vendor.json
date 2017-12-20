@@ -9,6 +9,12 @@
 			"revisionTime": "2017-12-13T18:01:28Z"
 		},
 		{
+			"checksumSHA1": "cKz3iNBpB1uEwFWRpOUtJFhjTrQ=",
+			"path": "github.com/buger/jsonparser",
+			"revision": "fda8192cc4f100afbdbbcce82284a5b711969174",
+			"revisionTime": "2017-08-03T10:04:42Z"
+		},
+		{
 			"checksumSHA1": "mrz/kicZiUaHxkyfvC/DyQcr8Do=",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "adab96458c51a58dc1783b3335dcce5461522e75",
