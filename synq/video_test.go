@@ -7,6 +7,7 @@ import (
 
 	"github.com/SYNQfm/SYNQ-Golang/test_server"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDisplay(t *testing.T) {
@@ -93,8 +94,9 @@ func TestCreateUploadReq(t *testing.T) {
 }
 
 func TestUploadFile(t *testing.T) {
-	assert := assert.New(t)
+	assert := require.New(t)
 	aws := test_server.SetupServer("s3")
+	aws.SampleDir = DEFAULT_SAMPLE_DIR
 	api := setupTestApi("fake")
 	defer aws.Close()
 	video := Video{Id: testVideoId2V1, Api: &api}

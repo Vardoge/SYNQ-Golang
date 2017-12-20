@@ -102,6 +102,10 @@ func (s *TestServer) Setup() string {
 	return s.Server.URL
 }
 
+func (s *TestServer) GetReqs() ([]*http.Request, []url.Values) {
+	return s.Reqs, s.Values
+}
+
 func CloseAll() {
 	for _, s := range testServers {
 		s.Server.Close()
@@ -109,16 +113,16 @@ func CloseAll() {
 	testServers = testServers[:0]
 }
 
-func SetupServer(version ...string) *TestServer {
+func SetupServer(args ...string) *TestServer {
 	ver := "v1"
-	if len(version) > 0 {
-		ver = version[0]
+	sDir := DEFAULT_SAMPLE_DIR
+	if len(args) > 0 {
+		ver = args[0]
 	}
-	if len(testServers) > 0 {
-		server := LastServer()
-		server.Server.Close()
+	if len(args) > 1 {
+		sDir = args[1]
 	}
-	testServer := &TestServer{Version: ver, SampleDir: DEFAULT_SAMPLE_DIR}
+	testServer := &TestServer{Version: ver, SampleDir: sDir}
 	testServer.Setup()
 	testServers = append(testServers, testServer)
 	return testServer
@@ -130,7 +134,7 @@ func LastServer() *TestServer {
 
 func GetReqs() ([]*http.Request, []url.Values) {
 	testServer := LastServer()
-	return testServer.Reqs, testServer.Values
+	return testServer.GetReqs()
 }
 
 func ResetReqs() {
@@ -183,8 +187,6 @@ func validateAuth(r *http.Request) string {
 
 func (s *TestServer) handleBasic(w http.ResponseWriter, r *http.Request) {
 	var resp string
-	log.Println("here in req", r.RequestURI)
-	s.Reqs = append(s.Reqs, r)
 	bytes, _ := ioutil.ReadAll(r.Body)
 	v, _ := url.ParseQuery(string(bytes))
 	s.Values = append(s.Values, v)
@@ -329,7 +331,7 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 			if r.Method != "GET" {
 				w.WriteHeader(http.StatusNotFound)
 			} else {
-				resp = s.LoadSample("asset_list")
+				resp = s.LoadSampleV2("asset_list")
 				w.WriteHeader(http.StatusOK)
 			}
 		case "/v2/videos/" + V2_VIDEO_ID + "/upload":
@@ -343,7 +345,7 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 			"/v2/assets":
 			if r.Method != "POST" {
 				page := r.URL.Query().Get("page_number")
-				if page != "1" {
+				if page != "" && page != "1" {
 					// for now, anything thats not page 1, return blank
 					resp = s.LoadSampleV2(type_ + "_list_" + page)
 				} else {
@@ -366,7 +368,7 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 			}
 		case "/v2/login":
 			if r.Method == "POST" && !strings.Contains(body_str, "fake") {
-				resp = s.LoadSample("login")
+				resp = s.LoadSampleV2("login")
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
