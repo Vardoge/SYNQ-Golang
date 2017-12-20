@@ -107,7 +107,7 @@ func handleV2(api synq.ApiV2) {
 		"get_videos":
 		api.PageSize = 500
 		raw := strings.Contains(cli.Command, "raw")
-		jstr := fmt.Sprintf("getting all videos (page size %d)", api.PageSize)
+		str := fmt.Sprintf("getting all videos (page size %d)", api.PageSize)
 		name := "videos"
 		if raw {
 			str = str + " (raw format)"
