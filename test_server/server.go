@@ -185,6 +185,21 @@ func validateAuth(r *http.Request) string {
 	return ""
 }
 
+func (s *TestServer) handle(w http.ResponseWriter, r *http.Request) {
+	log.Printf("here in response %s (server type '%s')", r.RequestURI, s.Version)
+	s.Reqs = append(s.Reqs, r)
+	switch s.Version {
+	case "v2":
+		s.handleV2(w, r)
+	case "v1":
+		s.handleV1(w, r)
+	case "s3":
+		s.handleS3(w, r)
+	default:
+		s.handleBasic(w, r)
+	}
+}
+
 func (s *TestServer) handleBasic(w http.ResponseWriter, r *http.Request) {
 	var resp string
 	bytes, _ := ioutil.ReadAll(r.Body)
@@ -204,21 +219,6 @@ func (s *TestServer) handleBasic(w http.ResponseWriter, r *http.Request) {
 		resp = `{"created_at": "2017-02-15T03:01:16.767Z","updated_at": "2017-02-16T03:06:31.794Z", "state":"uploaded"}`
 	}
 	w.Write([]byte(resp))
-}
-
-func (s *TestServer) handle(w http.ResponseWriter, r *http.Request) {
-	log.Printf("here in response %s (server type '%s')", r.RequestURI, s.Version)
-	s.Reqs = append(s.Reqs, r)
-	switch s.Version {
-	case "v2":
-		s.handleV2(w, r)
-	case "v1":
-		s.handleV1(w, r)
-	case "s3":
-		s.handleS3(w, r)
-	default:
-		s.handleBasic(w, r)
-	}
 }
 
 func (s *TestServer) handleS3(w http.ResponseWriter, r *http.Request) {
