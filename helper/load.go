@@ -57,6 +57,13 @@ func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.Vide
 	ok := common.LoadFromCache(id, c, &video)
 	if ok {
 		video.Api = &api
+		assets := []synq.Asset{}
+		for _, a := range video.Assets {
+			a.Video = video
+			a.Api = api
+			assets = append(assets, a)
+		}
+		video.Assets = assets
 		return video, nil
 	}
 	log.Printf("Getting video %s\n", id)
