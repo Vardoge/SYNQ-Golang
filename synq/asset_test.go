@@ -43,6 +43,15 @@ func setupTestParams(asset *Asset) {
 func handleAsset(w http.ResponseWriter, r *http.Request) {
 }
 
+func TestAssetBase(t *testing.T) {
+	assert := require.New(t)
+	asset := Asset{}
+	api := NewV2("fake")
+	assert.NotEmpty(asset.getApi().getBaseUrl())
+	asset.Api = api
+	assert.Equal(api.getBaseUrl(), asset.getApi().getBaseUrl())
+}
+
 func TestGetAssetList(t *testing.T) {
 	log.Println("Testing GetAssetList")
 	assert := require.New(t)

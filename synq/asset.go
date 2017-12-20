@@ -36,25 +36,26 @@ type Asset struct {
 	UploadParameters upload.UploadParameters `json:"-"`
 }
 
-func (a *Asset) GetApi() *ApiV2 {
-	if a.Api.Key != "" {
-		return &a.Api
+func (a *Asset) getApi() ApiV2 {
+	if a.Api.BaseApi != nil {
+		return a.Api
 	}
-	if a.Video.Id != "" {
-		return a.Video.Api
+	if a.Video.Api != nil && a.Video.Api.BaseApi != nil {
+		return *a.Video.Api
 	}
-	return &ApiV2{}
+	log.Println("no valid apis to use, return no key Apiv2")
+	return NewV2("")
 }
 
 func (a *Asset) Update() error {
-	url := a.GetApi().getBaseUrl() + "/assets/" + a.Id
+	url := a.getApi().getBaseUrl() + "/assets/" + a.Id
 	data, _ := json.Marshal(a)
 	body := bytes.NewBuffer(data)
 	return a.handleAssetReq("PUT", url, body)
 }
 
 func (a *Asset) Delete() error {
-	url := a.GetApi().getBaseUrl() + "/assets/" + a.Id
+	url := a.getApi().getBaseUrl() + "/assets/" + a.Id
 	data, _ := json.Marshal(a)
 	body := bytes.NewBuffer(data)
 	return a.handleAssetReq("DELETE", url, body)
@@ -62,7 +63,7 @@ func (a *Asset) Delete() error {
 
 func (a *Asset) handleAssetReq(method, url string, body io.Reader) error {
 	resp := AssetResponse{Asset: a}
-	req, err := a.GetApi().makeRequest(method, url, body)
+	req, err := a.Api.makeRequest(method, url, body)
 	if err != nil {
 		return err
 	}
@@ -77,7 +78,8 @@ func (a *Asset) handleAssetReq(method, url string, body io.Reader) error {
 }
 
 func (a *Asset) UploadFile(fileName string) error {
-	if a.GetApi().UploadUrl == "" {
+	upUrl := a.Api.UploadUrl
+	if upUrl == "" {
 		return errors.New("invalid upload url, can not upload file")
 	}
 	if a.UploadParameters.Key == "" {
@@ -100,8 +102,8 @@ func (a *Asset) UploadFile(fileName string) error {
 
 	params := a.UploadParameters
 	if !strings.Contains(params.SignatureUrl, "http") {
-		sigUrl := a.GetApi().UploadUrl + params.SignatureUrl
-		log.Printf("Updating sig url to include host '%s'\n", a.GetApi().UploadUrl)
+		sigUrl := upUrl + params.SignatureUrl
+		log.Printf("Updating sig url to include host '%s'\n", upUrl)
 		params.SignatureUrl = sigUrl
 	}
 	aws, err := upload.CreatorFn(params)
