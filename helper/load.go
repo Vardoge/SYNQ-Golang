@@ -58,6 +58,7 @@ func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.Vide
 	if ok {
 		video.Api = &api
 		for _, a := range video.Assets {
+			a.Video = video
 			a.Api = api
 		}
 		return video, nil
