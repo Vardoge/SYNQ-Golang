@@ -56,7 +56,7 @@ func LoadVideo(id string, c common.Cacheable, api synq.Api) (video synq.Video, e
 func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.VideoV2, err error) {
 	ok := common.LoadFromCache(id, c, &video)
 	if ok {
-		video.Api = &api
+		api.SetApi(&video)
 		return video, nil
 	}
 	log.Printf("Getting video %s\n", id)
@@ -65,7 +65,6 @@ func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.Vide
 		return video, err
 	}
 	common.SaveToCache(id, c, &video)
-	video.Api = &api
 	return video, nil
 }
 

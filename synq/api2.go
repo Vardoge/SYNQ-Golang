@@ -214,6 +214,18 @@ func (a *ApiV2) GetRawVideos(accountId string) (raw []json.RawMessage, err error
 	return resp.Videos, nil
 }
 
+// this sets the api object properly on the Video object and the assets
+func (a *ApiV2) SetApi(video *VideoV2) {
+	video.Api = a
+	assets := []Asset{}
+	for _, a := range video.Assets {
+		a.Video = *video
+		a.Api = *video.Api
+		assets = append(assets, a)
+	}
+	video.Assets = assets
+}
+
 // Helper function to get details for a video, will create video object
 func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 	var resp VideoResp
@@ -231,7 +243,7 @@ func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 		return video, err
 	}
 	video = resp.Video
-	video.Api = a
+	a.SetApi(&video)
 	return video, nil
 }
 

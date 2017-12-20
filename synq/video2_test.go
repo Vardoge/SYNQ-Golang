@@ -101,3 +101,32 @@ func TestAddAccount(t *testing.T) {
 	assert.Len(obj.Accounts, 1)
 	assert.Equal(test_server.ACCOUNT_ID, obj.Accounts[0].Id)
 }
+
+func TestFindAsset(t *testing.T) {
+	assert := require.New(t)
+	loc := "myloc"
+	id := "myid"
+	orgUrl := "http://orgurl"
+	video := VideoV2{}
+	asset := Asset{Location: loc}
+	asset2 := Asset{Location: "diffloc", Id: id}
+	bytes := []byte(`{"org_url":"` + orgUrl + `"}`)
+	asset3 := Asset{Location: "http://cdn", Id: "123", Metadata: bytes, Type: "thumbnail"}
+	_, found := video.FindAsset(loc)
+	assert.False(found)
+	video.Assets = append(video.Assets, asset)
+	// can't find location if Id is blank
+	_, found = video.FindAsset(loc)
+	assert.False(found)
+	asset.Id = "blah"
+	video.Assets = []Asset{asset}
+	_, found = video.FindAsset(loc)
+	assert.True(found)
+	video.Assets = append(video.Assets, asset2)
+	_, found = video.FindAsset(id)
+	assert.True(found)
+	video.Assets = append(video.Assets, asset3)
+	f, found := video.FindAsset(orgUrl)
+	assert.True(found)
+	assert.Equal("123", f.Id)
+}

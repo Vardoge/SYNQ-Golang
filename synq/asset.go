@@ -36,15 +36,26 @@ type Asset struct {
 	UploadParameters upload.UploadParameters `json:"-"`
 }
 
+func (a *Asset) getApi() *ApiV2 {
+	if a.Api.BaseApi != nil {
+		return &a.Api
+	}
+	if a.Video.Api != nil && a.Video.Api.BaseApi != nil {
+		return a.Video.Api
+	}
+	log.Panicln("asset has no valid apis to use")
+	return nil
+}
+
 func (a *Asset) Update() error {
-	url := a.Api.getBaseUrl() + "/assets/" + a.Id
+	url := a.getApi().getBaseUrl() + "/assets/" + a.Id
 	data, _ := json.Marshal(a)
 	body := bytes.NewBuffer(data)
 	return a.handleAssetReq("PUT", url, body)
 }
 
 func (a *Asset) Delete() error {
-	url := a.Api.getBaseUrl() + "/assets/" + a.Id
+	url := a.getApi().getBaseUrl() + "/assets/" + a.Id
 	data, _ := json.Marshal(a)
 	body := bytes.NewBuffer(data)
 	return a.handleAssetReq("DELETE", url, body)
