@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/SYNQfm/SYNQ-Golang/upload"
+	"github.com/buger/jsonparser"
 )
 
 type VideoResp struct {
@@ -117,6 +118,13 @@ func (v *VideoV2) FindAsset(location string) (Asset, bool) {
 	for _, a := range v.Assets {
 		if (a.Location == location || a.Id == location) && a.Id != "" {
 			return a, true
+		}
+		// for thumbnail assets, look in the "org_url" section in case it was reverted
+		if a.Type == "thumbnail" {
+			org, _ := jsonparser.GetString(a.Metadata, "org_url")
+			if org == location {
+				return a, true
+			}
 		}
 	}
 	return Asset{}, false
