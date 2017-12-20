@@ -215,7 +215,7 @@ func (a *ApiV2) GetRawVideos(accountId string) (raw []json.RawMessage, err error
 }
 
 // this sets the api object properly on the Video object and the assets
-func (a *ApiV2) setApi(video *VideoV2) {
+func (a *ApiV2) SetApi(video *VideoV2) {
 	video.Api = a
 	assets := []Asset{}
 	for _, a := range video.Assets {
@@ -243,7 +243,7 @@ func (a *ApiV2) GetVideo(id string) (video VideoV2, err error) {
 		return video, err
 	}
 	video = resp.Video
-	a.setApi(&video)
+	a.SetApi(&video)
 	return video, nil
 }
 
