@@ -19,6 +19,7 @@ import (
 const (
 	DEFAULT_V2_URL       = "http://b9n2fsyd6jbfihx82.stoplight-proxy.io"
 	DEFAULT_UPLOADER_URL = "http://s6krcbatzuuhmspse.stoplight-proxy.io"
+	DEFAULT_PAGE_SIZE    = 100
 )
 
 type ApiV2 struct {
@@ -27,10 +28,13 @@ type ApiV2 struct {
 	Password    string
 	UploadUrl   string
 	TokenExpiry time.Time
+	PageSize    int
 }
 
 type VideoList struct {
-	Videos []VideoV2 `json:"data"`
+	Videos     []json.RawMessage `json:"data"`
+	PageSize   int               `json:"page_size"`
+	PageNumber int               `json:"page_number"`
 }
 
 type ErrorRespV2 struct {
@@ -54,7 +58,9 @@ func (a ApiV2) Version() string {
 func NewV2(token string, timeouts ...time.Duration) ApiV2 {
 	base := NewBase(token, timeouts...)
 	base.Url = DEFAULT_V2_URL
-	return ApiV2{BaseApi: &base}
+	api := ApiV2{BaseApi: &base}
+	api.PageSize = DEFAULT_PAGE_SIZE
+	return api
 }
 
 func (a *ApiV2) handleAuth(req *http.Request) {
@@ -171,47 +177,54 @@ func (a *ApiV2) Create(body ...[]byte) (VideoV2, error) {
 	return video, nil
 }
 
-// This is an internal function to load videos, and can take in any object to
-// render it.  This is so that we can return various objects if needed
-func (a *ApiV2) getVideos(obj interface{}, accountId string) error {
+// This will return the "raw" json, using pagination, and the calling function is expected
+// to turn it into whats needed
+func (a *ApiV2) getVideos(accountId string) (videos []json.RawMessage, err error) {
 	path := "/videos"
 	if accountId != "" {
 		path = "/accounts/" + accountId + path
 	}
-	url := a.getBaseUrl() + path
-	req, err := a.makeRequest("GET", url, nil)
-	if err != nil {
-		return err
-	}
-	err = handleReq(a, req, &obj)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (a *ApiV2) GetVideos(accountId string) (videos []VideoV2, err error) {
-	var resp VideoList
-	err = a.getVideos(&resp, accountId)
-	if err != nil {
-		return videos, err
-	}
-	for _, v := range resp.Videos {
-		v.Api = a
-		videos = append(videos, v)
+	// iterate through the requests until we get no more videos
+	base_url := a.getBaseUrl() + path
+	pageNumber := 1
+	pageSize := a.PageSize
+	for {
+		var obj VideoList
+		url := base_url + fmt.Sprintf("?page_number=%d&page_size=%d", pageNumber, pageSize)
+		req, err := a.makeRequest("GET", url, nil)
+		if err != nil {
+			return videos, err
+		}
+		err = handleReq(a, req, &obj)
+		if err != nil {
+			return videos, err
+		}
+		if len(obj.Videos) == 0 {
+			return videos, nil
+		}
+		videos = append(videos, obj.Videos...)
+		pageNumber++
 	}
 	return videos, nil
 }
 
-func (a *ApiV2) GetRawVideos(accountId string) (raw []json.RawMessage, err error) {
-	resp := struct {
-		Videos []json.RawMessage `json:"data"`
-	}{}
-	err = a.getVideos(&resp, accountId)
+func (a *ApiV2) GetVideos(accountId string) ([]VideoV2, error) {
+	var videos []VideoV2
+	raw, err := a.getVideos(accountId)
 	if err != nil {
-		return raw, err
+		return videos, err
 	}
-	return resp.Videos, nil
+	for _, v := range raw {
+		var video VideoV2
+		json.Unmarshal(v, &video)
+		video.Api = a
+		videos = append(videos, video)
+	}
+	return videos, nil
+}
+
+func (a *ApiV2) GetRawVideos(accountId string) ([]json.RawMessage, error) {
+	return a.getVideos(accountId)
 }
 
 // this sets the api object properly on the Video object and the assets

@@ -22,7 +22,7 @@ var testApiKeyV1 string
 var uploadKey string
 
 const (
-	sampleDir = "../sample"
+	DEFAULT_SAMPLE_DIR = "../sample"
 )
 
 func init() {
@@ -31,12 +31,13 @@ func init() {
 	testVideoId2V1 = test_server.VIDEO_ID2
 	testApiKeyV1 = test_server.API_KEY
 	uploadKey = test_server.UPLOAD_KEY
-	test_server.SetSampleDir(sampleDir)
 }
 
 func setupTestApi(key string, type_ ...string) Api {
 	api := NewV1(key)
-	url := test_server.SetupServer(type_...)
+	testServer := test_server.SetupServer(type_...)
+	testServer.SampleDir = DEFAULT_SAMPLE_DIR
+	url := testServer.GetUrl()
 	api.SetUrl(url)
 	return api
 }

@@ -94,7 +94,7 @@ func TestCreateUploadReq(t *testing.T) {
 
 func TestUploadFile(t *testing.T) {
 	assert := assert.New(t)
-	aws := test_server.S3Stub()
+	aws := test_server.SetupServer("s3")
 	api := setupTestApi("fake")
 	defer aws.Close()
 	video := Video{Id: testVideoId2V1, Api: &api}
@@ -106,7 +106,7 @@ func TestUploadFile(t *testing.T) {
 	err = video.UploadFile("myfile.mp4")
 	assert.NotNil(err)
 	assert.Equal("file 'myfile.mp4' does not exist", err.Error())
-	video.UploadInfo.setURL(aws.URL)
+	video.UploadInfo.setURL(aws.GetUrl())
 	err = video.UploadFile(valid_file)
 	assert.Nil(err)
 	// use an invalid key and it should return an error
@@ -114,5 +114,4 @@ func TestUploadFile(t *testing.T) {
 	err = video.UploadFile(valid_file)
 	assert.NotNil(err)
 	assert.Equal("At least one of the pre-conditions you specified did not hold", err.Error())
-
 }

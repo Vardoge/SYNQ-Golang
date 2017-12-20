@@ -31,11 +31,11 @@ func setupTestVideoV2() VideoV2 {
 }
 
 func setupTestParams(asset *Asset) {
-	bytes := test_server.LoadSampleV2("upload")
 	up := upload.UploadParameters{}
+	s3Server := test_server.SetupServer("s3")
+	bytes := s3Server.LoadSampleV2("upload")
 	json.Unmarshal(bytes, &up)
-	s3Server := test_server.S3Stub()
-	up.Action = s3Server.URL
+	up.Action = s3Server.GetUrl()
 	up.SignatureUrl = asset.Video.Api.GetUrl()
 	asset.UploadParameters = up
 }
@@ -125,7 +125,7 @@ func TestAssetUploadFile(t *testing.T) {
 		Id:    test_server.ASSET_ID,
 		Video: video,
 	}
-	fileName := sampleDir + "/test.mp4"
+	fileName := DEFAULT_SAMPLE_DIR + "/test.mp4"
 	err := asset.UploadFile(fileName)
 	assert.NotNil(err)
 	assert.Equal("invalid upload url, can not upload file", err.Error())
