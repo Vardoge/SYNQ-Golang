@@ -36,34 +36,40 @@ type Asset struct {
 	UploadParameters upload.UploadParameters `json:"-"`
 }
 
-func (a *Asset) getApi() ApiV2 {
+func (a *Asset) getApi() *ApiV2 {
 	if a.Api.BaseApi != nil {
-		return a.Api
+		return &a.Api
 	}
 	if a.Video.Api != nil && a.Video.Api.BaseApi != nil {
-		return *a.Video.Api
+		return a.Video.Api
 	}
-	log.Println("no valid apis to use, return no key Apiv2")
-	return NewV2("")
+	log.Panicln("asset has no valid apis to use")
+	return nil
 }
 
 func (a *Asset) Update() error {
 	url := a.getApi().getBaseUrl() + "/assets/" + a.Id
-	data, _ := json.Marshal(a)
+	data, err := json.Marshal(a)
+	if err != nil {
+		return err
+	}
 	body := bytes.NewBuffer(data)
 	return a.handleAssetReq("PUT", url, body)
 }
 
 func (a *Asset) Delete() error {
 	url := a.getApi().getBaseUrl() + "/assets/" + a.Id
-	data, _ := json.Marshal(a)
+	data, err := json.Marshal(a)
+	if err != nil {
+		return err
+	}
 	body := bytes.NewBuffer(data)
 	return a.handleAssetReq("DELETE", url, body)
 }
 
 func (a *Asset) handleAssetReq(method, url string, body io.Reader) error {
 	resp := AssetResponse{Asset: a}
-	req, err := a.Api.makeRequest(method, url, body)
+	req, err := a.getApi().makeRequest(method, url, body)
 	if err != nil {
 		return err
 	}
