@@ -57,7 +57,7 @@ func updateAssets(video synq.VideoV2) []synq.Asset {
 	assets := []synq.Asset{}
 	for _, a := range video.Assets {
 		a.Video = video
-		a.Api = video.Api
+		a.Api = *video.Api
 		assets = append(assets, a)
 	}
 	return assets
