@@ -53,21 +53,10 @@ func LoadVideo(id string, c common.Cacheable, api synq.Api) (video synq.Video, e
 	return video, nil
 }
 
-func updateAssets(video synq.VideoV2) []synq.Asset {
-	assets := []synq.Asset{}
-	for _, a := range video.Assets {
-		a.Video = video
-		a.Api = *video.Api
-		assets = append(assets, a)
-	}
-	return assets
-}
-
 func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.VideoV2, err error) {
 	ok := common.LoadFromCache(id, c, &video)
 	if ok {
-		video.Api = &api
-		video.Assets = updateAssets(video)
+		api.SetApi(&video)
 		return video, nil
 	}
 	log.Printf("Getting video %s\n", id)
