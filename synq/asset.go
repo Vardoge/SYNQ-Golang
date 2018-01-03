@@ -49,21 +49,27 @@ func (a *Asset) getApi() *ApiV2 {
 
 func (a *Asset) Update() error {
 	url := a.getApi().getBaseUrl() + "/assets/" + a.Id
-	data, _ := json.Marshal(a)
+	data, err := json.Marshal(a)
+	if err != nil {
+		return err
+	}
 	body := bytes.NewBuffer(data)
 	return a.handleAssetReq("PUT", url, body)
 }
 
 func (a *Asset) Delete() error {
 	url := a.getApi().getBaseUrl() + "/assets/" + a.Id
-	data, _ := json.Marshal(a)
+	data, err := json.Marshal(a)
+	if err != nil {
+		return err
+	}
 	body := bytes.NewBuffer(data)
 	return a.handleAssetReq("DELETE", url, body)
 }
 
 func (a *Asset) handleAssetReq(method, url string, body io.Reader) error {
 	resp := AssetResponse{Asset: a}
-	req, err := a.Api.makeRequest(method, url, body)
+	req, err := a.getApi().makeRequest(method, url, body)
 	if err != nil {
 		return err
 	}
@@ -78,7 +84,8 @@ func (a *Asset) handleAssetReq(method, url string, body io.Reader) error {
 }
 
 func (a *Asset) UploadFile(fileName string) error {
-	if a.Api.UploadUrl == "" {
+	upUrl := a.Api.UploadUrl
+	if upUrl == "" {
 		return errors.New("invalid upload url, can not upload file")
 	}
 	if a.UploadParameters.Key == "" {
@@ -101,8 +108,8 @@ func (a *Asset) UploadFile(fileName string) error {
 
 	params := a.UploadParameters
 	if !strings.Contains(params.SignatureUrl, "http") {
-		sigUrl := a.Api.UploadUrl + params.SignatureUrl
-		log.Printf("Updating sig url to include host '%s'\n", a.Api.UploadUrl)
+		sigUrl := upUrl + params.SignatureUrl
+		log.Printf("Updating sig url to include host '%s'\n", upUrl)
 		params.SignatureUrl = sigUrl
 	}
 	aws, err := upload.CreatorFn(params)

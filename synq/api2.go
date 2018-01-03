@@ -57,7 +57,7 @@ func (a ApiV2) Version() string {
 
 func NewV2(token string, timeouts ...time.Duration) ApiV2 {
 	base := NewBase(token, timeouts...)
-	base.Url = DEFAULT_V2_URL
+	base.SetUrl(DEFAULT_V2_URL)
 	api := ApiV2{BaseApi: &base}
 	api.PageSize = DEFAULT_PAGE_SIZE
 	return api
@@ -129,6 +129,9 @@ func Login(user, password string, serverUrl ...string) (ApiV2, error) {
 	api.TokenExpiry = resp.TokenExpiry
 	api.User = user
 	api.Password = password
+	if len(serverUrl) > 0 {
+		api.SetUrl(serverUrl[0])
+	}
 	return api, nil
 }
 
