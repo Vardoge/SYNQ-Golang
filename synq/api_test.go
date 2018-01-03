@@ -22,7 +22,7 @@ var testApiKeyV1 string
 var uploadKey string
 
 const (
-	sampleDir = "../sample"
+	DEFAULT_SAMPLE_DIR = "../sample"
 )
 
 func init() {
@@ -31,12 +31,13 @@ func init() {
 	testVideoId2V1 = test_server.VIDEO_ID2
 	testApiKeyV1 = test_server.API_KEY
 	uploadKey = test_server.UPLOAD_KEY
-	test_server.SetSampleDir(sampleDir)
 }
 
 func setupTestApi(key string, type_ ...string) Api {
 	api := NewV1(key)
-	url := test_server.SetupServer(type_...)
+	testServer = test_server.SetupServer(type_...)
+	testServer.SampleDir = DEFAULT_SAMPLE_DIR
+	url := testServer.GetUrl()
 	api.SetUrl(url)
 	return api
 }
@@ -71,15 +72,15 @@ func TestHandlePostFail(t *testing.T) {
 	assert.Equal("parse :://noprotocol.com/v1/video/path: missing protocol scheme", err.Error())
 }
 
-func TestHandlePost(t *testing.T) {
+func TestHandlePostSuccess(t *testing.T) {
 	api := setupTestApi("fake", "generic")
-	assert := assert.New(t)
+	assert := require.New(t)
 	form := url.Values{}
 	video := Video{}
 	form.Set("test", "value")
 	err := api.handlePost("create", form, &video)
 	assert.Nil(err)
-	reqs, vals := test_server.GetReqs()
+	reqs, vals := testServer.GetReqs()
 	assert.Len(reqs, 1)
 	r := reqs[0]
 	v := vals[0]

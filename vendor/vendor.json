@@ -3,10 +3,16 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "rbSlBVYeAJf9Q2oOzEsz0TQIeRc=",
+			"checksumSHA1": "UQgfCZnL+YxhAGPsWRQ6d9QNMwQ=",
 			"path": "github.com/SYNQfm/helpers/common",
-			"revision": "23cd39da539ae9c1e04c5317ad7651af41d64084",
-			"revisionTime": "2017-12-13T18:01:28Z"
+			"revision": "675ba9a425f22a66d5ddc78a0158e54a9a0f254c",
+			"revisionTime": "2017-12-20T04:38:58Z"
+		},
+		{
+			"checksumSHA1": "cKz3iNBpB1uEwFWRpOUtJFhjTrQ=",
+			"path": "github.com/buger/jsonparser",
+			"revision": "fda8192cc4f100afbdbbcce82284a5b711969174",
+			"revisionTime": "2017-08-03T10:04:42Z"
 		},
 		{
 			"checksumSHA1": "mrz/kicZiUaHxkyfvC/DyQcr8Do=",
