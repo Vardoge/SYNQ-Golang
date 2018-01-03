@@ -16,31 +16,35 @@ const (
 type ApiSetting struct {
 	// only api_key is required
 	ApiKey        string `json:"api_key"`
-	Url           string `json:"api_url"`
-	Timeout       int    `json:"timeout"`
-	UploadTimeout int    `json:"upload_timeout"`
-	User          string `json:"user"`
-	Password      string `json:"password"`
+	Url           string `json:"api_url,omitempty"`
+	Timeout       int    `json:"timeout,omitempty"`
+	UploadTimeout int    `json:"upload_timeout,omitempty"`
+	User          string `json:"user,omitempty"`
+	Password      string `json:"password,omitempty"`
 }
 
 type ApiSet struct {
-	v1    ApiSetting `json:"v1"`
-	v2    ApiSetting `json:"v2"`
+	V1    ApiSetting `json:"v1"`
+	V2    ApiSetting `json:"v2"`
 	ApiV1 synq.Api   `json:"-"`
 	ApiV2 synq.ApiV2 `json:"-"`
 }
 
-func (a ApiSetting) SetupV1() synq.Api {
-	api := synq.NewV1(a.ApiKey)
+func (a ApiSetting) Configure(api synq.ApiF) {
+	if a.Timeout > 0 {
+		api.SetTimeout("", time.Duration(a.Timeout)*time.Second)
+	}
+	if a.UploadTimeout > 0 {
+		api.SetTimeout("upload", time.Duration(a.UploadTimeout)*time.Second)
+	}
 	if a.Url != "" {
 		api.SetUrl(a.Url)
 	}
-	if api.Timeout > 0 {
-		api.Timeout = api.Timeout * time.Second
-	}
-	if api.UploadTimeout > 0 {
-		api.Timeout = api.UploadTimeout * time.Second
-	}
+}
+
+func (a ApiSetting) SetupV1() synq.Api {
+	api := synq.NewV1(a.ApiKey)
+	a.Configure(api)
 	return api
 }
 
@@ -48,18 +52,17 @@ func (a ApiSetting) SetupV2() synq.ApiV2 {
 	var api synq.ApiV2
 	if a.ApiKey != "" {
 		api = synq.NewV2(a.ApiKey)
+		if a.Url != "" {
+			api.SetUrl(a.Url)
+		}
 	} else if a.User != "" && a.Password != "" {
-		api, _ = synq.Login(a.User, a.Password)
+		urls := []string{}
+		if a.Url != "" {
+			urls = append(urls, a.Url)
+		}
+		api, _ = synq.Login(a.User, a.Password, urls...)
 	}
-	if a.Url != "" {
-		api.SetUrl(a.Url)
-	}
-	if api.Timeout > 0 {
-		api.Timeout = api.Timeout * time.Second
-	}
-	if api.UploadTimeout > 0 {
-		api.Timeout = api.UploadTimeout * time.Second
-	}
+	a.Configure(api)
 	return api
 }
 
@@ -68,11 +71,11 @@ func (a ApiSetting) Valid() bool {
 }
 
 func (a *ApiSet) Setup() {
-	if a.v1.Valid() {
-		a.ApiV1 = a.v1.SetupV1()
+	if a.V1.Valid() {
+		a.ApiV1 = a.V1.SetupV1()
 	}
-	if a.v2.Valid() {
-		a.ApiV2 = a.v2.SetupV2()
+	if a.V2.Valid() {
+		a.ApiV2 = a.V2.SetupV2()
 	}
 }
 
@@ -81,12 +84,15 @@ func LoadFromFile(file ...string) (*ApiSet, error) {
 	if len(file) > 0 {
 		credFile = file[0]
 	}
-	api := &ApiSet{}
+	set := &ApiSet{}
 	if _, err := os.Stat(credFile); os.IsNotExist(err) {
-		return api, err
+		return set, err
 	}
-	bytes, _ := ioutil.ReadFile(credFile)
-	json.Unmarshal(bytes, api)
-	api.Setup()
-	return api, nil
+	if bytes, err := ioutil.ReadFile(credFile); err != nil {
+		return set, err
+	} else {
+		json.Unmarshal(bytes, set)
+		set.Setup()
+	}
+	return set, nil
 }

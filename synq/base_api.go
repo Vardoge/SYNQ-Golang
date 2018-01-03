@@ -30,6 +30,7 @@ type ApiF interface {
 	GetKey() string
 	GetUrl() string
 	GetTimeout(string) time.Duration
+	SetTimeout(string, time.Duration)
 	ParseError(int, []byte) error
 	SetUrl(string)
 	SetKey(string)
@@ -117,6 +118,14 @@ func (b *BaseApi) GetTimeout(type_ string) time.Duration {
 		return b.UploadTimeout
 	} else {
 		return b.Timeout
+	}
+}
+
+func (b *BaseApi) SetTimeout(type_ string, dur time.Duration) {
+	if type_ == "upload" {
+		b.UploadTimeout = dur
+	} else {
+		b.Timeout = dur
 	}
 }
 

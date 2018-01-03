@@ -51,7 +51,7 @@ func New(key string, timeouts ...time.Duration) Api {
 
 func NewV1(key string, timeouts ...time.Duration) Api {
 	base := NewBase(key, timeouts...)
-	base.Url = DEFAULT_V1_URL
+	base.SetUrl(DEFAULT_V1_URL)
 	return Api{BaseApi: &base}
 }
 
