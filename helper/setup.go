@@ -2,16 +2,26 @@ package helper
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/SYNQfm/SYNQ-Golang/synq"
+	"github.com/SYNQfm/SYNQ-Golang/test_server"
 )
 
 const (
 	DEFAULT_CRED_FILE = "~/.synq/credentials.json"
 )
+
+type ApiSetup struct {
+	Key     string
+	Version string
+	Url     string
+}
 
 type ApiSetting struct {
 	// only api_key is required
@@ -95,4 +105,62 @@ func LoadFromFile(file ...string) (*ApiSet, error) {
 		set.Setup()
 	}
 	return set, nil
+}
+
+func SetupSynq() synq.Api {
+	api := SetupSynqApi()
+	return api.(synq.Api)
+}
+
+func SetupSynqV2() synq.ApiV2 {
+	config := GetSetupByEnv("v2")
+	api := SetupSynqApi(config)
+	return api.(synq.ApiV2)
+}
+
+func GetSetupByEnv(version string) ApiSetup {
+	key := os.Getenv(fmt.Sprintf("SYNQ_API%s_KEY", version))
+	url := os.Getenv(fmt.Sprintf("SYNQ_API%s_URL", version))
+	return ApiSetup{
+		Key:     key,
+		Version: version,
+		Url:     url,
+	}
+}
+
+func SetupSynqApi(setup ...ApiSetup) (api synq.ApiF) {
+	var config ApiSetup
+	if len(setup) > 0 {
+		config = setup[0]
+	} else {
+		config = GetSetupByEnv("")
+	}
+	if config.Key == "" {
+		log.Println("WARNING : no Synq API key specified")
+	}
+	if strings.Contains(config.Key, ".") || config.Version == "v2" {
+		api = synq.NewV2(config.Key)
+	} else {
+		api = synq.NewV1(config.Key)
+	}
+	if config.Url != "" {
+		api.SetUrl(config.Url)
+	}
+	return api
+}
+
+func SetupForTestV1() synq.Api {
+	server := test_server.SetupServer("v1")
+	url := server.GetUrl()
+	api := synq.NewV1(test_server.TEST_AUTH)
+	api.SetUrl(url)
+	return api
+}
+
+func SetupForTestV2() synq.ApiV2 {
+	server := test_server.SetupServer("v2")
+	url := server.GetUrl()
+	api := synq.NewV2(test_server.API_KEY)
+	api.SetUrl(url)
+	return api
 }

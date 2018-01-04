@@ -5,12 +5,32 @@ import (
 	"time"
 
 	"github.com/SYNQfm/SYNQ-Golang/synq"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 const (
 	TEST_CRED_FILE = "../sample/cred.json"
 )
+
+func TestGetSetup(t *testing.T) {
+	assert := assert.New(t)
+	setup := GetSetupByEnv("")
+	assert.Equal("", setup.Version)
+	setup = GetSetupByEnv("v2")
+	assert.Equal("v2", setup.Version)
+}
+
+func TestSetupSynq(t *testing.T) {
+	assert := assert.New(t)
+	api := SetupSynq()
+	assert.Equal("v1", api.Version())
+}
+
+func TestSetupSynqV2(t *testing.T) {
+	api2 := SetupSynqV2()
+	assert.Equal(t, "v2", api2.Version())
+}
 
 func TestConfigure(t *testing.T) {
 	assert := require.New(t)
