@@ -13,9 +13,7 @@ import (
 	"github.com/SYNQfm/SYNQ-Golang/test_server"
 )
 
-const (
-	DEFAULT_CRED_FILE = "~/.synq/credentials.json"
-)
+var DEFAULT_CRED_FILE = os.Getenv("HOME") + "/.synq/credentials.json"
 
 type ApiSetup struct {
 	Key     string
@@ -91,7 +89,7 @@ func (a *ApiSet) Setup() {
 
 func LoadFromFile(file ...string) (*ApiSet, error) {
 	credFile := DEFAULT_CRED_FILE
-	if len(file) > 0 {
+	if len(file) > 0 && file[0] != "" {
 		credFile = file[0]
 	}
 	set := &ApiSet{}
@@ -152,7 +150,7 @@ func SetupSynqApi(setup ...ApiSetup) (api synq.ApiF) {
 func SetupForTestV1() synq.Api {
 	server := test_server.SetupServer("v1")
 	url := server.GetUrl()
-	api := synq.NewV1(test_server.TEST_AUTH)
+	api := synq.NewV1(test_server.API_KEY)
 	api.SetUrl(url)
 	return api
 }
@@ -160,7 +158,7 @@ func SetupForTestV1() synq.Api {
 func SetupForTestV2() synq.ApiV2 {
 	server := test_server.SetupServer("v2")
 	url := server.GetUrl()
-	api := synq.NewV2(test_server.API_KEY)
+	api := synq.NewV2(test_server.TEST_AUTH)
 	api.SetUrl(url)
 	return api
 }
