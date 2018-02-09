@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	DEFAULT_V2_URL       = "http://b9n2fsyd6jbfihx82.stoplight-proxy.io"
-	DEFAULT_UPLOADER_URL = "http://s6krcbatzuuhmspse.stoplight-proxy.io"
+	DEFAULT_V2_URL       = "https://b9n2fsyd6jbfihx82.stoplight-proxy.io"
+	DEFAULT_UPLOADER_URL = "https://s6krcbatzuuhmspse.stoplight-proxy.io"
 	DEFAULT_PAGE_SIZE    = 100
 )
 
