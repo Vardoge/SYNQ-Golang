@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"mime"
 	"os"
 	"path/filepath"
 	"strings"
@@ -49,9 +48,9 @@ func handleV2(api synq.ApiV2) {
 		var err error
 		upload_url := cli.GetString("upload_url")
 		if upload_url == "" {
-			err = errors.New("missing upload_url")
-			handleError(err)
+			upload_url = synq.DEFAULT_UPLOADER_URL
 		}
+		log.Printf("using uploader url %s\n", upload_url)
 		api.UploadUrl = upload_url
 		file := cli.GetString("file")
 		if file == "" {
@@ -59,9 +58,9 @@ func handleV2(api synq.ApiV2) {
 			handleError(err)
 		}
 		ext := filepath.Ext(file)
-		ctype := mime.TypeByExtension(ext)
+		ctype := common.ExtToCtype(ext)
 		if ctype == "" {
-			handleError(errors.New("can not find cypte for " + ext))
+			handleError(errors.New("can not find ctype for " + ext))
 		}
 		if aid == "" {
 			video, err := helper.LoadVideoV2(vid, cli, api)
@@ -78,7 +77,10 @@ func handleV2(api synq.ApiV2) {
 					asset = found
 				} else {
 					log.Printf("creating new asset with ctype '%s'\n", ctype)
-					asset, err = video.CreateAssetForUpload(ctype)
+					if !cli.Simulate {
+						asset, err = video.CreateAssetForUpload(ctype)
+						common.PurgeFromCache(vid, cli)
+					}
 				}
 			}
 		} else {
@@ -86,14 +88,16 @@ func handleV2(api synq.ApiV2) {
 			asset, err = helper.LoadAsset(aid, cli, api)
 		}
 		handleError(err)
-		params := synq.UnicornParam{
-			Ctype:   ctype,
-			AssetId: asset.Id,
+		if !cli.Simulate {
+			params := synq.UnicornParam{
+				Ctype:   ctype,
+				AssetId: asset.Id,
+			}
+			up, e := helper.LoadUploadParameters(asset.VideoId, params, cli, api)
+			handleError(e)
+			log.Printf("Got upload params for %s", up.Key)
+			asset.UploadParameters = up
 		}
-		up, e := helper.LoadUploadParameters(asset.VideoId, params, cli, api)
-		handleError(e)
-		log.Printf("Got upload params for %s", up.Key)
-		asset.UploadParameters = up
 
 		cli.Printf("uploading file %s\n", file)
 		if !cli.Simulate {
