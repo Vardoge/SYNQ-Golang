@@ -1,0 +1,1 @@
+./cli -video_id=01e757bf-0b32-4df4-8939-682eb70a86d9 -command=get_video

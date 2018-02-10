@@ -23,14 +23,12 @@ func init() {
 	cli = common.NewCli()
 	cli.DefaultSetup("for v2 'upload', get_video', for v1 : details, upload_info, upload, create, uploader_info, uploader, query or create_and_then_multipart_upload", "upload")
 	cli.String("version", "v2", "version to use")
-	cli.String("api_key", "", "pass the synq api key")
 	cli.String("upload_url", synq.DEFAULT_UPLOADER_URL, "upload url to use")
-	cli.String("user", "", "user to use")
-	cli.String("password", "", "password to use")
 	cli.String("video_id", "", "video id to access")
 	cli.String("asset_id", "", "asset id to access")
 	cli.String("file", "", "path to file you want to upload or userdata")
 	cli.String("query", "", "query string to use")
+	cli.String("cred_file", "", "credential file to use")
 	cli.Parse()
 }
 
@@ -252,24 +250,13 @@ func handleV1(api synq.Api) {
 }
 
 func main() {
-	user := cli.GetString("user")
-	password := cli.GetString("password")
-	if user != "" && password != "" {
-		api, err := synq.Login(user, password)
-		handleError(err)
-		handleV2(api)
+	set, err := helper.LoadFromFile(cli.GetString("cred_file"))
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+	if cli.GetString("version") == "v1" {
+		handleV1(set.ApiV1)
 	} else {
-		api_key := cli.GetString("api_key")
-		if api_key == "" {
-			log.Println("missing api_key")
-			os.Exit(1)
-		}
-		if cli.GetString("version") == "v2" {
-			api := synq.NewV2(api_key, cli.Timeout)
-			handleV2(api)
-		} else {
-			api := synq.NewV1(api_key, cli.Timeout)
-			handleV1(api)
-		}
+		handleV2(set.ApiV2)
 	}
 }
