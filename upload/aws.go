@@ -9,11 +9,13 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/request"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/aws/signer/v4"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
@@ -29,11 +31,75 @@ type UploadParameters struct {
 	Policy         string `json:"policy"`
 	Signature      string `json:"signature"`
 	Acl            string `json:"acl"`
+	Region         string `json:"region"`
 	Key            string `json:"key"`
 	SuccessStatus  string `json:"success_action_status"`
 	SignatureUrl   string `json:"signature_url"`
 	VideoId        string `json:"video_id"`
 	AssetId        string `json:"asset_id"`
+}
+
+type V4Request struct {
+	Method   string            `json:"method"`
+	Action   string            `json:"action"`
+	Path     string            `json:"path"`
+	Region   string            `json:"region"`
+	RawQuery string            `json:"raw_query"`
+	Headers  map[string]string `json:"headers"`
+}
+
+type V4Response struct {
+	Authorization string `json:"authorization"`
+	Date          string `json:"date"`
+}
+
+func CreateV4Request(params UploadParameters, req *request.Request) V4Request {
+	r := V4Request{}
+	hreq := req.HTTPRequest
+	r.Method = hreq.Method
+	r.Action = params.Action
+	region := params.Region
+	if region == "" {
+		region = "us-east-1"
+	}
+	r.Region = region
+	r.Path = hreq.URL.Path
+	r.RawQuery = hreq.URL.RawQuery
+	r.Headers = make(map[string]string)
+	for header, _ := range req.SignedHeaderVals {
+		r.Headers[header] = hreq.Header.Get(header)
+	}
+	return r
+}
+
+func (r *V4Request) BuildRequest() *http.Request {
+	req, _ := http.NewRequest(r.Method, r.Action, nil)
+	req.URL.Path = r.Path
+	req.URL.RawQuery = r.RawQuery
+	for header, val := range r.Headers {
+		req.Header.Set(header, val)
+	}
+	return req
+}
+
+func (r *V4Request) Sign(awsKey, awsSecret string) (resp V4Response, err error) {
+	// use the v4 signer automatically
+	provider := credentials.StaticProvider{}
+	provider.Value.AccessKeyID = awsKey
+	provider.Value.SecretAccessKey = awsSecret
+	cred := credentials.NewCredentials(&provider)
+	signer := v4.NewSigner(cred)
+	req := r.BuildRequest()
+	_, err = signer.Sign(req, nil, "s3", r.Region, time.Now())
+	if err != nil {
+		return resp, err
+	}
+	date := req.Header.Get("X-Amz-Date")
+	auth := req.Header.Get("Authorization")
+	return V4Response{
+		Authorization: auth,
+		Date:          date,
+	}, nil
 }
 
 var CreatorFn func(UploadParameters) (AwsUploadF, error)
@@ -54,6 +120,7 @@ func NewAwsUpload(params UploadParameters) (AwsUploadF, error) {
 		UploadParams: params,
 	}
 	provider := credentials.StaticProvider{}
+	// use dummy values
 	provider.Value.AccessKeyID = multipartUploadAwsAccessKeyId
 	provider.Value.SecretAccessKey = multipartUploadAwsSecretAccessKey
 	credentials := credentials.NewCredentials(&provider)
@@ -73,9 +140,12 @@ func NewAwsUpload(params UploadParameters) (AwsUploadF, error) {
 
 	svc := s3.New(sess)
 
-	// sign handler
-	signer := au.Signer()
-	svc.Handlers.Sign.PushBack(signer)
+	customSigner := true
+	if customSigner {
+		// sign handler
+		signer := au.Signer()
+		svc.Handlers.Sign.PushBack(signer)
+	}
 
 	// s3manager uploader
 	au.Uploader = s3manager.NewUploaderWithClient(svc)
@@ -186,7 +256,7 @@ func (a *AwsUpload) Upload(body io.Reader) (*s3manager.UploadOutput, error) {
 
 func (a AwsUpload) Signer() func(r *request.Request) {
 	signer := func(r *request.Request) {
-		err := a.SignRequest(r.HTTPRequest)
+		err := a.SignRequest(r)
 		if err != nil {
 			return // TODO(mastensg): how to report errors from handlers?
 		}
@@ -195,20 +265,29 @@ func (a AwsUpload) Signer() func(r *request.Request) {
 	return signer
 }
 
-func (a *AwsUpload) SignRequest(r *http.Request) error {
-	if err := RewriteXAmzDateHeader(r.Header); err != nil {
-		return err
+func (a *AwsUpload) ServerSignV2(r *request.Request) (string, error) {
+	v4 := CreateV4Request(a.UploadParams, r)
+	resp, err := a.V4Sig(v4)
+	if err != nil {
+		return "", err
 	}
+	if resp.Date != "" {
+		// reset the data
+		r.HTTPRequest.Header.Set("X-Amz-Date", resp.Date)
+	}
+	return resp.Authorization, nil
+}
 
-	x_amz_date := r.Header.Get("X-Amz-Date")
-
+func (a *AwsUpload) ServerSignV1(r *http.Request) (string, error) {
 	bucket, err := a.GetBucket()
 	if err != nil {
-		return err
+		return "", err
 	}
-	// construct "headers" string to send to
-	// https://uploader.synq.fm/uploader/signature
+	if err := RewriteXAmzDateHeader(r.Header); err != nil {
+		return "", err
+	}
 	headers := ""
+	x_amz_date := r.Header.Get("X-Amz-Date")
 	if r.URL.RawQuery == "uploads=" {
 		// Initiate multi-part upload
 
@@ -222,7 +301,6 @@ func (a *AwsUpload) SignRequest(r *http.Request) error {
 		)
 	} else if r.Method == "PUT" {
 		// Upload one part
-
 		headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/%s%s",
 			r.Method,
 			"",
@@ -246,19 +324,32 @@ func (a *AwsUpload) SignRequest(r *http.Request) error {
 			r.URL.Path+"?"+r.URL.RawQuery,
 		)
 	} else {
-		return errors.New("Unknown request type.")
+		return "", errors.New("Unknown request type.")
 	}
+	sig, err := a.UploaderSignature(headers)
+	if err != nil {
+		return "", err
+	}
+	delete(r.Header, "X-Amz-Content-Sha256")
+	return fmt.Sprintf("AWS %s:%s", a.AwsKeyId(), sig), nil
+}
 
-	signature, err := a.UploaderSignature(headers)
+// This runs as a handler within the Sign HandlerList and uses unicorn to sign the request
+// This will replace whats in awssdk-go/aws/signer/v4/v4.go and its own "signWithBody" method
+// https://docs.aws.amazon.com/general/latest/gr/signature-version-2.html
+// https://docs.aws.amazon.com/general/latest/gr/sigv4_signing.html
+// https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-authenticating-requests.html
+func (a *AwsUpload) SignRequest(r *request.Request) error {
+	// construct "headers" string to send to
+	// https://uploader.synq.fm/uploader/signature
+	auth, err := a.ServerSignV2(r)
 	if err != nil {
 		return err
 	}
 
 	// rewrite authorization header(s)
-	delete(r.Header, "X-Amz-Content-Sha256")
-	delete(r.Header, "Authorization")
-	authorization := fmt.Sprintf("AWS %s:%s", a.AwsKeyId(), signature)
-	r.Header.Set("Authorization", authorization)
+	delete(r.HTTPRequest.Header, "Authorization")
+	r.HTTPRequest.Header.Set("Authorization", auth)
 
 	return nil
 }
@@ -266,16 +357,44 @@ func (a *AwsUpload) SignRequest(r *http.Request) error {
 // UploaderSignature uses the backend of the embeddable web uploader to sign
 // multipart upload requests.
 func (a *AwsUpload) UploaderSignature(headers string) ([]byte, error) {
-	url := a.UploaderSigUrl()
-	// construct request body
 	reqStruct := UploaderSignatureRequest{Headers: headers}
 	reqBody, err := json.Marshal(reqStruct)
 	if err != nil {
 		return nil, err
 	}
 
-	// perform request
-	resp, err := http.Post(url, "application/json", bytes.NewReader(reqBody))
+	respBody, err := a.Request(reqBody)
+
+	// parse response
+	respStruct := UploaderSignatureResponse{}
+	err = json.Unmarshal(respBody, &respStruct)
+	if err != nil {
+		log.Println("error unmarshaling", err.Error())
+		return nil, err
+	}
+	return []byte(respStruct.Signature), nil
+}
+
+func (a *AwsUpload) V4Sig(req V4Request) (resp V4Response, err error) {
+	reqBody, err := json.Marshal(req)
+	if err != nil {
+		return resp, err
+	}
+	respBody, err := a.Request(reqBody)
+	if err != nil {
+		return resp, err
+	}
+	err = json.Unmarshal(respBody, &resp)
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
+}
+
+func (a *AwsUpload) Request(body []byte) ([]byte, error) {
+	url := a.UploaderSigUrl()
+
+	resp, err := http.Post(url, "application/json", bytes.NewReader(body))
 	if err != nil {
 		log.Printf("could not call %s : %s\n", url, err.Error())
 		return nil, err
@@ -288,21 +407,11 @@ func (a *AwsUpload) UploaderSignature(headers string) ([]byte, error) {
 		log.Printf("invalid response code %d from response\n", resp.StatusCode)
 		return nil, errors.New("HTTP response status not OK.")
 	}
-
 	// read response
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println("error reading response body", err.Error())
 		return nil, err
 	}
-
-	// parse response
-	respStruct := UploaderSignatureResponse{}
-	err = json.Unmarshal(respBody, &respStruct)
-	if err != nil {
-		log.Println("error unmarshaling", err.Error())
-		return nil, err
-	}
-	log.Println("Signature", respStruct.Signature)
-	return []byte(respStruct.Signature), nil
+	return respBody, nil
 }
