@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -58,6 +59,7 @@ func CreateV4Request(action string, req *request.Request) V4Request {
 	r.Action = action
 	r.Path = hreq.URL.Path
 	r.RawQuery = hreq.URL.RawQuery
+	r.Headers = make(map[string]string)
 	for header, _ := range req.SignedHeaderVals {
 		r.Headers[header] = hreq.Header.Get(header)
 	}
@@ -369,6 +371,11 @@ func (a *AwsUpload) UploaderSignature(headers string) ([]byte, error) {
 }
 
 func (a *AwsUpload) V4Sig(req V4Request) (resp V4Response, err error) {
+	secret := os.Getenv("AWS_SECRET")
+	if secret != "" {
+		resp = req.Sign(a.UploadParams.AwsAccessKeyId, secret)
+		return resp, nil
+	}
 	reqBody, err := json.Marshal(req)
 	if err != nil {
 		return resp, err
