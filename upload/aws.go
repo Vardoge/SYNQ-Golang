@@ -31,6 +31,7 @@ type UploadParameters struct {
 	Policy         string `json:"policy"`
 	Signature      string `json:"signature"`
 	Acl            string `json:"acl"`
+	Region         string `json:"region"`
 	Key            string `json:"key"`
 	SuccessStatus  string `json:"success_action_status"`
 	SignatureUrl   string `json:"signature_url"`
@@ -42,6 +43,7 @@ type V4Request struct {
 	Method   string            `json:"method"`
 	Action   string            `json:"action"`
 	Path     string            `json:"path"`
+	Region   string            `json:"region"`
 	RawQuery string            `json:"raw_query"`
 	Headers  map[string]string `json:"headers"`
 }
@@ -51,11 +53,16 @@ type V4Response struct {
 	Date          string `json:"date"`
 }
 
-func CreateV4Request(action string, req *request.Request) V4Request {
+func CreateV4Request(params UploadParameters, req *request.Request) V4Request {
 	r := V4Request{}
 	hreq := req.HTTPRequest
 	r.Method = hreq.Method
-	r.Action = action
+	r.Action = params.Action
+	region = params.Region
+	if region == "" {
+		region = "us-east-1"
+	}
+	r.Region = region
 	r.Path = hreq.URL.Path
 	r.RawQuery = hreq.URL.RawQuery
 	r.Headers = make(map[string]string)
@@ -259,7 +266,7 @@ func (a AwsUpload) Signer() func(r *request.Request) {
 }
 
 func (a *AwsUpload) ServerSignV2(r *request.Request) (string, error) {
-	v4 := CreateV4Request(a.UploadParams.Action, r)
+	v4 := CreateV4Request(a.UploadParams, r)
 	resp, err := a.V4Sig(v4)
 	if err != nil {
 		return "", err
