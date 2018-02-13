@@ -152,25 +152,19 @@ func (v *VideoV2) CreateOrUpdateAsset(asset *Asset) error {
 
 // This will get the upload params for a sepcific video, if assetId is passed in
 // it will be used instead (assuming it exists)
-func (v *VideoV2) GetUploadParams(ctype string, assetId ...string) (up upload.UploadParameters, err error) {
+func (v *VideoV2) GetUploadParams(req upload.UploadRequest) (up upload.UploadParameters, err error) {
 	api := v.Api
 	if api == nil {
 		return up, errors.New("api is blank")
 	}
-	params := UnicornParam{
-		Ctype: ctype,
-	}
-	if len(assetId) > 0 {
-		params.AssetId = assetId[0]
-	}
-	return api.GetUploadParams(v.Id, params)
+	return api.GetUploadParams(v.Id, req)
 }
 
 // This will call Unicorn's /v2/video/<id>/upload API, which will
 // create an asset and create a signed S3 location to upload to, including
 // the signature url for multipart uploads
-func (v *VideoV2) CreateAssetForUpload(ctype string) (asset Asset, err error) {
-	up, err := v.GetUploadParams(ctype)
+func (v *VideoV2) CreateAssetForUpload(req upload.UploadRequest) (asset Asset, err error) {
+	up, err := v.GetUploadParams(req)
 	if err != nil {
 		return asset, err
 	}

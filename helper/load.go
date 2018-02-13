@@ -69,7 +69,7 @@ func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.Vide
 	return video, nil
 }
 
-func LoadUploadParameters(id string, req synq.UnicornParam, c common.Cacheable, api synq.ApiV2) (up upload.UploadParameters, err error) {
+func LoadUploadParameters(id string, req upload.UploadRequest, c common.Cacheable, api synq.ApiV2) (up upload.UploadParameters, err error) {
 	lookId := id
 	if req.AssetId != "" {
 		lookId = req.AssetId

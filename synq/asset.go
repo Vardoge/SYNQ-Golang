@@ -7,9 +7,11 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/SYNQfm/SYNQ-Golang/upload"
+	"github.com/SYNQfm/helpers/common"
 )
 
 type AssetResponse struct {
@@ -91,7 +93,13 @@ func (a *Asset) UploadFile(fileName string) error {
 	if a.UploadParameters.Key == "" {
 		// if the location exists, get the upload parameters again
 		if a.Location != "" && a.Type != "" {
-			up, err := a.Video.GetUploadParams(a.Type, a.Id)
+			ext := filepath.Ext(fileName)
+			req := upload.UploadRequest{
+				Type:        a.Type,
+				ContentType: common.ExtToCtype(ext),
+				AssetId:     a.Id,
+			}
+			up, err := a.Video.GetUploadParams(req)
 			if err != nil {
 				return err
 			}

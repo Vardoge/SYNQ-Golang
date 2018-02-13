@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/SYNQfm/SYNQ-Golang/test_server"
+	"github.com/SYNQfm/SYNQ-Golang/upload"
 	"github.com/stretchr/testify/require"
 )
 
@@ -77,7 +78,10 @@ func TestCreateAssetForUpload(t *testing.T) {
 	log.Println("Testing GettingAssetForUpload")
 	assert := require.New(t)
 	video := setupTestVideoV2()
-	asset, err := video.CreateAssetForUpload("video/mp4")
+	req := upload.UploadRequest{
+		ContentType: "video/mp4",
+	}
+	asset, err := video.CreateAssetForUpload(req)
 	assert.Nil(err)
 	assert.Len(video.Assets, 1)
 	assert.Equal(asset.Id, video.Assets[0].Id)
