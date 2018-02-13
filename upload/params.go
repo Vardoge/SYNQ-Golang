@@ -78,3 +78,10 @@ func (u UploadRequest) GetType() string {
 	}
 	return u.ContentType
 }
+
+func (u UploadRequest) GetExt() string {
+	if u.Ext != "" {
+		return u.Ext
+	}
+	return common.GetFileExtension(u.GetCType())
+}

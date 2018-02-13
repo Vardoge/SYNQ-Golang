@@ -22,6 +22,7 @@ func TestParseCtype(t *testing.T) {
 }
 
 func TestNewReq(t *testing.T) {
+	log.Println("Testing NewUploadRequest")
 	assert := assert.New(t)
 	bytes := []byte(`<xml>`)
 	_, err := NewUploadRequest(bytes)
@@ -35,6 +36,9 @@ func TestNewReq(t *testing.T) {
 	assert.Equal(DefaultCtype, req.GetCType())
 	assert.Equal(DefaultCtype, req.GetType())
 	assert.Equal(DefaultAcl, req.GetAcl())
+	assert.Equal("mp4", req.GetExt())
 	req.Type = "source"
+	req.Ext = "mov"
 	assert.Equal("source", req.GetType())
+	assert.Equal("mov", req.GetExt())
 }
