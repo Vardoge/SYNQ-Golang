@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -22,6 +21,12 @@ import (
 
 type AwsUploadF interface {
 	Upload(io.Reader) (*s3manager.UploadOutput, error)
+}
+
+// This is the struct that contains all the AWS settings
+type AwsUpload struct {
+	UploadParams UploadParameters
+	Uploader     *s3manager.Uploader
 }
 
 type UploadParameters struct {
@@ -106,12 +111,6 @@ var CreatorFn func(UploadParameters) (AwsUploadF, error)
 
 func init() {
 	CreatorFn = NewAwsUpload
-}
-
-// This is the struct that contains all the AWS settings
-type AwsUpload struct {
-	UploadParams UploadParameters
-	Uploader     *s3manager.Uploader
 }
 
 // UploadParameters is retrieved from the Unicorn API, so we're creating an AwsUpload from the settings
@@ -278,62 +277,6 @@ func (a *AwsUpload) ServerSignV2(r *request.Request) (string, error) {
 	return resp.Authorization, nil
 }
 
-func (a *AwsUpload) ServerSignV1(r *http.Request) (string, error) {
-	bucket, err := a.GetBucket()
-	if err != nil {
-		return "", err
-	}
-	if err := RewriteXAmzDateHeader(r.Header); err != nil {
-		return "", err
-	}
-	headers := ""
-	x_amz_date := r.Header.Get("X-Amz-Date")
-	if r.URL.RawQuery == "uploads=" {
-		// Initiate multi-part upload
-
-		headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-acl:%s\nx-amz-date:%s\n/%s%s",
-			r.Method,
-			a.ContentType(),
-			a.Acl(),
-			x_amz_date,
-			bucket,
-			r.URL.Path+"?uploads",
-		)
-	} else if r.Method == "PUT" {
-		// Upload one part
-		headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/%s%s",
-			r.Method,
-			"",
-			x_amz_date,
-			bucket,
-			r.URL.Path+"?"+r.URL.RawQuery,
-		)
-	} else if r.Method == "POST" {
-		// Finish multi-part upload
-
-		// TODO(mastensg): the content-type header set by
-		// aws-sdk-go is not exactly the one expected by
-		// uploader/signature, maybe
-		r.Header.Set("Content-Type", "application/xml; charset=UTF-8")
-
-		headers = fmt.Sprintf("%s\n\n%s\n\nx-amz-date:%s\n/%s%s",
-			r.Method,
-			r.Header.Get("Content-Type"),
-			x_amz_date,
-			bucket,
-			r.URL.Path+"?"+r.URL.RawQuery,
-		)
-	} else {
-		return "", errors.New("Unknown request type.")
-	}
-	sig, err := a.UploaderSignature(headers)
-	if err != nil {
-		return "", err
-	}
-	delete(r.Header, "X-Amz-Content-Sha256")
-	return fmt.Sprintf("AWS %s:%s", a.AwsKeyId(), sig), nil
-}
-
 // This runs as a handler within the Sign HandlerList and uses unicorn to sign the request
 // This will replace whats in awssdk-go/aws/signer/v4/v4.go and its own "signWithBody" method
 // https://docs.aws.amazon.com/general/latest/gr/signature-version-2.html
@@ -352,27 +295,6 @@ func (a *AwsUpload) SignRequest(r *request.Request) error {
 	r.HTTPRequest.Header.Set("Authorization", auth)
 
 	return nil
-}
-
-// UploaderSignature uses the backend of the embeddable web uploader to sign
-// multipart upload requests.
-func (a *AwsUpload) UploaderSignature(headers string) ([]byte, error) {
-	reqStruct := UploaderSignatureRequest{Headers: headers}
-	reqBody, err := json.Marshal(reqStruct)
-	if err != nil {
-		return nil, err
-	}
-
-	respBody, err := a.Request(reqBody)
-
-	// parse response
-	respStruct := UploaderSignatureResponse{}
-	err = json.Unmarshal(respBody, &respStruct)
-	if err != nil {
-		log.Println("error unmarshaling", err.Error())
-		return nil, err
-	}
-	return []byte(respStruct.Signature), nil
 }
 
 func (a *AwsUpload) V4Sig(req V4Request) (resp V4Response, err error) {
