@@ -6,6 +6,7 @@ import (
 
 	"github.com/SYNQfm/SYNQ-Golang/synq"
 	"github.com/SYNQfm/SYNQ-Golang/test_server"
+	"github.com/SYNQfm/SYNQ-Golang/upload"
 	"github.com/stretchr/testify/require"
 )
 
@@ -78,8 +79,8 @@ func TestLoadAsset(t *testing.T) {
 func TestLoadUp(t *testing.T) {
 	assert := require.New(t)
 	api, cache := setup()
-	params := synq.UnicornParam{
-		Ctype: "video/mp4",
+	params := upload.UploadRequest{
+		ContentType: "video/mp4",
 	}
 	up, err := LoadUploadParameters(test_server.V2_VIDEO_ID, params, cache, api)
 	assert.Nil(err)
