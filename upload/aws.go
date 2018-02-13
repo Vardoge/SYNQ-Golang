@@ -58,7 +58,7 @@ func CreateV4Request(params UploadParameters, req *request.Request) V4Request {
 	hreq := req.HTTPRequest
 	r.Method = hreq.Method
 	r.Action = params.Action
-	region = params.Region
+	region := params.Region
 	if region == "" {
 		region = "us-east-1"
 	}
