@@ -13,6 +13,7 @@ import (
 
 	"github.com/SYNQfm/SYNQ-Golang/helper"
 	"github.com/SYNQfm/SYNQ-Golang/synq"
+	"github.com/SYNQfm/SYNQ-Golang/upload"
 	"github.com/SYNQfm/helpers/common"
 )
 
@@ -78,7 +79,10 @@ func handleV2(api synq.ApiV2) {
 				} else {
 					log.Printf("creating new asset with ctype '%s'\n", ctype)
 					if !cli.Simulate {
-						asset, err = video.CreateAssetForUpload(ctype)
+						req := upload.UploadRequest{
+							ContentType: ctype,
+						}
+						asset, err = video.CreateAssetForUpload(req)
 						common.PurgeFromCache(vid, cli)
 					}
 				}
@@ -89,9 +93,9 @@ func handleV2(api synq.ApiV2) {
 		}
 		handleError(err)
 		if !cli.Simulate {
-			params := synq.UnicornParam{
-				Ctype:   ctype,
-				AssetId: asset.Id,
+			params := upload.UploadRequest{
+				ContentType: ctype,
+				AssetId:     asset.Id,
 			}
 			up, e := helper.LoadUploadParameters(asset.VideoId, params, cli, api)
 			handleError(e)

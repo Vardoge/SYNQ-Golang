@@ -46,11 +46,6 @@ type LoginResp struct {
 	TokenExpiry time.Time `json:"exp"`
 }
 
-type UnicornParam struct {
-	Ctype   string `json:"content_type"`
-	AssetId string `json:"asset_id"`
-}
-
 func (a ApiV2) Version() string {
 	return "v2"
 }
@@ -297,7 +292,7 @@ func (a *ApiV2) GetAssetList() ([]Asset, error) {
 	return list.Assets, err
 }
 
-func (a *ApiV2) GetUploadParams(vid string, params UnicornParam) (up upload.UploadParameters, err error) {
+func (a *ApiV2) GetUploadParams(vid string, params upload.UploadRequest) (up upload.UploadParameters, err error) {
 	if a.UploadUrl == "" {
 		return up, errors.New("UploadUrl is blank")
 	}

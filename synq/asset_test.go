@@ -133,19 +133,20 @@ func TestAssetUploadFile(t *testing.T) {
 	asset.Api.UploadUrl = "http://test.com"
 	err = asset.UploadFile(fileName)
 	assert.Equal("upload parameters is invalid", err.Error())
-	// set the upload parameters to check it sends the rigth request
-	asset.Type = "video/mp4"
+	// set the upload parameters to check it sends the right request
+	asset.Type = "source"
 	asset.Location = "test"
-	err = asset.UploadFile("fake")
+	err = asset.UploadFile("fake.mp4")
 	assert.NotNil(err)
 	reqs, vals := testServer.GetReqs()
 	assert.Len(reqs, 1)
 	val := vals[0]
 	assert.Equal("/v2/videos/9e9dc8c8-f705-41db-88da-b3034894deb9/upload", reqs[0].URL.Path)
 	body := val["body"][0]
-	var p UnicornParam
+	var p upload.UploadRequest
 	json.Unmarshal([]byte(body), &p)
-	assert.Equal(asset.Type, p.Ctype)
+	assert.Equal("video/mp4", p.GetCType())
+	assert.Equal(asset.Type, p.GetType())
 	assert.Equal(asset.Id, p.AssetId)
 	setupTestParams(&asset)
 	err = asset.UploadFile("fake")
