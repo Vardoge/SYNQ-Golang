@@ -76,7 +76,7 @@ func (r *V4Request) BuildRequest() *http.Request {
 	return req
 }
 
-func (r *V4Request) Sign(awsKey, awsSecret string) (resp V4Response) {
+func (r *V4Request) Sign(awsKey, awsSecret string) (resp V4Response, err error) {
 	// use the v4 signer automatically
 	provider := credentials.StaticProvider{}
 	provider.Value.AccessKeyID = awsKey
@@ -84,17 +84,16 @@ func (r *V4Request) Sign(awsKey, awsSecret string) (resp V4Response) {
 	cred := credentials.NewCredentials(&provider)
 	signer := v4.NewSigner(cred)
 	req := r.BuildRequest()
-	_, err := signer.Sign(req, nil, "s3", "us-east-1", time.Now())
+	_, err = signer.Sign(req, nil, "s3", "us-east-1", time.Now())
 	if err != nil {
-		log.Printf("could not sign url %s", err.Error())
-		return resp
+		return resp, err
 	}
 	date := req.Header.Get("X-Amz-Date")
 	auth := req.Header.Get("Authorization")
 	return V4Response{
 		Authorization: auth,
 		Date:          date,
-	}
+	}, nil
 }
 
 var CreatorFn func(UploadParameters) (AwsUploadF, error)
@@ -373,8 +372,7 @@ func (a *AwsUpload) UploaderSignature(headers string) ([]byte, error) {
 func (a *AwsUpload) V4Sig(req V4Request) (resp V4Response, err error) {
 	secret := os.Getenv("AWS_SECRET")
 	if secret != "" {
-		resp = req.Sign(a.UploadParams.AwsAccessKeyId, secret)
-		return resp, nil
+		return req.Sign(a.UploadParams.AwsAccessKeyId, secret)
 	}
 	reqBody, err := json.Marshal(req)
 	if err != nil {
