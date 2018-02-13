@@ -90,7 +90,7 @@ func (r *V4Request) Sign(awsKey, awsSecret string) (resp V4Response, err error) 
 	cred := credentials.NewCredentials(&provider)
 	signer := v4.NewSigner(cred)
 	req := r.BuildRequest()
-	_, err = signer.Sign(req, nil, "s3", "us-east-1", time.Now())
+	_, err = signer.Sign(req, nil, "s3", r.Region, time.Now())
 	if err != nil {
 		return resp, err
 	}
