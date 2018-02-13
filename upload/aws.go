@@ -51,11 +51,11 @@ type V4Response struct {
 	Date          string `json:"date"`
 }
 
-func CreateV4Request(req *request.Request) V4Request {
+func CreateV4Request(action string, req *request.Request) V4Request {
 	r := V4Request{}
 	hreq := req.HTTPRequest
-	r.Method = req.Method
-	r.Action = req.Action
+	r.Method = hreq.Method
+	r.Action = action
 	r.Path = hreq.URL.Path
 	r.RawQuery = hreq.URL.RawQuery
 	for header, _ := range req.SignedHeaderVals {
@@ -259,7 +259,7 @@ func (a AwsUpload) Signer() func(r *request.Request) {
 }
 
 func (a *AwsUpload) ServerSignV2(r *request.Request) (string, error) {
-	v4 := CreateV4Request(r)
+	v4 := CreateV4Request(a.UploadParams.Action, r)
 	resp, err := a.V4Sig(v4)
 	if err != nil {
 		return "", err
