@@ -79,7 +79,10 @@ func handleV2(api synq.ApiV2) {
 				} else {
 					log.Printf("creating new asset with ctype '%s'\n", ctype)
 					if !cli.Simulate {
-						asset, err = video.CreateAssetForUpload(ctype)
+						req := upload.UploadRequest{
+							ContentType: ctype,
+						}
+						asset, err = video.CreateAssetForUpload(req)
 						common.PurgeFromCache(vid, cli)
 					}
 				}
