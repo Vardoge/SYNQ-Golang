@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -370,10 +369,6 @@ func (a *AwsUpload) UploaderSignature(headers string) ([]byte, error) {
 }
 
 func (a *AwsUpload) V4Sig(req V4Request) (resp V4Response, err error) {
-	secret := os.Getenv("AWS_SECRET")
-	if secret != "" {
-		return req.Sign(a.UploadParams.AwsAccessKeyId, secret)
-	}
 	reqBody, err := json.Marshal(req)
 	if err != nil {
 		return resp, err
