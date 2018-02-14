@@ -281,6 +281,7 @@ func (a *ApiV2) GetAsset(id string) (asset Asset, err error) {
 		return asset, err
 	}
 	asset.Video = video
+	asset.Api = *a
 	return asset, nil
 
 }
