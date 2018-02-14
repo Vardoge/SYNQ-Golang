@@ -93,9 +93,20 @@ func handleV2(api synq.ApiV2) {
 		}
 		handleError(err)
 		if !cli.Simulate {
+			acl := ""
+			typ := ""
+			if strings.Contains(ctype, "video") {
+				acl = "private"
+				typ = "source"
+			} else {
+				acl = "public-read"
+				typ = "metadata"
+			}
 			params := upload.UploadRequest{
 				ContentType: ctype,
 				AssetId:     asset.Id,
+				Acl:         acl,
+				Type:        typ,
 			}
 			up, e := helper.LoadUploadParameters(asset.VideoId, params, cli, api)
 			handleError(e)
