@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	SYNQ_LEGACY_VERSION = "v0"
-	SYNQ_VERSION        = "v1"
+	SYNQ_LEGACY_VERSION = "v1"
+	SYNQ_VERSION        = "v2"
 )
 
 var DEFAULT_CRED_FILE = os.Getenv("HOME") + "/.synq/credentials.json"

@@ -14,7 +14,8 @@ import (
 
 const (
 	DEFAULT_V1_URL      = "https://api.synq.fm"
-	SYNQ_LEGACY_VERSION = "v0"
+	SYNQ_LEGACY_VERSION = "v1"
+	SYNQ_LEGACY_ROUTE   = "v1"
 )
 
 type Api struct {
@@ -102,7 +103,7 @@ func (a *Api) Update(id string, source string) (Video, error) {
 
 func (a *Api) makeReq(action string, form url.Values) (*http.Request, error) {
 	form.Set("api_key", a.GetKey())
-	urlStr := a.GetUrl() + "/" + SYNQ_LEGACY_VERSION + "/video/" + action
+	urlStr := a.GetUrl() + "/" + SYNQ_LEGACY_ROUTE + "/video/" + action
 	req, err := http.NewRequest("POST", urlStr, strings.NewReader(form.Encode()))
 	if err == nil {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")

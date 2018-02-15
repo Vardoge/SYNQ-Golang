@@ -41,8 +41,10 @@ const (
 	DEFAULT_AWS_SECRET  = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
 	ACCOUNT_ID          = "425b6b3b-f272-4a33-da4c-19d846685211"
 	DEFAULT_SAMPLE_DIR  = "sample"
-	SYNQ_VERSION        = "v1"
-	SYNQ_LEGACY_VERSION = "v0"
+	SYNQ_VERSION        = "v2"
+	SYNQ_ROUTE          = "v1"
+	SYNQ_LEGACY_VERSION = "v1"
+	SYNQ_LEGACY_ROUTE   = "v1"
 )
 
 type TestServer struct {
@@ -164,7 +166,7 @@ func validVideo(id string) string {
 
 func validateAuth(r *http.Request) string {
 	// no auth needed for login
-	if r.URL.Path == "/"+SYNQ_VERSION+"/login" {
+	if r.URL.Path == "/"+SYNQ_ROUTE+"/login" {
 		return ""
 	}
 	auth := r.Header.Get("Authorization")
@@ -194,8 +196,6 @@ func (s *TestServer) handle(w http.ResponseWriter, r *http.Request) {
 	case "v2":
 		s.handleV2(w, r)
 	case "v1":
-		s.handleV2(w, r)
-	case "v0":
 		s.handleV1(w, r)
 	case "s3":
 		s.handleS3(w, r)
@@ -260,9 +260,9 @@ func (s *TestServer) handleV1(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			resp = []byte(ke)
 		} else {
-			ver := "/" + SYNQ_LEGACY_VERSION
+			route := "/" + SYNQ_LEGACY_ROUTE
 			switch r.RequestURI {
-			case ver + "/video/details":
+			case route + "/video/details":
 				video_id := v.Get("video_id")
 				ke = validVideo(video_id)
 				if ke != "" {
@@ -271,12 +271,12 @@ func (s *TestServer) handleV1(w http.ResponseWriter, r *http.Request) {
 				} else {
 					resp = s.LoadSample("video")
 				}
-			case ver + "/video/create":
+			case route + "/video/create":
 				resp = s.LoadSample("new_video")
-			case ver + "/video/upload",
-				ver + "/video/uploader",
-				ver + "/video/update",
-				ver + "/video/query":
+			case route + "/video/upload",
+				route + "/video/uploader",
+				route + "/video/update",
+				route + "/video/query":
 				paths := strings.Split(r.RequestURI, "/")
 				action := paths[len(paths)-1]
 				resp = s.LoadSample(action)
@@ -306,10 +306,10 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 		v := url.Values{}
 		v.Add("body", body_str)
 		s.Values = append(s.Values, v)
-		ver := "/" + SYNQ_VERSION
+		route := "/" + SYNQ_ROUTE
 		switch r.URL.Path {
-		case ver + "/videos/" + V2_VIDEO_ID,
-			ver + "/assets/" + ASSET_ID:
+		case route + "/videos/" + V2_VIDEO_ID,
+			route + "/assets/" + ASSET_ID:
 			if r.Method == "GET" || r.Method == "PUT" {
 				if type_ == "asset" {
 					resp = s.LoadSample("asset_uploaded")
@@ -326,29 +326,29 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
-		case ver + "/assets/" + ASSET_ID + "/signature":
+		case route + "/assets/" + ASSET_ID + "/signature":
 			obj := struct {
 				Headers string `json:"headers"`
 			}{}
 			json.Unmarshal(bytes, &obj)
 			resp = common.GetMultipartSignature(obj.Headers, DEFAULT_AWS_SECRET)
 			w.WriteHeader(http.StatusOK)
-		case ver + "/videos/" + V2_VIDEO_ID + "/assets":
+		case route + "/videos/" + V2_VIDEO_ID + "/assets":
 			if r.Method != "GET" {
 				w.WriteHeader(http.StatusNotFound)
 			} else {
 				resp = s.LoadSampleV2("asset_list")
 				w.WriteHeader(http.StatusOK)
 			}
-		case ver + "/videos/" + V2_VIDEO_ID + "/upload":
+		case route + "/videos/" + V2_VIDEO_ID + "/upload":
 			if r.Method != "POST" {
 				w.WriteHeader(http.StatusNotFound)
 			} else {
 				resp = s.LoadSampleV2("upload")
 				w.WriteHeader(http.StatusOK)
 			}
-		case ver + "/videos",
-			ver + "/assets":
+		case route + "/videos",
+			route + "/assets":
 			if r.Method != "POST" {
 				page := r.URL.Query().Get("page_number")
 				if page != "" && page != "1" {
@@ -372,7 +372,7 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
-		case ver + "/login":
+		case route + "/login":
 			if r.Method == "POST" && !strings.Contains(body_str, "fake") {
 				resp = s.LoadSampleV2("login")
 			} else {
