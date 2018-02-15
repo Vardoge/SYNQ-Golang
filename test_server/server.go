@@ -20,27 +20,29 @@ var recvParams []upload.UploadParameters
 var UploadError error
 
 const (
-	VIDEO_ID           = "45d4063d00454c9fb21e5186a09c3115"
-	VIDEO_ID2          = "55d4062f99454c9fb21e5186a09c2115"
-	PROJECT_ID         = "1abfe1b849154082993f2fce78a16fda"
-	PROJECT_ID2        = "963bab6186a352b6c0e9de5d29418be3"
-	LIVE_VIDEO_ID      = "ec37c42b4aab46f18003b33c66e5e641"
-	API_KEY            = "aba179c14ab349e0bb0d12b7eca5fa24"
-	API_KEY2           = "cba179c14ab349e0bb0d12b7eca5fa25"
-	UPLOAD_KEY         = "projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/uploads/videos/55/d4/55d4062f99454c9fb21e5186a09c2115.mp4"
-	INVALID_UUID       = `{"url": "http://docs.synq.fm/api/v1/errors/invalid_uuid","name": "invalid_uuid","message": "Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'."}`
-	VIDEO_NOT_FOUND    = `{"url": "http://docs.synq.fm/api/v1/errors/not_found_video","name": "not_found_video","message": "Video not found."}`
-	API_KEY_NOT_FOUND  = `{"url": "http://docs.synq.fm/api/v1/errors/not_found_api_key","name": "not_found_api_key","message": "API key not found."}`
-	HTTP_NOT_FOUND     = `{"url": "http://docs.synq.fm/api/v1/errors/http_not_found","name": "http_not_found","message": "Not found."}`
-	V2_INVALID_AUTH    = `{"message" : "invalid auth"}`
-	V2_VIDEO_ID        = "9e9dc8c8-f705-41db-88da-b3034894deb9"
-	V2_VIDEO_ID2       = "eee2bc43-e973-4f73-857d-7c0bb111a834"
-	ASSET_ID           = "01823629-bcf2-4c34-b714-ae21e1a4647f"
-	ASSET_ID2          = "fc3e5d9a-a90e-49cc-0c67-224372a59cee"
-	TEST_AUTH          = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3Rlc3QuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDU3MjE4MjFiM2ExYWFmYmUxNTlkZGE2NSIsImF1ZCI6InRESzZBdUF0QVc0ckFySzhOSTltMXdJRW5WQU9RcjUxIiwiZXhwIjoxNDkzNDM5NTExLCJpYXQiOjE0NjE4MTcxMTF9.29JkFxoHqCRPIH2wVbT-ZNIMBK8xXLwkjbLmyWxpquE"
-	DEFAULT_AWS_SECRET = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
-	ACCOUNT_ID         = "425b6b3b-f272-4a33-da4c-19d846685211"
-	DEFAULT_SAMPLE_DIR = "sample"
+	VIDEO_ID            = "45d4063d00454c9fb21e5186a09c3115"
+	VIDEO_ID2           = "55d4062f99454c9fb21e5186a09c2115"
+	PROJECT_ID          = "1abfe1b849154082993f2fce78a16fda"
+	PROJECT_ID2         = "963bab6186a352b6c0e9de5d29418be3"
+	LIVE_VIDEO_ID       = "ec37c42b4aab46f18003b33c66e5e641"
+	API_KEY             = "aba179c14ab349e0bb0d12b7eca5fa24"
+	API_KEY2            = "cba179c14ab349e0bb0d12b7eca5fa25"
+	UPLOAD_KEY          = "projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/uploads/videos/55/d4/55d4062f99454c9fb21e5186a09c2115.mp4"
+	INVALID_UUID        = `{"url": "http://docs.synq.fm/api/v1/errors/invalid_uuid","name": "invalid_uuid","message": "Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'."}`
+	VIDEO_NOT_FOUND     = `{"url": "http://docs.synq.fm/api/v1/errors/not_found_video","name": "not_found_video","message": "Video not found."}`
+	API_KEY_NOT_FOUND   = `{"url": "http://docs.synq.fm/api/v1/errors/not_found_api_key","name": "not_found_api_key","message": "API key not found."}`
+	HTTP_NOT_FOUND      = `{"url": "http://docs.synq.fm/api/v1/errors/http_not_found","name": "http_not_found","message": "Not found."}`
+	V2_INVALID_AUTH     = `{"message" : "invalid auth"}`
+	V2_VIDEO_ID         = "9e9dc8c8-f705-41db-88da-b3034894deb9"
+	V2_VIDEO_ID2        = "eee2bc43-e973-4f73-857d-7c0bb111a834"
+	ASSET_ID            = "01823629-bcf2-4c34-b714-ae21e1a4647f"
+	ASSET_ID2           = "fc3e5d9a-a90e-49cc-0c67-224372a59cee"
+	TEST_AUTH           = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3Rlc3QuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDU3MjE4MjFiM2ExYWFmYmUxNTlkZGE2NSIsImF1ZCI6InRESzZBdUF0QVc0ckFySzhOSTltMXdJRW5WQU9RcjUxIiwiZXhwIjoxNDkzNDM5NTExLCJpYXQiOjE0NjE4MTcxMTF9.29JkFxoHqCRPIH2wVbT-ZNIMBK8xXLwkjbLmyWxpquE"
+	DEFAULT_AWS_SECRET  = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
+	ACCOUNT_ID          = "425b6b3b-f272-4a33-da4c-19d846685211"
+	DEFAULT_SAMPLE_DIR  = "sample"
+	SYNQ_VERSION        = "v1"
+	SYNQ_LEGACY_VERSION = "v0"
 )
 
 type TestServer struct {
@@ -114,7 +116,7 @@ func CloseAll() {
 }
 
 func SetupServer(args ...string) *TestServer {
-	ver := "v1"
+	ver := SYNQ_LEGACY_VERSION
 	sDir := DEFAULT_SAMPLE_DIR
 	if len(args) > 0 {
 		ver = args[0]
@@ -162,7 +164,7 @@ func validVideo(id string) string {
 
 func validateAuth(r *http.Request) string {
 	// no auth needed for login
-	if r.URL.Path == "/v2/login" {
+	if r.URL.Path == "/"+SYNQ_VERSION+"/login" {
 		return ""
 	}
 	auth := r.Header.Get("Authorization")
@@ -192,6 +194,8 @@ func (s *TestServer) handle(w http.ResponseWriter, r *http.Request) {
 	case "v2":
 		s.handleV2(w, r)
 	case "v1":
+		s.handleV2(w, r)
+	case "v0":
 		s.handleV1(w, r)
 	case "s3":
 		s.handleS3(w, r)
@@ -256,8 +260,9 @@ func (s *TestServer) handleV1(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			resp = []byte(ke)
 		} else {
+			ver := "/" + SYNQ_LEGACY_VERSION
 			switch r.RequestURI {
-			case "/v1/video/details":
+			case ver + "/video/details":
 				video_id := v.Get("video_id")
 				ke = validVideo(video_id)
 				if ke != "" {
@@ -266,12 +271,12 @@ func (s *TestServer) handleV1(w http.ResponseWriter, r *http.Request) {
 				} else {
 					resp = s.LoadSample("video")
 				}
-			case "/v1/video/create":
+			case ver + "/video/create":
 				resp = s.LoadSample("new_video")
-			case "/v1/video/upload",
-				"/v1/video/uploader",
-				"/v1/video/update",
-				"/v1/video/query":
+			case ver + "/video/upload",
+				ver + "/video/uploader",
+				ver + "/video/update",
+				ver + "/video/query":
 				paths := strings.Split(r.RequestURI, "/")
 				action := paths[len(paths)-1]
 				resp = s.LoadSample(action)
@@ -301,9 +306,10 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 		v := url.Values{}
 		v.Add("body", body_str)
 		s.Values = append(s.Values, v)
+		ver := "/" + SYNQ_VERSION
 		switch r.URL.Path {
-		case "/v2/videos/" + V2_VIDEO_ID,
-			"/v2/assets/" + ASSET_ID:
+		case ver + "/videos/" + V2_VIDEO_ID,
+			ver + "/assets/" + ASSET_ID:
 			if r.Method == "GET" || r.Method == "PUT" {
 				if type_ == "asset" {
 					resp = s.LoadSample("asset_uploaded")
@@ -320,29 +326,29 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
-		case "/v2/assets/" + ASSET_ID + "/signature":
+		case ver + "/assets/" + ASSET_ID + "/signature":
 			obj := struct {
 				Headers string `json:"headers"`
 			}{}
 			json.Unmarshal(bytes, &obj)
 			resp = common.GetMultipartSignature(obj.Headers, DEFAULT_AWS_SECRET)
 			w.WriteHeader(http.StatusOK)
-		case "/v2/videos/" + V2_VIDEO_ID + "/assets":
+		case ver + "/videos/" + V2_VIDEO_ID + "/assets":
 			if r.Method != "GET" {
 				w.WriteHeader(http.StatusNotFound)
 			} else {
 				resp = s.LoadSampleV2("asset_list")
 				w.WriteHeader(http.StatusOK)
 			}
-		case "/v2/videos/" + V2_VIDEO_ID + "/upload":
+		case ver + "/videos/" + V2_VIDEO_ID + "/upload":
 			if r.Method != "POST" {
 				w.WriteHeader(http.StatusNotFound)
 			} else {
 				resp = s.LoadSampleV2("upload")
 				w.WriteHeader(http.StatusOK)
 			}
-		case "/v2/videos",
-			"/v2/assets":
+		case ver + "/videos",
+			ver + "/assets":
 			if r.Method != "POST" {
 				page := r.URL.Query().Get("page_number")
 				if page != "" && page != "1" {
@@ -366,7 +372,7 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
-		case "/v2/login":
+		case ver + "/login":
 			if r.Method == "POST" && !strings.Contains(body_str, "fake") {
 				resp = s.LoadSampleV2("login")
 			} else {

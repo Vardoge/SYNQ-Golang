@@ -13,6 +13,11 @@ import (
 	"github.com/SYNQfm/SYNQ-Golang/test_server"
 )
 
+const (
+	SYNQ_LEGACY_VERSION = "v0"
+	SYNQ_VERSION        = "v1"
+)
+
 var DEFAULT_CRED_FILE = os.Getenv("HOME") + "/.synq/credentials.json"
 
 type ApiSetup struct {
@@ -111,7 +116,7 @@ func SetupSynq() synq.Api {
 }
 
 func SetupSynqV2() synq.ApiV2 {
-	config := GetSetupByEnv("v2")
+	config := GetSetupByEnv(SYNQ_VERSION)
 	api := SetupSynqApi(config)
 	return api.(synq.ApiV2)
 }
@@ -136,7 +141,7 @@ func SetupSynqApi(setup ...ApiSetup) (api synq.ApiF) {
 	if config.Key == "" {
 		log.Println("WARNING : no Synq API key specified")
 	}
-	if strings.Contains(config.Key, ".") || config.Version == "v2" {
+	if strings.Contains(config.Key, ".") || config.Version == SYNQ_VERSION {
 		api = synq.NewV2(config.Key)
 	} else {
 		api = synq.NewV1(config.Key)
@@ -148,7 +153,7 @@ func SetupSynqApi(setup ...ApiSetup) (api synq.ApiF) {
 }
 
 func SetupForTestV1() synq.Api {
-	server := test_server.SetupServer("v1")
+	server := test_server.SetupServer(SYNQ_LEGACY_VERSION)
 	url := server.GetUrl()
 	api := synq.NewV1(test_server.API_KEY)
 	api.SetUrl(url)
@@ -156,7 +161,7 @@ func SetupForTestV1() synq.Api {
 }
 
 func SetupForTestV2() synq.ApiV2 {
-	server := test_server.SetupServer("v2")
+	server := test_server.SetupServer(SYNQ_VERSION)
 	url := server.GetUrl()
 	api := synq.NewV2(test_server.TEST_AUTH)
 	api.SetUrl(url)

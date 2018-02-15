@@ -141,7 +141,7 @@ func TestAssetUploadFile(t *testing.T) {
 	reqs, vals := testServer.GetReqs()
 	assert.Len(reqs, 1)
 	val := vals[0]
-	assert.Equal("/v2/videos/9e9dc8c8-f705-41db-88da-b3034894deb9/upload", reqs[0].URL.Path)
+	assert.Equal("/"+SYNQ_VERSION+"/videos/9e9dc8c8-f705-41db-88da-b3034894deb9/upload", reqs[0].URL.Path)
 	body := val["body"][0]
 	var p upload.UploadRequest
 	json.Unmarshal([]byte(body), &p)

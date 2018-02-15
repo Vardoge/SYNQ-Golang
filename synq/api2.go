@@ -20,6 +20,7 @@ const (
 	DEFAULT_V2_URL       = "https://b9n2fsyd6jbfihx82.stoplight-proxy.io"
 	DEFAULT_UPLOADER_URL = "https://s6krcbatzuuhmspse.stoplight-proxy.io"
 	DEFAULT_PAGE_SIZE    = 100
+	SYNQ_VERSION         = "v1"
 )
 
 type ApiV2 struct {
@@ -47,7 +48,7 @@ type LoginResp struct {
 }
 
 func (a ApiV2) Version() string {
-	return "v2"
+	return SYNQ_VERSION
 }
 
 func NewV2(token string, timeouts ...time.Duration) ApiV2 {
@@ -63,7 +64,7 @@ func (a *ApiV2) handleAuth(req *http.Request) {
 }
 
 func (a ApiV2) getBaseUrl() string {
-	return a.GetUrl() + "/v2"
+	return a.GetUrl() + "/" + SYNQ_VERSION
 }
 
 func (a *ApiV2) CreateAccount(name string, type_ string) string {
@@ -138,7 +139,7 @@ func login(user, password string, serverUrl ...string) (LoginResp, error) {
 	} else {
 		u = DEFAULT_V2_URL
 	}
-	u = u + "/v2/login"
+	u = u + "/" + SYNQ_VERSION + "/login"
 	form := url.Values{}
 	form.Add("email", user)
 	form.Add("password", password)
@@ -297,7 +298,7 @@ func (a *ApiV2) GetUploadParams(vid string, params upload.UploadRequest) (up upl
 	if a.UploadUrl == "" {
 		return up, errors.New("UploadUrl is blank")
 	}
-	url := a.UploadUrl + "/v2/videos/" + vid + "/upload"
+	url := a.UploadUrl + "/" + SYNQ_VERSION + "/videos/" + vid + "/upload"
 	data, _ := json.Marshal(params)
 	body := bytes.NewBuffer(data)
 
