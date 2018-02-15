@@ -49,7 +49,7 @@ func TestMakeReq(t *testing.T) {
 	req, err := api.makeReq("create", form)
 	assert.Nil(err)
 	assert.NotNil(req)
-	assert.Equal("/v1/video/create", req.URL.Path)
+	assert.Equal("/"+SYNQ_LEGACY_ROUTE+"/video/create", req.URL.Path)
 	assert.Equal("POST", req.Method)
 	body, err := ioutil.ReadAll(req.Body)
 	assert.Nil(err)
@@ -69,7 +69,7 @@ func TestHandlePostFail(t *testing.T) {
 	api.Url = ":://noprotocol.com"
 	err = api.handlePost("path", form, &video)
 	assert.NotNil(err)
-	assert.Equal("parse :://noprotocol.com/v1/video/path: missing protocol scheme", err.Error())
+	assert.Equal("parse :://noprotocol.com/"+SYNQ_LEGACY_ROUTE+"/video/path: missing protocol scheme", err.Error())
 }
 
 func TestHandlePostSuccess(t *testing.T) {
@@ -84,7 +84,7 @@ func TestHandlePostSuccess(t *testing.T) {
 	assert.Len(reqs, 1)
 	r := reqs[0]
 	v := vals[0]
-	assert.Equal("/v1/video/create", r.RequestURI)
+	assert.Equal("/"+SYNQ_LEGACY_ROUTE+"/video/create", r.RequestURI)
 	assert.Equal("value", v.Get("test"))
 	assert.Equal("fake", v.Get("api_key"))
 	assert.Equal("application/x-www-form-urlencoded", r.Header.Get("Content-Type"))
@@ -173,7 +173,7 @@ func TestCreate(t *testing.T) {
 	assert.Len(vals, 3)
 	req := *reqs[2]
 	val := vals[2]
-	assert.Equal("/v1/video/create", req.URL.Path)
+	assert.Equal("/"+SYNQ_LEGACY_ROUTE+"/video/create", req.URL.Path)
 	data := val.Get("userdata")
 	log.Println(data)
 	val_data := make(map[string]interface{})

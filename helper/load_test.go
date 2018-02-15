@@ -30,7 +30,7 @@ func setup() (synq.ApiV2, Cache) {
 	os.MkdirAll(cacheDir, 0755)
 	cache := Cache{Dir: cacheDir}
 	api := synq.NewV2(testAuth)
-	server := test_server.SetupServer("v2", sampleDir)
+	server := test_server.SetupServer(SYNQ_VERSION, sampleDir)
 	url := server.GetUrl()
 	api.SetUrl(url)
 	api.UploadUrl = url
@@ -51,7 +51,7 @@ func TestLoadVideo(t *testing.T) {
 	_, err := os.Stat(cacheFile)
 	assert.Nil(err)
 	// should avoid the call
-	api2 := synq.ApiV2{}
+	api2 := synq.ApiV2{User: "some user"}
 	v2, e2 := LoadVideoV2(test_server.V2_VIDEO_ID, cache, api2)
 	assert.Nil(e2)
 	assert.Equal(v.Id, v2.Id)
@@ -69,7 +69,7 @@ func TestLoadAsset(t *testing.T) {
 	_, err := os.Stat(cacheFile)
 	assert.Nil(err)
 	// should avoid the call
-	api2 := synq.ApiV2{}
+	api2 := synq.ApiV2{User: "some user"}
 	a2, e2 := LoadAsset(test_server.ASSET_ID, cache, api2)
 	assert.Nil(e2)
 	assert.Equal(a.Id, a2.Id)

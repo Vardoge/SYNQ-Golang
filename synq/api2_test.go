@@ -23,7 +23,7 @@ func init() {
 
 func setupTestApiV2(key string) ApiV2 {
 	api := NewV2(key)
-	testServer = test_server.SetupServer("v2", DEFAULT_SAMPLE_DIR)
+	testServer = test_server.SetupServer(SYNQ_VERSION, DEFAULT_SAMPLE_DIR)
 	url := testServer.GetUrl()
 	api.SetUrl(url)
 	api.UploadUrl = url
@@ -44,7 +44,7 @@ func TestMakeReq2(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	assert := require.New(t)
-	server := test_server.SetupServer("v2", DEFAULT_SAMPLE_DIR)
+	server := test_server.SetupServer(SYNQ_VERSION, DEFAULT_SAMPLE_DIR)
 	url := server.GetUrl()
 	defer server.Close()
 	_, err := Login("fake", "fake", url)

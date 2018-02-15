@@ -17,19 +17,19 @@ func TestGetSetup(t *testing.T) {
 	assert := assert.New(t)
 	setup := GetSetupByEnv("")
 	assert.Equal("", setup.Version)
-	setup = GetSetupByEnv("v2")
-	assert.Equal("v2", setup.Version)
+	setup = GetSetupByEnv(SYNQ_VERSION)
+	assert.Equal(SYNQ_VERSION, setup.Version)
 }
 
 func TestSetupSynq(t *testing.T) {
 	assert := assert.New(t)
 	api := SetupSynq()
-	assert.Equal("v1", api.Version())
+	assert.Equal(SYNQ_LEGACY_VERSION, api.Version())
 }
 
 func TestSetupSynqV2(t *testing.T) {
 	api2 := SetupSynqV2()
-	assert.Equal(t, "v2", api2.Version())
+	assert.Equal(t, SYNQ_VERSION, api2.Version())
 }
 
 func TestConfigure(t *testing.T) {
