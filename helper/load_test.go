@@ -38,7 +38,7 @@ func setup() (synq.ApiV2, Cache) {
 }
 
 func (c Cache) GetCacheFile(name string) string {
-	return "./" + c.Dir + "/" + name + ".json"
+	return c.Dir + "/" + name + ".json"
 }
 
 func TestLoadVideo(t *testing.T) {
