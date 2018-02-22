@@ -20,6 +20,8 @@ Some of them don't all fall into the `v2` category, so you'll have to look at th
 
 ## Usage
 
+You can see some basic examples but also look at the tests in `SYNQ-Golang/synq` for many other practical examples.
+
 ```
 import (
   "http"
@@ -32,18 +34,18 @@ server := test_server.ServerServer("v2")
 url := server.GetUrl()
 
 # get all videos
-http.Get(url + "/v1/videos")
+resp, err := http.Get(url + "/v1/videos")
 
 # Get a specific video, with global video ids used by the server
 # For instance V2_VIDEO_ID, is the valid id that you would call the get/upload apis for
-http.Get(url + "/v1/videos/"+test_server.V2_VIDEO_ID)
+resp, err := http.Get(url + "/v1/videos/"+test_server.V2_VIDEO_ID)
 
 # get the req and body values
 reqs, vals := server.GetReqs()
 
 # this is an array of url.Values, which has a single "body" key
-body := vals[0].Get("body")[0]
-json.Unmarshal(body, &obj)
+req_body := vals[0].Get("body")[0]
+json.Unmarshal(req_body, &obj)
 
 # Get the last intiated server's reqs, since typically you only create one server per test
 reqs, vals := test_server.GetReqs()

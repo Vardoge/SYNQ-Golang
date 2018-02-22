@@ -134,3 +134,11 @@ func TestFindAsset(t *testing.T) {
 	assert.True(found)
 	assert.Equal("123", f.Id)
 }
+
+func TestDisplayV2(t *testing.T) {
+	assert := require.New(t)
+	video := VideoV2{}
+	assert.Equal("Empty Video\n", video.Display())
+	video.Id = "abc123"
+	assert.Equal("Video abc123\n\tAssets : 0\n", video.Display())
+}
