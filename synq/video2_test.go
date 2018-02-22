@@ -154,4 +154,16 @@ func TestMisc(t *testing.T) {
 	err = video.AddAccount(test_server.ACCOUNT_ID)
 	assert.NotNil(err)
 	assert.Equal("invalid auth", err.Error())
+	r, e := video.Value()
+	assert.Nil(e)
+	val := r.([]byte)
+	bytes, _ := json.Marshal(video)
+	assert.Equal(bytes, val)
+	video2 := VideoV2{}
+	err = video2.Scan("a")
+	assert.NotNil(err)
+	assert.Equal("Type assertion .([]byte) failed.", err.Error())
+	err = video2.Scan(val)
+	assert.Nil(err)
+	assert.Equal(video.Id, video2.Id)
 }
