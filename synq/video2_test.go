@@ -135,10 +135,23 @@ func TestFindAsset(t *testing.T) {
 	assert.Equal("123", f.Id)
 }
 
-func TestDisplayV2(t *testing.T) {
+// Test misc video functions
+func TestMisc(t *testing.T) {
 	assert := require.New(t)
 	video := VideoV2{}
+	api := setupTestApiV2("fake")
 	assert.Equal("Empty Video\n", video.Display())
 	video.Id = "abc123"
 	assert.Equal("Video abc123\n\tAssets : 0\n", video.Display())
+	req := upload.UploadRequest{}
+	_, err := video.GetUploadParams(req)
+	assert.NotNil(err)
+	assert.Equal("api is blank", err.Error())
+	_, err = video.CreateAssetForUpload(req)
+	assert.NotNil(err)
+	assert.Equal("api is blank", err.Error())
+	video.Api = &api
+	err = video.AddAccount(test_server.ACCOUNT_ID)
+	assert.NotNil(err)
+	assert.Equal("invalid auth", err.Error())
 }
