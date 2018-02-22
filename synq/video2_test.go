@@ -134,3 +134,25 @@ func TestFindAsset(t *testing.T) {
 	assert.True(found)
 	assert.Equal("123", f.Id)
 }
+
+func TestFindAssetByType(t *testing.T) {
+	assert := require.New(t)
+	video := VideoV2{}
+	types := [3]string{"test_type", "test_type_1", "test_type_2"}
+	asset := Asset{Type: types[0]}
+	asset1 := Asset{Type: types[1], Id: "test_id_1"}
+	asset2 := Asset{Type: types[2], Id: "test_id_2"}
+	asset3 := Asset{Type: types[2], Id: "test_id_3"}
+	video.Assets = append(video.Assets, asset)
+	_, found := video.FindAssetByType(types[0])
+	assert.False(found)
+	video.Assets = append(video.Assets, asset1)
+	type1Assets, found := video.FindAssetByType(types[1])
+	assert.True(found)
+	assert.Equal(type1Assets[0].Id, asset1.Id)
+	video.Assets = append(video.Assets, asset2)
+	video.Assets = append(video.Assets, asset3)
+	type2Assets, found := video.FindAssetByType(types[2])
+	assert.True(found)
+	assert.Equal(len(type2Assets), 2)
+}
