@@ -35,3 +35,14 @@ func TestCreateV4Request(t *testing.T) {
 	assert.Equal(v4.Path, built.URL.Path)
 	assert.Equal("val2", built.Header.Get("Test-Header"))
 }
+
+func TestSign(t *testing.T) {
+	assert := require.New(t)
+	headers := make(map[string]string)
+	headers["test-header"] = "val"
+	req := V4Request{Region: "us-east-1", Headers: headers}
+	resp, err := req.Sign("a", "b")
+	assert.Nil(err)
+	assert.NotEmpty(resp.Date)
+	assert.Contains(resp.Authorization, "AWS4-HMAC-SHA256 Credential=a/20180223/us-east-1/s3/aws4_request, SignedHeaders=host;test-header;x-amz-content-sha256;x-amz-date")
+}
