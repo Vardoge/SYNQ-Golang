@@ -19,29 +19,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
-type AwsUploadF interface {
-	Upload(io.Reader) (*s3manager.UploadOutput, error)
-}
-
 // This is the struct that contains all the AWS settings
 type AwsUpload struct {
 	UploadParams UploadParameters
 	Uploader     *s3manager.Uploader
-}
-
-type UploadParameters struct {
-	Action         string `json:"action"`
-	AwsAccessKeyId string `json:"AWSAccessKeyId"`
-	ContentType    string `json:"Content-Type"`
-	Policy         string `json:"policy"`
-	Signature      string `json:"signature"`
-	Acl            string `json:"acl"`
-	Region         string `json:"region"`
-	Key            string `json:"key"`
-	SuccessStatus  string `json:"success_action_status"`
-	SignatureUrl   string `json:"signature_url"`
-	VideoId        string `json:"video_id"`
-	AssetId        string `json:"asset_id"`
 }
 
 type V4Request struct {
