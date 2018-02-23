@@ -1,6 +1,7 @@
 package upload
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -31,8 +32,8 @@ func createTestAwsReq(header ...string) *request.Request {
 		header = append(header, "test-header")
 	}
 	for idx, key := range header {
-		signed.Add(key, "signed_val_"+string(idx))
-		reqHeaders.Add(key, "req_val_"+string(idx))
+		signed.Add(key, fmt.Sprintf("signed_val_%d", idx))
+		reqHeaders.Add(key, fmt.Sprintf("req_val_%d", idx))
 	}
 	req := &request.Request{SignedHeaderVals: signed}
 	u := url.URL{Path: "url", RawQuery: "a=b&c=d"}
@@ -53,12 +54,12 @@ func TestCreateV4Request(t *testing.T) {
 	assert.Equal("url", v4.Path)
 	assert.Equal("a=b&c=d", v4.RawQuery)
 	assert.Equal("", v4.Headers[header])
-	assert.Equal("val2", v4.Headers["Test-Header"])
+	assert.Equal("req_val_0", v4.Headers["Test-Header"])
 	built := v4.BuildRequest()
 	assert.Equal(v4.Method, built.Method)
 	assert.Equal(v4.RawQuery, built.URL.RawQuery)
 	assert.Equal(v4.Path, built.URL.Path)
-	assert.Equal("val2", built.Header.Get("Test-Header"))
+	assert.Equal("req_val_0", built.Header.Get("Test-Header"))
 }
 
 func TestSign(t *testing.T) {
