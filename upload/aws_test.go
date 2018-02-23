@@ -2,6 +2,7 @@ package upload
 
 import (
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 
@@ -9,17 +10,41 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateV4Request(t *testing.T) {
-	assert := require.New(t)
-	header := "test-header"
+func setupServer() *httptest.Server {
+	server := httptest.NewServer(http.HandlerFunc(handle))
+	return server
+}
+
+// we can't use test_server as it will create a circular loop
+func handle(w http.ResponseWriter, r *http.Request) {
+	switch r.URL.Path {
+	case "/sig":
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"Authorization":"sig123", "Date":"20180223T002913Z"}`))
+	}
+}
+
+func createTestAwsReq(header ...string) *request.Request {
 	signed := http.Header{}
 	reqHeaders := http.Header{}
-	signed.Add(header, "val")
-	reqHeaders.Add(header, "val2")
+	if len(header) == 0 {
+		header = append(header, "test-header")
+	}
+	for idx, key := range header {
+		signed.Add(key, "signed_val_"+string(idx))
+		reqHeaders.Add(key, "req_val_"+string(idx))
+	}
 	req := &request.Request{SignedHeaderVals: signed}
 	u := url.URL{Path: "url", RawQuery: "a=b&c=d"}
 	hr := http.Request{URL: &u, Header: reqHeaders, Method: "PUT"}
 	req.HTTPRequest = &hr
+	return req
+}
+
+func TestCreateV4Request(t *testing.T) {
+	assert := require.New(t)
+	header := "test-header"
+	req := createTestAwsReq(header)
 	params := UploadParameters{}
 	v4 := CreateV4Request(params, req)
 	assert.NotNil(v4)
@@ -60,19 +85,45 @@ func TestNewAwsUpload(t *testing.T) {
 	assert.NotNil(err)
 	assert.Equal("Invalid action URL. Not exactly 4 period-separated words in host.", err.Error())
 	params.Action = "https://synqfm.s3.amazonaws.com"
-	up, err := NewAwsUpload(params)
+	u, err := NewAwsUpload(params)
 	assert.Nil(err)
-	u := up.(*AwsUpload)
-	assert.Equal(params.Action, u.Url())
-	region, e := u.GetRegion()
+	au := u.(*AwsUpload)
+	assert.Equal(params.Action, au.Url())
+	region, e := au.GetRegion()
 	assert.Nil(e)
 	assert.Equal("us-east-1", region)
-	bucket, e := u.GetBucket()
+	bucket, e := au.GetBucket()
 	assert.Nil(e)
 	assert.Equal("synqfm", bucket)
-	assert.Equal(params.Key, u.Key())
-	assert.Equal(params.Acl, u.Acl())
-	assert.Equal(params.ContentType, u.ContentType())
-	assert.Equal(params.AwsAccessKeyId, u.AwsKeyId())
-	assert.Equal(params.SignatureUrl, u.UploaderSigUrl())
+	assert.Equal(params.Key, au.Key())
+	assert.Equal(params.Acl, au.Acl())
+	assert.Equal(params.ContentType, au.ContentType())
+	assert.Equal(params.AwsAccessKeyId, au.AwsKeyId())
+	assert.Equal(params.SignatureUrl, au.UploaderSigUrl())
+}
+
+func TestServerSign(t *testing.T) {
+	assert := require.New(t)
+	params := UploadParameters{
+		Key:            "abc",
+		Acl:            "private",
+		ContentType:    "video/mp4",
+		AwsAccessKeyId: "key",
+		SignatureUrl:   "sig",
+		Action:         "https://synqfm.s3.amazonaws.com",
+	}
+	u, err := NewAwsUpload(params)
+	assert.Nil(err)
+	au := u.(*AwsUpload)
+	r := createTestAwsReq()
+	_, err = au.ServerSignV2(r)
+	assert.NotNil(err)
+	assert.Equal("Post sig: unsupported protocol scheme \"\"", err.Error())
+	server := setupServer()
+	params.SignatureUrl = server.URL + "/sig"
+	u, _ = NewAwsUpload(params)
+	au = u.(*AwsUpload)
+	sig, err := au.ServerSignV2(r)
+	assert.Nil(err)
+	assert.Equal("sig123", sig)
 }
