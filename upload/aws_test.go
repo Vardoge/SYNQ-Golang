@@ -46,3 +46,33 @@ func TestSign(t *testing.T) {
 	assert.NotEmpty(resp.Date)
 	assert.Contains(resp.Authorization, "AWS4-HMAC-SHA256 Credential=a/20180223/us-east-1/s3/aws4_request, SignedHeaders=host;test-header;x-amz-content-sha256;x-amz-date")
 }
+
+func TestNewAwsUpload(t *testing.T) {
+	assert := require.New(t)
+	params := UploadParameters{
+		Key:            "abc",
+		Acl:            "private",
+		ContentType:    "video/mp4",
+		AwsAccessKeyId: "key",
+		SignatureUrl:   "sig",
+	}
+	_, err := NewAwsUpload(params)
+	assert.NotNil(err)
+	assert.Equal("Invalid action URL. Not exactly 4 period-separated words in host.", err.Error())
+	params.Action = "https://synqfm.s3.amazonaws.com"
+	up, err := NewAwsUpload(params)
+	assert.Nil(err)
+	u := up.(*AwsUpload)
+	assert.Equal(params.Action, u.Url())
+	region, e := u.GetRegion()
+	assert.Nil(e)
+	assert.Equal("us-east-1", region)
+	bucket, e := u.GetBucket()
+	assert.Nil(e)
+	assert.Equal("synqfm", bucket)
+	assert.Equal(params.Key, u.Key())
+	assert.Equal(params.Acl, u.Acl())
+	assert.Equal(params.ContentType, u.ContentType())
+	assert.Equal(params.AwsAccessKeyId, u.AwsKeyId())
+	assert.Equal(params.SignatureUrl, u.UploaderSigUrl())
+}
