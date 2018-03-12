@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws/request"
@@ -70,7 +71,8 @@ func TestSign(t *testing.T) {
 	resp, err := req.Sign("a", "b")
 	assert.Nil(err)
 	assert.NotEmpty(resp.Date)
-	assert.Contains(resp.Authorization, "AWS4-HMAC-SHA256 Credential=a/20180223/us-east-1/s3/aws4_request, SignedHeaders=host;test-header;x-amz-content-sha256;x-amz-date")
+	date := strings.Split(resp.Date, "T")[0]
+	assert.Contains(resp.Authorization, "AWS4-HMAC-SHA256 Credential=a/"+date+"/us-east-1/s3/aws4_request, SignedHeaders=host;test-header;x-amz-content-sha256;x-amz-date")
 }
 
 func TestNewAwsUpload(t *testing.T) {
