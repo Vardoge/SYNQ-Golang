@@ -120,5 +120,5 @@ func TestUpdateAssetMetadata(t *testing.T) {
   metadata := json.RawMessage("{\"test\": true}")
   asset, err := api.UpdateAssetMetadata(testAssetId, metadata)
   assert.Nil(err)
-  assert.Equal(string(metadata), string(asset.Metadata))
+  assert.Contains(string(asset.Metadata), string("\"test\": true"))
 }
