@@ -113,3 +113,12 @@ func TestParseErrorV2(t *testing.T) {
 	err := api.ParseError(404, bytes)
 	assert.Equal("404 Item not found", err.Error())
 }
+
+func TestUpdateAssetMetadata(t *testing.T) {
+  assert := require.New(t)
+  api := setupTestApiV2(testAuth)
+  metadata := json.RawMessage("{\"test\": true}")
+  asset, err := api.UpdateAssetMetadata(testAssetId, metadata)
+  assert.Nil(err)
+  assert.Equal(string(metadata), string(asset.Metadata))
+}

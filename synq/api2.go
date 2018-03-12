@@ -309,3 +309,23 @@ func (a *ApiV2) GetUploadParams(vid string, params upload.UploadRequest) (up upl
 	err = handleReq(a, req, &up)
 	return up, err
 }
+
+func (a *ApiV2) UpdateAssetMetadata(id string, metadata json.RawMessage) (asset Asset, err error) {
+  var resp AssetResponse
+  if !common.ValidUUID(id) {
+    return asset, common.NewError("asset id '%s' is invalid", id)
+  }
+  uuid := common.ConvertToUUIDFormat(id)
+  url := a.getBaseUrl() + "/assets/" + uuid
+  req, err := a.makeRequest("PUT", url, strings.NewReader("{\"metadata\": " + string(metadata) + "}"))
+  if err != nil {
+    return asset, err
+  }
+  err = handleReq(a, req, &resp)
+  if err != nil {
+    return asset, err
+  }
+  asset = *resp.Asset
+  asset.Api = *a
+  return asset, nil
+}
