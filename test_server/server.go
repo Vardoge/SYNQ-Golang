@@ -190,6 +190,7 @@ func validateAuth(r *http.Request) string {
 }
 
 func (s *TestServer) handle(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Request: %s %s", r.Method, r.URL.Path)
 	log.Printf("here in response %s (server type '%s')", r.RequestURI, s.Version)
 	s.Reqs = append(s.Reqs, r)
 	switch s.Version {
@@ -313,7 +314,11 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 			route + "/assets/" + ASSET_ID:
 			if r.Method == "GET" || r.Method == "PUT" {
 				if type_ == "asset" {
-					resp = s.LoadSample("asset_uploaded")
+					if r.Method == "PUT" {
+						resp = s.LoadSample("asset_updated")
+					} else {
+						resp = s.LoadSample("asset_uploaded")
+					}
 				} else {
 					if r.Method == "PUT" {
 						resp = s.LoadSample("video2_update")
