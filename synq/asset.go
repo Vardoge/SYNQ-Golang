@@ -27,6 +27,7 @@ type Asset struct {
 	VideoId          string                  `json:"video_id"`
 	Id               string                  `json:"id"`
 	Location         string                  `json:"location"`
+	Url              string                  `json:"url"`
 	State            string                  `json:"state"`
 	Type             string                  `json:"type"`
 	CreatedAt        string                  `json:"created_at"`
@@ -83,6 +84,13 @@ func (a *Asset) handleAssetReq(method, url string, body io.Reader) error {
 	}
 
 	return nil
+}
+
+func (a *Asset) GetUrl() string {
+	if a.Url != "" {
+		return a.Url
+	}
+	return a.Location
 }
 
 func (a *Asset) UploadFile(fileName string) error {
