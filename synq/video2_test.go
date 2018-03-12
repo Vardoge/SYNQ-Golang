@@ -156,3 +156,35 @@ func TestFindAssetByType(t *testing.T) {
 	assert.True(found)
 	assert.Equal(len(type2Assets), 2)
 }
+// Test misc video functions
+func TestMisc(t *testing.T) {
+	assert := require.New(t)
+	video := VideoV2{}
+	api := setupTestApiV2("fake")
+	assert.Equal("Empty Video\n", video.Display())
+	video.Id = "abc123"
+	assert.Equal("Video abc123\n\tAssets : 0\n", video.Display())
+	req := upload.UploadRequest{}
+	_, err := video.GetUploadParams(req)
+	assert.NotNil(err)
+	assert.Equal("api is blank", err.Error())
+	_, err = video.CreateAssetForUpload(req)
+	assert.NotNil(err)
+	assert.Equal("api is blank", err.Error())
+	video.Api = &api
+	err = video.AddAccount(test_server.ACCOUNT_ID)
+	assert.NotNil(err)
+	assert.Equal("invalid auth", err.Error())
+	r, e := video.Value()
+	assert.Nil(e)
+	val := r.([]byte)
+	bytes, _ := json.Marshal(video)
+	assert.Equal(bytes, val)
+	video2 := VideoV2{}
+	err = video2.Scan("a")
+	assert.NotNil(err)
+	assert.Equal("Type assertion .([]byte) failed.", err.Error())
+	err = video2.Scan(val)
+	assert.Nil(err)
+	assert.Equal(video.Id, video2.Id)
+}

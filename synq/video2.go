@@ -49,9 +49,17 @@ func (v *VideoV2) Scan(src interface{}) error {
 	return nil
 }
 
+func (v *VideoV2) GetBaseUrl() string {
+	if v.Api == nil || v.Api.BaseApi == nil {
+		return ""
+	} else {
+		return v.Api.getBaseUrl()
+	}
+}
+
 func (v *VideoV2) GetVideoAssetList() error {
 	list := AssetList{}
-	url := v.Api.getBaseUrl() + "/videos/" + v.Id + "/assets"
+	url := v.GetBaseUrl() + "/videos/" + v.Id + "/assets"
 	err := v.Api.handleGet(url, &list)
 	if err != nil {
 		return err
@@ -61,7 +69,7 @@ func (v *VideoV2) GetVideoAssetList() error {
 }
 
 func (v *VideoV2) Update() error {
-	url := v.Api.getBaseUrl() + "/videos/" + v.Id
+	url := v.GetBaseUrl() + "/videos/" + v.Id
 	type Update struct {
 		Metadata          json.RawMessage `json:"metadata"`
 		Userdata          json.RawMessage `json:"user_data"`
@@ -86,7 +94,7 @@ func (v *VideoV2) Update() error {
 }
 
 func (v *VideoV2) AddAccount(accountId string) error {
-	url := v.Api.getBaseUrl() + "/videos/" + v.Id
+	url := v.GetBaseUrl() + "/videos/" + v.Id
 	account := Account{Id: accountId}
 	update := struct {
 		Accounts []Account `json:"video_accounts"`
@@ -107,7 +115,7 @@ func (v *VideoV2) AddAccount(accountId string) error {
 }
 
 func (v VideoV2) GetAsset(assetId string) (Asset, error) {
-	url := v.Api.getBaseUrl() + "/assets/" + assetId
+	url := v.GetBaseUrl() + "/assets/" + assetId
 	var asset Asset
 	asset.Api = *v.Api
 	err := asset.handleAssetReq("GET", url, nil)
@@ -152,7 +160,7 @@ func (v *VideoV2) CreateOrUpdateAsset(asset *Asset) error {
 		asset.Id = a.Id
 		return asset.Update()
 	} else {
-		url := v.Api.getBaseUrl() + "/assets"
+		url := v.GetBaseUrl() + "/assets"
 		data, _ := json.Marshal(asset)
 		body := bytes.NewBuffer(data)
 		err := asset.handleAssetReq("POST", url, body)
