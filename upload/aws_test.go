@@ -70,7 +70,7 @@ func TestSign(t *testing.T) {
 	resp, err := req.Sign("a", "b")
 	assert.Nil(err)
 	assert.NotEmpty(resp.Date)
-	assert.Contains(resp.Authorization, "AWS4-HMAC-SHA256 Credential=a/20180223/us-east-1/s3/aws4_request, SignedHeaders=host;test-header;x-amz-content-sha256;x-amz-date")
+	assert.Contains(resp.Authorization, "AWS4-HMAC-SHA256 Credential=a/20180312/us-east-1/s3/aws4_request, SignedHeaders=host;test-header;x-amz-content-sha256;x-amz-date")
 }
 
 func TestNewAwsUpload(t *testing.T) {
