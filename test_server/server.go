@@ -309,6 +309,7 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 		route := "/" + SYNQ_ROUTE
 		switch r.URL.Path {
 		case route + "/videos/" + V2_VIDEO_ID,
+			route + "/videos/" + V2_VIDEO_ID2,
 			route + "/assets/" + ASSET_ID:
 			if r.Method == "GET" || r.Method == "PUT" {
 				if type_ == "asset" {
