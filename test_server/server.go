@@ -313,7 +313,11 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 			route + "/assets/" + ASSET_ID:
 			if r.Method == "GET" || r.Method == "PUT" {
 				if type_ == "asset" {
-					resp = s.LoadSample("asset_uploaded")
+					if r.Method == "PUT" {
+						resp = s.LoadSample("asset_updated")
+					} else {
+						resp = s.LoadSample("asset_uploaded")
+					}
 				} else {
 					if r.Method == "PUT" {
 						resp = s.LoadSample("video2_update")
