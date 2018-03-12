@@ -138,6 +138,19 @@ func (v *VideoV2) FindAsset(location string) (Asset, bool) {
 	return Asset{}, false
 }
 
+func (v *VideoV2) FindAssetByType(assetType string) ([]Asset, bool) {
+	var assetArray []Asset
+	for _, a := range v.Assets {
+		if a.Type == assetType && a.Id != "" {
+			assetArray = append(assetArray, a)
+		}
+	}
+	if len(assetArray) == 0 {
+		return assetArray, false
+	}
+	return assetArray, true
+}
+
 func (v *VideoV2) CreateOrUpdateAsset(asset *Asset) error {
 	// make sure the API is set
 	asset.Api = *v.Api
