@@ -31,3 +31,15 @@ type Credit struct {
 
 type Language     map[string]string
 type LanguageList map[string]Language
+
+type ImageData struct {
+  Type          string              `json:"type"`
+  Orientation   string              `json:"orientation"`
+  Language      string              `json:"language,omitempty"`
+  File          string              `json:"org_file"`
+}
+
+type AkkaXMLAsset struct {
+  MetaData
+  Images        []ImageData         `json:"images"`
+}
