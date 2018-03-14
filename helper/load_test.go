@@ -3,6 +3,7 @@ package helper
 import (
 	"os"
 	"testing"
+	"time"
 
 	"github.com/SYNQfm/SYNQ-Golang/synq"
 	"github.com/SYNQfm/SYNQ-Golang/test_server"
@@ -51,6 +52,10 @@ func setupV1() (synq.Api, Cache) {
 
 func (c Cache) GetCacheFile(name string) string {
 	return c.Dir + "/" + name + ".json"
+}
+
+func (c Cache) GetCacheAge() time.Duration {
+	return 24 * time.Hour
 }
 
 func TestLoadVideoV1(t *testing.T) {
@@ -119,10 +124,21 @@ func TestLoadUp(t *testing.T) {
 	assert.Nil(err)
 }
 
-func TestLoadVideosByQuery(t *testing.T) {
+func TestLoadVideosByAccount(t *testing.T) {
 	assert := require.New(t)
 	api, cache := setup()
-	videos, err := LoadVideosByQueryV2("", "to_save", cache, api)
+	videos, err := LoadVideosByAccount("", "to_save", cache, api)
+	assert.Nil(err)
+	assert.Len(videos, 2)
+	cacheFile := cache.GetCacheFile("to_save")
+	_, err = os.Stat(cacheFile)
+	assert.Nil(err)
+}
+
+func TestLoadRawVideosByAccount(t *testing.T) {
+	assert := require.New(t)
+	api, cache := setup()
+	videos, err := LoadRawVideosByAccount("", "to_save", cache, api)
 	assert.Nil(err)
 	assert.Len(videos, 2)
 	cacheFile := cache.GetCacheFile("to_save")
