@@ -42,6 +42,12 @@ func setupTestApi(key string, type_ ...string) Api {
 	return api
 }
 
+func TestApiVersion(t *testing.T) {
+	api := setupTestApi("fake")
+	assert := require.New(t)
+	assert.Equal(api.Version(), "v1")
+}
+
 func TestMakeReq(t *testing.T) {
 	assert := require.New(t)
 	api := setupTestApi("fake")
