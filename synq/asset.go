@@ -42,11 +42,11 @@ type Asset struct {
 }
 
 type AssetUpload struct {
-	Checksum     string    `json:"checksum,omitempty"`
-	ChecksumSize int64     `json:"checksum_size,omitempty"`
-	Size         int64     `json:"size,omitempty"`
-	Started      time.Time `json:"started,omitempty"`
-	Finished     time.Time `json:"finished,omitempty"`
+	Checksum     string     `json:"checksum,omitempty"`
+	ChecksumSize int64      `json:"checksum_size,omitempty"`
+	Size         int64      `json:"size,omitempty"`
+	Started      *time.Time `json:"started,omitempty"`
+	Finished     *time.Time `json:"finished,omitempty"`
 }
 
 func (a *Asset) getApi() *ApiV2 {
