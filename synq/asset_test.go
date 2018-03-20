@@ -77,11 +77,12 @@ func TestGetAsset(t *testing.T) {
 	assert := assert.New(t)
 	video := setupTestVideoV2()
 	asset, err := video.GetAsset(testAssetId)
+	assert.Nil(err)
 	assert.Equal(testVideoIdV2, asset.VideoId)
 	assert.Equal(ASSET_TYPE, asset.Type)
 	assert.Equal(ASSET_UPLOADED, asset.State)
 	assert.Equal(ASSET_LOCATION, asset.Location)
-	assert.Nil(err)
+	assert.Equal("ecf97dae9cb51cbcc6c9000d8ad103da", asset.UploadInfo.Checksum)
 }
 
 func TestUpdate(t *testing.T) {
