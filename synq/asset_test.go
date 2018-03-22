@@ -83,6 +83,7 @@ func TestGetAsset(t *testing.T) {
 	assert.Equal(ASSET_UPLOADED, asset.State)
 	assert.Equal(ASSET_LOCATION, asset.Location)
 	assert.Equal("ecf97dae9cb51cbcc6c9000d8ad103da", asset.UploadInfo.Checksum)
+	assert.Equal("/mnt/june/content/917007/917007_METADATA.xml", asset.UploadInfo.Filename)
 }
 
 func TestUpdate(t *testing.T) {

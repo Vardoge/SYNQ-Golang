@@ -47,6 +47,7 @@ type AssetUpload struct {
 	Size         int64      `json:"size,omitempty"`
 	Started      *time.Time `json:"started,omitempty"`
 	Finished     *time.Time `json:"finished,omitempty"`
+	Filename     string     `json:"filename,omitempty"`
 }
 
 func (a *Asset) getApi() *ApiV2 {
