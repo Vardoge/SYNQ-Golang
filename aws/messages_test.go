@@ -12,6 +12,7 @@ import (
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/aws/request"
   "github.com/aws/aws-sdk-go/service/sqs"
+  "github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
 // NOTE : aws-sdk-go only understands XML format, JSON format causes a panic error.
@@ -35,6 +36,35 @@ func setupReceive() (*session.Session) {
         code = 403
     }
 
+    r.HTTPResponse = &http.Response{
+      StatusCode: code,
+      Body:       ioutil.NopCloser(bytes.NewReader(resp)),
+      Header:     http.Header{"X-Amzn-Requestid": []string{"123454232"}},
+    }
+  })
+
+  return sess
+}
+
+func setupResolve() (*session.Session) {
+  sess := session.New(&aws.Config{Region: aws.String("us-east-2")})
+  sess.Handlers.Send.Clear()
+  sess.Handlers.Send.PushFront(func(r *request.Request) {
+    code := 403
+    resp, _ := ioutil.ReadFile("../sample/aws/error_messages.xml")
+
+    switch p := r.Params.(type) {
+      case *dynamodb.PutItemInput:
+        resp = []byte("{}")
+        if *p.Item["message_id"].S == "good" {
+          code = 200
+        }
+      case *sqs.DeleteMessageInput:
+        if *p.QueueUrl == "good" {
+          resp, _ = ioutil.ReadFile("../sample/aws/delete_messages.xml")
+          code = 204
+        }
+    }
 
     r.HTTPResponse = &http.Response{
       StatusCode: code,
@@ -75,15 +105,35 @@ func TestReceiveMessagesError(t *testing.T) {
   assert.Equal(len(resp), 0)
 }
 
-// TODO : replace with actual testing for the DB/SQS process
-func TestProcess(t *testing.T) {
-  sess := GenerateSession("us-east-2")
-  msgs, _ := ReceiveMessages(sess, "https://sqs.us-east-2.amazonaws.com/072327369740/metadata")
+func TestResolveMessageSuccess(t * testing.T) {
+  assert  :=  require.New(t)
+  sess    :=  setupResolve()
+  testMsg :=  SQSMessage{ Id: "good", Handle: "testing", Body: "testing", URL: "good", Result: "200 OK" }
 
-  if len(msgs) > 0 {
-    msg := msgs[0]
-    msg.Result = "200 OK"
+  resp, err := ResolveMessage(sess, testMsg)
 
-    ResolveMessage(sess, msg)
-  }
+  assert.Nil(err)
+  assert.Equal(resp, 204)
+}
+
+func TestResolveMessageDBFailure(t * testing.T) {
+  assert  :=  require.New(t)
+  sess    :=  setupResolve()
+  testMsg :=  SQSMessage{ Id: "bad", Handle: "testing", Body: "testing", URL: "testing", Result: "200 OK" }
+
+  resp, err := ResolveMessage(sess, testMsg)
+
+  assert.NotNil(err)
+  assert.Equal(resp, 400)
+}
+
+func TestResolveMessageSQSFailure(t * testing.T) {
+  assert  :=  require.New(t)
+  sess    :=  setupResolve()
+  testMsg :=  SQSMessage{ Id: "good", Handle: "testing", Body: "testing", URL: "bad", Result: "200 OK" }
+
+  resp, err := ResolveMessage(sess, testMsg)
+
+  assert.NotNil(err)
+  assert.Equal(resp, 400)
 }

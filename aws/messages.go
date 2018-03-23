@@ -59,10 +59,7 @@ func ReceiveMessages(sess *session.Session, url string) ([]SQSMessage, error) {
 func ResolveMessage(sess *session.Session, msg SQSMessage) (int, error) {
   // setup the DB service and convert the message to a DynamoDB item
   dbSVC := dynamodb.New(sess)
-  av, createErr := dynamodbattribute.MarshalMap(msg)
-  if createErr != nil {
-    return 400, createErr
-  }
+  av, _ := dynamodbattribute.MarshalMap(msg)
 
   // create the item for the database
   input := &dynamodb.PutItemInput{
