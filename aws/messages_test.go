@@ -1,4 +1,4 @@
-package aws
+package synq_aws
 
 import (
   "bytes"
@@ -16,7 +16,7 @@ import (
 
 // NOTE : aws-sdk-go only understands XML format, JSON format causes a panic error.
 
-func setup() (*session.Session) {
+func setupReceive() (*session.Session) {
   sess := session.New(&aws.Config{Region: aws.String("us-east-2")})
   sess.Handlers.Send.Clear()
   sess.Handlers.Send.PushFront(func(r *request.Request) {
@@ -48,17 +48,18 @@ func setup() (*session.Session) {
 
 func TestReceiveMessagesSuccess(t *testing.T) {
   assert    := require.New(t)
-  sess      := setup()
+  sess      := setupReceive()
   resp, err := ReceiveMessages(sess, "good")
 
   assert.Nil(err)
   assert.Equal(len(resp), 1)
-  assert.Equal(resp[0], "This is a test message")
+  assert.Equal(resp[0].Handle, "MbZj6wDWli+JvwwJaBV+3dcjk2YW2vA3+STFFljTM8tJJg6HRG6PYSasuWXPJB+CwLj1FjgXUv1uSj1gUPAWV66FU/WeR4mq2OKpEGYWbnLmpRCJVAyeMjeU5ZBdtcQ+QEauMZc8ZRv37sIW2iJKq3M9MFx1YvV11A2x/KSbkJ0=")
+  assert.Equal(resp[0].Body, "This is a test message")
 }
 
 func TestReceiveMessagesEmptyList(t *testing.T) {
   assert    := require.New(t)
-  sess      := setup()
+  sess      := setupReceive()
   resp, err := ReceiveMessages(sess, "empty")
 
   assert.Nil(err)
@@ -67,9 +68,22 @@ func TestReceiveMessagesEmptyList(t *testing.T) {
 
 func TestReceiveMessagesError(t *testing.T) {
   assert    := require.New(t)
-  sess      := setup()
+  sess      := setupReceive()
   resp, err := ReceiveMessages(sess, "forbidden")
 
   assert.NotNil(err)
   assert.Equal(len(resp), 0)
+}
+
+// TODO : replace with actual testing for the DB/SQS process
+func TestProcess(t *testing.T) {
+  sess := GenerateSession("us-east-2")
+  msgs, _ := ReceiveMessages(sess, "https://sqs.us-east-2.amazonaws.com/072327369740/metadata")
+
+  if len(msgs) > 0 {
+    msg := msgs[0]
+    msg.Result = "200 OK"
+
+    ResolveMessage(sess, msg)
+  }
 }
