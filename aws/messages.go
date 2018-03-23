@@ -6,9 +6,14 @@ import (
   "github.com/aws/aws-sdk-go/service/sqs"
 )
 
-func ReceiveMessages(url string, region string) ([]string, error) {
+// TODO : Figure out how to test this.  AWS does not make this really something they want us to test locally...
+func GenerateSession(region string) *session.Session {
+  // Just generate a session and return it
+  return session.Must(session.NewSession(&aws.Config{Region: aws.String("us-east-2")}))
+}
+
+func ReceiveMessages(sess *session.Session, url string) ([]string, error) {
   // Create the session, assumes credentials are provided elsewhere
-  sess  :=  session.Must(session.NewSession(&aws.Config{  Region: aws.String(region)  }))
   svc   :=  sqs.New(sess)
 
   // Setup SQS Parameters
@@ -16,7 +21,7 @@ func ReceiveMessages(url string, region string) ([]string, error) {
   receiveParams := &sqs.ReceiveMessageInput{
     QueueUrl:             aws.String(url),
     MaxNumberOfMessages:  aws.Int64(10),
-    VisibilityTimeout:    aws.Int64(30),
+    VisibilityTimeout:    aws.Int64(600),
   }
 
   // get the messages
