@@ -20,8 +20,8 @@ import (
 
 func setupReceive() (*session.Session) {
   // Temporarily set the AWS Access info to Harpy (no longer around)
-  os.Setenv("AWS_ACCESS_KEY_ID", "AKIAI3RKZ355P7YXEEDA")
-  os.Setenv("AWS_SECRET_ACCESS_KEY", "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")
+  os.Setenv("AWS_ACCESS_KEY_ID", "derf")
+  os.Setenv("AWS_SECRET_ACCESS_KEY", "derf")
 
   sess := session.New(&aws.Config{Region: aws.String("us-east-2")})
   sess.Handlers.Send.Clear()
@@ -53,9 +53,9 @@ func setupReceive() (*session.Session) {
 
 func setupResolve() (*session.Session) {
   // Temporarily set the AWS Access info to Harpy (no longer around)
-  os.Setenv("AWS_ACCESS_KEY_ID", "AKIAI3RKZ355P7YXEEDA")
-  os.Setenv("AWS_SECRET_ACCESS_KEY", "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")
-  
+  os.Setenv("AWS_ACCESS_KEY_ID", "derf")
+  os.Setenv("AWS_SECRET_ACCESS_KEY", "derf")
+
   sess := session.New(&aws.Config{Region: aws.String("us-east-2")})
   sess.Handlers.Send.Clear()
   sess.Handlers.Send.PushFront(func(r *request.Request) {
