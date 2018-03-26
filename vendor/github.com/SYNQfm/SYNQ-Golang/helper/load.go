@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"encoding/json"
 	"log"
 
 	"github.com/SYNQfm/SYNQ-Golang/synq"
@@ -23,13 +24,28 @@ func LoadVideosByQuery(query, name string, c common.Cacheable, api synq.Api) (vi
 }
 
 // fow now, the query will be the account id
-func LoadVideosByQueryV2(query, name string, c common.Cacheable, api synq.ApiV2) (videos []synq.VideoV2, err error) {
+func LoadVideosByAccount(accountId, name string, c common.Cacheable, api synq.ApiV2) (videos []synq.VideoV2, err error) {
 	ok := common.LoadFromCache(name, c, &videos)
 	if ok {
 		return videos, nil
 	}
-	log.Printf("get all videos (filter by account '%s')\n", query)
-	videos, err = api.GetVideos(query)
+	log.Printf("get all videos in account %s\n", accountId)
+	videos, err = api.GetVideos(accountId)
+	if err != nil {
+		return videos, err
+	}
+	common.SaveToCache(name, c, videos)
+	return videos, err
+}
+
+// fow now, the query will be the account id
+func LoadRawVideosByAccount(accountId, name string, c common.Cacheable, api synq.ApiV2) (videos []json.RawMessage, err error) {
+	ok := common.LoadFromCache(name, c, &videos)
+	if ok {
+		return videos, nil
+	}
+	log.Printf("get all raw videos (filter by account '%s')\n", accountId)
+	videos, err = api.GetRawVideos(accountId)
 	if err != nil {
 		return videos, err
 	}

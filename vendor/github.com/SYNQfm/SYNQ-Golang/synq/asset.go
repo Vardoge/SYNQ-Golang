@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/SYNQfm/SYNQ-Golang/upload"
 	"github.com/SYNQfm/helpers/common"
@@ -34,9 +35,19 @@ type Asset struct {
 	UpdatedAt        string                  `json:"updated_at"`
 	Metadata         json.RawMessage         `json:"metadata"`
 	VmafScore        float64                 `json:"vmaf_score"`
+	UploadInfo       AssetUpload             `json:"upload_info,omitempty"`
 	Api              ApiV2                   `json:"-"`
 	Video            VideoV2                 `json:"-"`
 	UploadParameters upload.UploadParameters `json:"-"`
+}
+
+type AssetUpload struct {
+	Checksum     string     `json:"checksum,omitempty"`
+	ChecksumSize int64      `json:"checksum_size,omitempty"`
+	Size         int64      `json:"size,omitempty"`
+	Started      *time.Time `json:"started,omitempty"`
+	Finished     *time.Time `json:"finished,omitempty"`
+	Filename     string     `json:"filename,omitempty"`
 }
 
 func (a *Asset) getApi() *ApiV2 {
