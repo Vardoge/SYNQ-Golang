@@ -1,0 +1,8 @@
+<ErrorResponse>
+  <Error>
+    <Code>AccessDenied</Code>
+    <Message>Access Denied</Message>
+    <RequestId>4582795BE77EAD</RequestId>
+    <HostId>O6hxglyj785AAdHoCa5f7IwNORchz67UOadCdhv+iyYBLx7JSFcflQbJOI</HostId>
+  </Error>
+</ErrorResponse>
