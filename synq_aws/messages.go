@@ -33,7 +33,7 @@ func ReceiveMessages(sess *session.Session, url string) ([]SQSMessage, error) {
   receiveParams := &sqs.ReceiveMessageInput{
     QueueUrl:             aws.String(url),
     MaxNumberOfMessages:  aws.Int64(10),
-    VisibilityTimeout:    aws.Int64(10),
+    VisibilityTimeout:    aws.Int64(600),
   }
 
   // get the messages
