@@ -61,7 +61,11 @@ func NewV2(token string, timeouts ...time.Duration) ApiV2 {
 }
 
 func (a *ApiV2) handleAuth(req *http.Request) {
-	req.Header.Add("Authorization", "Bearer "+a.GetKey())
+	if strings.HasPrefix("Bearer ") {
+		req.Header.Add("Authorization", a.GetKey())
+	} else {
+		req.Header.Add("Authorization", "Bearer "+a.GetKey())
+	}
 }
 
 func (a ApiV2) getBaseUrl() string {
