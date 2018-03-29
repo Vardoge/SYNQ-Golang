@@ -61,7 +61,7 @@ func NewV2(token string, timeouts ...time.Duration) ApiV2 {
 }
 
 func (a *ApiV2) handleAuth(req *http.Request) {
-	if strings.HasPrefix("Bearer ") {
+	if strings.HasPrefix(a.GetKey(), "Bearer ") {
 		req.Header.Add("Authorization", a.GetKey())
 	} else {
 		req.Header.Add("Authorization", "Bearer "+a.GetKey())

@@ -116,7 +116,7 @@ func TestParseErrorV2(t *testing.T) {
 
 func TestUpdateAssetMetadata(t *testing.T) {
   assert := require.New(t)
-  api := setupTestApiV2(testAuth)
+  api := setupTestApiV2("Bearer " + testAuth)
   metadata := json.RawMessage("{\"test\": true}")
   asset, err := api.UpdateAssetMetadata(testAssetId, metadata)
   assert.Nil(err)
