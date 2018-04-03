@@ -18,12 +18,6 @@ type SQSMessage struct {
   Result  string  `json:"result"`
 }
 
-// TODO : Figure out how to test this.  AWS does not make this really something they want us to test locally...
-func GenerateSession(region string) *session.Session {
-  // Just generate a session and return it
-  return session.Must(session.NewSession(&aws.Config{Region: aws.String("us-east-2")}))
-}
-
 func ReceiveMessages(sess *session.Session, url string) ([]SQSMessage, error) {
   // Create the session, assumes credentials are provided elsewhere
   svc := sqs.New(sess)
