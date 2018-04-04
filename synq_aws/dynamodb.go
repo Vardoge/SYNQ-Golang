@@ -1,37 +1,48 @@
 package synq_aws
 
 import (
-  "strings"
+  // "errors"
+  "time"
 
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/session"
-  "github.com/aws/aws-sdk-go/service/sqs"
   "github.com/aws/aws-sdk-go/service/dynamodb"
-  "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
 // TODO : Figure out how to test this.  AWS does not make this really something they want us to test locally...
 func GenerateSession(region string) *session.Session {
   // Just generate a session and return it
-  return session.Must(session.NewSession(&aws.Config{Region: aws.String("us-east-2")}))
+  return session.Must(session.NewSession(&aws.Config{Region: aws.String(region)}))
 }
 
-func CreateEntry(sess *session.Session, msg SQSMessage) (int, error) {
-  // setup the DB service and convert the message to a DynamoDB item
-  dbSVC := dynamodb.New(sess)
-  av, _ := dynamodbattribute.MarshalMap(msg)
+// Writes output to the database, uses current time as the end time
+func LogResult(sess *session.Session, id string, response string) (int, error) {
+  // create the service object from the session
+  svc := dynamodb.New(sess)
 
-  // create the item for the database
-  input := &dynamodb.PutItemInput{
-    Item:       av,
-    TableName:  aws.String("message_results"),
+  // create the item input object
+  // NOTE : Cannot insert items that are not already present!
+  input := &dynamodb.UpdateItemInput{
+    ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+      ":r":   { S: aws.String(response)             },
+      ":n":   { S: aws.String(time.Now().String())  },
+      ":id":  { S: aws.String(id)                   }, 
+    },
+    Key: map[string]*dynamodb.AttributeValue{
+      "id": { S: aws.String(id) },
+    },
+    TableName:            aws.String("message_logs"),
+    ReturnValues:         aws.String("ALL_NEW"),
+    UpdateExpression:     aws.String("set api_result = :r, end_time = :n"),
+    ConditionExpression:  aws.String("id = :id"),
   }
 
-  // insert the item into the database
-  _, putErr := dbSVC.PutItem(input)
-  if putErr != nil {
-    return 400, putErr
+  // determine if there is an error
+  _, err := svc.UpdateItem(input)
+  if err != nil {
+    return 400, err // return error
   }
 
+  // return 200 OK response
   return 200, nil
 }
