@@ -64,7 +64,7 @@ func CreateLog(sess *session.Session, worker string, token string, datatype stri
       "datatype":     { S: aws.String(datatype)             },
       "data":         { S: aws.String(data)                 },
       "worker":       { S: aws.String(worker)               },
-      "api_response": { S: aws.String("in progress")        },
+      "api_result":   { S: aws.String("in progress")        },
     },
     ReturnConsumedCapacity: aws.String("TOTAL"),
     TableName:              aws.String("message_logs"),
