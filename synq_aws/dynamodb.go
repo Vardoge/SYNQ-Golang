@@ -4,6 +4,7 @@ import (
   // "errors"
   "time"
 
+  "github.com/google/uuid"
   "github.com/aws/aws-sdk-go/aws"
   "github.com/aws/aws-sdk-go/aws/session"
   "github.com/aws/aws-sdk-go/service/dynamodb"
@@ -46,3 +47,36 @@ func LogResult(sess *session.Session, id string, response string) (int, error) {
   // return 200 OK response
   return 200, nil
 }
+
+// create a log line
+func CreateLog(sess *session.Session, worker string, token string, datatype string, data string) (string, error) {
+  // generate the UUID and get the service
+  id  := uuid.New().String()
+  svc := dynamodb.New(sess)
+
+  // build the inupts
+  input := &dynamodb.PutItemInput{
+    Item: map[string]*dynamodb.AttributeValue{
+      "id":           { S: aws.String(id)                   },
+      "start_time":   { S: aws.String(time.Now().String())  },
+      "end_time":     { S: aws.String("in progress")        },
+      "token":        { S: aws.String(token)                },
+      "datatype":     { S: aws.String(datatype)             },
+      "data":         { S: aws.String(data)                 },
+      "worker":       { S: aws.String(worker)               },
+      "api_response": { S: aws.String("in progress")        },
+    },
+    ReturnConsumedCapacity: aws.String("TOTAL"),
+    TableName:              aws.String("message_logs"),
+  }
+
+  // Insert the item into the db
+  _, err := svc.PutItem(input)
+  if err != nil {
+    // if there was an error return the error
+    return "ERROR", err
+  }
+
+  // return the id and success if no error
+  return id, nil
+} 
