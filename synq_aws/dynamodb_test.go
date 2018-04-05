@@ -25,9 +25,17 @@ func setupDB() *session.Session {
     code    := 403
     resp, _ := ioutil.ReadFile("../sample/aws/error_messages.xml")
 
-    if *r.Params.(*dynamodb.UpdateItemInput).Key["id"].S == "good" {
-      code = 200
-      resp = []byte("{}")
+    switch p := r.Params.(type) {
+      case *dynamodb.UpdateItemInput:
+        if *p.Key["id"].S == "good" {
+          code = 200
+          resp = []byte("{}")
+        }
+      case *dynamodb.PutItemInput:
+        if *p.Item["worker"].S == "good" {
+          code = 200
+          resp = []byte("{}")
+        }
     }
 
     r.HTTPResponse = &http.Response{
@@ -40,7 +48,7 @@ func setupDB() *session.Session {
   return sess
 }
 
-func TestUpdateRowSuccess(t *testing.T) {
+func TestLogResultSuccess(t *testing.T) {
   assert    := require.New(t)
   sess      := setupDB()
   resp, err := LogResult(sess, "good", "200 OK")
@@ -49,11 +57,29 @@ func TestUpdateRowSuccess(t *testing.T) {
   assert.Nil(err)
 }
 
-func TestUpdateRowFailure(t *testing.T) {
+func TestLogResultFailure(t *testing.T) {
   assert    := require.New(t)
   sess      := setupDB()
   resp, err := LogResult(sess, "bad", "200 OK")
 
   assert.Equal(resp, 400)
+  assert.NotNil(err)
+}
+
+func TestCreateRowSuccess(t *testing.T) {
+  assert    := require.New(t)
+  sess      := setupDB()
+  resp, err := CreateLog(sess, "good", "good", "asset", "something")
+
+  assert.NotEqual(resp, "")
+  assert.Nil(err)
+}
+
+func TestCreateRowFailure(t *testing.T) {
+  assert    := require.New(t)
+  sess      := setupDB()
+  resp, err := CreateLog(sess, "bad", "good", "asset", "something")
+
+  assert.Equal(resp, "ERROR")
   assert.NotNil(err)
 }
