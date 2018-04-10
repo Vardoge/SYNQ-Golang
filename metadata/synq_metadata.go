@@ -42,4 +42,13 @@ type ImageData struct {
 type AkkaXMLAsset struct {
   MetaData
   Images        []ImageData         `json:"images"`
+  Rights        []VideoRights       `json:"rights"`
+}
+
+// NOTE : This is probably not an all inclusive list of rights but reflects what we have samples for
+type VideoRights struct {
+  ValidFrom     string              `json:"valid_from"`
+  ValidTo       string              `json:"valid_to"`
+  Unlimited     bool                `json:"unlimited"`
+  Devices       []string            `json:"devices"`
 }
