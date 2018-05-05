@@ -40,6 +40,7 @@ type ImageData struct {
 }
 
 type AkkaXMLAsset struct {
+  ContentId     string              `json:"content_id"`
   MetaData
   Images        []ImageData         `json:"images"`
   Rights        []VideoRights       `json:"rights"`
