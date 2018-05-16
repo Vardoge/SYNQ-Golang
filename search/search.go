@@ -1,4 +1,4 @@
-package synq
+package search
 
 import (
 	"bytes"
