@@ -52,7 +52,12 @@ func (r SearchRequest) Search() (searchResp SearchResponse, err error) {
 
 	httpClient := &http.Client{}
 	rsp, err := httpClient.Do(req)
+	if err != nil {
+		log.Println("error with request")
+		return searchResp, err
+	}
 
+	defer rsp.Body.Close()
 	responseAsBytes, err := ioutil.ReadAll(rsp.Body)
 	if err != nil {
 		log.Println("could not read response body")
