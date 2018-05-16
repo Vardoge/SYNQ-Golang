@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+
+	"github.com/SYNQfm/SYNQ-Golang/synq"
 )
 
 type SearchRequest struct {
@@ -28,12 +30,12 @@ type SearchOptions struct {
 }
 
 type SearchResponse struct {
-	Page        int      `json:"page"`
-	NbHits      int      `json:"nbHits"`
-	NbPage      int      `json:"nbPages"`
-	HitsPerPage int      `json:"hitsPerPage`
-	IdList      []string `json:"idList"`
-	Hits        []Asset  `json:"hits"`
+	Page        int          `json:"page"`
+	NbHits      int          `json:"nbHits"`
+	NbPage      int          `json:"nbPages"`
+	HitsPerPage int          `json:"hitsPerPage`
+	IdList      []string     `json:"idList"`
+	Hits        []synq.Asset `json:"hits"`
 }
 
 func (r SearchRequest) Search() (resp *http.Response, err error) {
