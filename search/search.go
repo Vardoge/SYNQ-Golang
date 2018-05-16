@@ -3,6 +3,8 @@ package search
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
+	"log"
 	"net/http"
 
 	"github.com/SYNQfm/SYNQ-Golang/synq"
@@ -38,17 +40,25 @@ type SearchResponse struct {
 	Hits        []synq.Asset `json:"hits"`
 }
 
-func (r SearchRequest) Search() (resp *http.Response, err error) {
+func (r SearchRequest) Search() (searchResp SearchResponse, err error) {
 	b, _ := json.Marshal(r.RequestBody)
 	body := bytes.NewBuffer(b)
 
 	req, err := http.NewRequest(r.Method, r.Url, body)
 	if err != nil {
-		return resp, err
+		return searchResp, err
 	}
 	req.Header.Add("Authorization", "Bearer "+r.Token)
 
 	httpClient := &http.Client{}
-	resp, err = httpClient.Do(req)
-	return resp, err
+	rsp, err := httpClient.Do(req)
+
+	responseAsBytes, err := ioutil.ReadAll(rsp.Body)
+	if err != nil {
+		log.Println("could not read response body")
+		return searchResp, err
+	}
+
+	err = json.Unmarshal(responseAsBytes, &searchResp)
+	return searchResp, err
 }
