@@ -28,6 +28,7 @@ type VideoV2 struct {
 	UpdatedAt         time.Time       `json:"updated_at"`
 	Api               *ApiV2          `json:"-"`
 	Assets            []Asset         `json:"assets"`
+	AccountIds        []string        `json:"account_ids"`
 	CompletenessScore float64         `json:"completeness_score"`
 }
 
