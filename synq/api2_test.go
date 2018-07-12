@@ -15,6 +15,10 @@ var testVideoId2V2 string
 var testAuth string
 var testServer *test_server.TestServer
 
+const (
+	DEFAULT_SAMPLE_DIR = "../sample"
+)
+
 func init() {
 	testAssetId = test_server.ASSET_ID
 	testVideoIdV2 = test_server.V2_VIDEO_ID
@@ -115,10 +119,10 @@ func TestParseErrorV2(t *testing.T) {
 }
 
 func TestUpdateAssetMetadata(t *testing.T) {
-  assert := require.New(t)
-  api := setupTestApiV2("Bearer " + testAuth)
-  metadata := json.RawMessage("{\"test\": true}")
-  asset, err := api.UpdateAssetMetadata(testAssetId, metadata)
-  assert.Nil(err)
-  assert.Contains(string(asset.Metadata), string("\"test\": true"))
+	assert := require.New(t)
+	api := setupTestApiV2("Bearer " + testAuth)
+	metadata := json.RawMessage("{\"test\": true}")
+	asset, err := api.UpdateAssetMetadata(testAssetId, metadata)
+	assert.Nil(err)
+	assert.Contains(string(asset.Metadata), string("\"test\": true"))
 }
