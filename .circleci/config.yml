@@ -5,7 +5,7 @@ notify:
 jobs:
   build:
     docker:
-      - image: synqfm/circleci:0.3.0-golang
+      - image: synqfm/circleci:0.4.0-golang
     environment:
       REPO: "SYNQ-Golang"
       SYNQ_DIR: "/go/src/github.com/SYNQfm"
