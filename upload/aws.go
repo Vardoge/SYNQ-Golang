@@ -24,8 +24,10 @@ import (
 // credentials; they are supplied because the AWS SDK requires some credentials
 // to attempt to start uploading. This package replaces the AWS SDK's request
 // signing method with its own method.
-const multipartUploadAwsAccessKeyId = "AAAAAAAAAAAAAAAAAAAA"
-const multipartUploadAwsSecretAccessKey = "ssssssssssssssssssssssssssssssssssssssss"
+const (
+	multipartUploadAwsAccessKeyId     = "AAAAAAAAAAAAAAAAAAAA"
+	multipartUploadAwsSecretAccessKey = "ssssssssssssssssssssssssssssssssssssssss"
+)
 
 // This is the struct that contains all the AWS settings
 type AwsUpload struct {
