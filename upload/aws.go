@@ -19,6 +19,14 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
+// These Amazon Web Services credentials are provided to the AWS SDK, which is
+// used to upload content in multiple parts. There is no IAM user with these
+// credentials; they are supplied because the AWS SDK requires some credentials
+// to attempt to start uploading. This package replaces the AWS SDK's request
+// signing method with its own method.
+const multipartUploadAwsAccessKeyId = "AAAAAAAAAAAAAAAAAAAA"
+const multipartUploadAwsSecretAccessKey = "ssssssssssssssssssssssssssssssssssssssss"
+
 // This is the struct that contains all the AWS settings
 type AwsUpload struct {
 	UploadParams UploadParameters
