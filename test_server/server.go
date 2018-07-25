@@ -20,18 +20,7 @@ var recvParams []upload.UploadParameters
 var UploadError error
 
 const (
-	VIDEO_ID            = "45d4063d00454c9fb21e5186a09c3115"
-	VIDEO_ID2           = "55d4062f99454c9fb21e5186a09c2115"
-	PROJECT_ID          = "1abfe1b849154082993f2fce78a16fda"
-	PROJECT_ID2         = "963bab6186a352b6c0e9de5d29418be3"
-	LIVE_VIDEO_ID       = "ec37c42b4aab46f18003b33c66e5e641"
-	API_KEY             = "aba179c14ab349e0bb0d12b7eca5fa24"
-	API_KEY2            = "cba179c14ab349e0bb0d12b7eca5fa25"
 	UPLOAD_KEY          = "projects/0a/bf/0abfe1b849154082993f2fce77a16fd9/uploads/videos/55/d4/55d4062f99454c9fb21e5186a09c2115.mp4"
-	INVALID_UUID        = `{"url": "http://docs.synq.fm/api/v1/errors/invalid_uuid","name": "invalid_uuid","message": "Invalid uuid. Example: '1c0e3ea4529011e6991554a050defa20'."}`
-	VIDEO_NOT_FOUND     = `{"url": "http://docs.synq.fm/api/v1/errors/not_found_video","name": "not_found_video","message": "Video not found."}`
-	API_KEY_NOT_FOUND   = `{"url": "http://docs.synq.fm/api/v1/errors/not_found_api_key","name": "not_found_api_key","message": "API key not found."}`
-	HTTP_NOT_FOUND      = `{"url": "http://docs.synq.fm/api/v1/errors/http_not_found","name": "http_not_found","message": "Not found."}`
 	V2_INVALID_AUTH     = `{"message" : "invalid auth"}`
 	V2_VIDEO_ID         = "9e9dc8c8-f705-41db-88da-b3034894deb9"
 	V2_VIDEO_ID2        = "eee2bc43-e973-4f73-857d-7c0bb111a834"
@@ -64,12 +53,13 @@ func (t *TestServer) Reset() {
 	t.Values = t.Values[:0]
 }
 
-func (t *TestServer) LoadSampleV2(name string) []byte {
-	return LoadSampleDir(name, t.SampleDir+"/v2", []byte(`{"data":[]}`))
-}
-
+// legacy sample loader still used by v2/synq media
 func (t *TestServer) LoadSample(name string) (data []byte) {
 	return LoadSampleDir(name, t.SampleDir, []byte(`{}`))
+}
+
+func (t *TestServer) LoadSampleV2(name string) []byte {
+	return LoadSampleDir(name, t.SampleDir+"/v2", []byte(`{"data":[]}`))
 }
 
 func LoadSampleDir(name string, dir string, dataOnMissing ...[]byte) (data []byte) {
@@ -146,24 +136,6 @@ func ResetReqs() {
 	testServer.Reset()
 }
 
-func validKey(key string) string {
-	if len(key) != 32 {
-		return INVALID_UUID
-	} else if key != API_KEY {
-		return API_KEY_NOT_FOUND
-	}
-	return ""
-}
-
-func validVideo(id string) string {
-	if len(id) != 32 {
-		return INVALID_UUID
-	} else if id != VIDEO_ID && id != LIVE_VIDEO_ID {
-		return VIDEO_NOT_FOUND
-	}
-	return ""
-}
-
 func validateAuth(r *http.Request) string {
 	// no auth needed for login
 	if r.URL.Path == "/"+SYNQ_ROUTE+"/login" {
@@ -193,10 +165,9 @@ func (s *TestServer) handle(w http.ResponseWriter, r *http.Request) {
 	log.Printf("here in response %s (server type '%s')", r.RequestURI, s.Version)
 	s.Reqs = append(s.Reqs, r)
 	switch s.Version {
-	case "v2":
+	case "v2",
+		"v1":
 		s.handleV2(w, r)
-	case "v1":
-		s.handleV1(w, r)
 	case "s3":
 		s.handleS3(w, r)
 	default:
@@ -244,48 +215,6 @@ func (s *TestServer) handleS3(w http.ResponseWriter, r *http.Request) {
 	resp := s.LoadSample("aws_err.xml")
 	w.Header().Set("Content-Type", "application/xml")
 	w.WriteHeader(http.StatusPreconditionFailed)
-	w.Write(resp)
-}
-
-func (s *TestServer) handleV1(w http.ResponseWriter, r *http.Request) {
-	var resp []byte
-	if r.Method == "POST" {
-		bytes, _ := ioutil.ReadAll(r.Body)
-		//Parse response body
-		v, _ := url.ParseQuery(string(bytes))
-		s.Values = append(s.Values, v)
-		key := v.Get("api_key")
-		ke := validKey(key)
-		if ke != "" {
-			w.WriteHeader(http.StatusBadRequest)
-			resp = []byte(ke)
-		} else {
-			route := "/" + SYNQ_LEGACY_ROUTE
-			switch r.RequestURI {
-			case route + "/video/details":
-				video_id := v.Get("video_id")
-				ke = validVideo(video_id)
-				if ke != "" {
-					w.WriteHeader(http.StatusBadRequest)
-					resp = []byte(ke)
-				} else {
-					resp = s.LoadSample("video")
-				}
-			case route + "/video/create":
-				resp = s.LoadSample("new_video")
-			case route + "/video/upload",
-				route + "/video/uploader",
-				route + "/video/update",
-				route + "/video/query":
-				paths := strings.Split(r.RequestURI, "/")
-				action := paths[len(paths)-1]
-				resp = s.LoadSample(action)
-			default:
-				w.WriteHeader(http.StatusBadRequest)
-				resp = []byte(HTTP_NOT_FOUND)
-			}
-		}
-	}
 	w.Write(resp)
 }
 

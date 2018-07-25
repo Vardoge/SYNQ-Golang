@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
-	"time"
 
 	"github.com/SYNQfm/SYNQ-Golang/test_server"
 	"github.com/stretchr/testify/assert"
@@ -66,20 +65,4 @@ func TestParseAwsResp(t *testing.T) {
 	}
 	e = parseAwsResp(&resp, nil, v)
 	assert.Nil(e)
-}
-
-func TestNew(t *testing.T) {
-	assert := assert.New(t)
-	api := New("key")
-	assert.NotNil(api)
-	assert.Equal("key", api.GetKey())
-	assert.Equal(time.Duration(DEFAULT_TIMEOUT_MS)*time.Millisecond, api.GetTimeout(""))
-	assert.Equal(time.Duration(DEFAULT_UPLOAD_MS)*time.Millisecond, api.GetTimeout("upload"))
-	api = New("key", time.Duration(15)*time.Second)
-	assert.Equal("key", api.GetKey())
-	assert.Equal(time.Duration(15)*time.Second, api.GetTimeout(""))
-	api = New("key", time.Duration(30)*time.Second, time.Duration(100)*time.Second)
-	assert.Equal("key", api.GetKey())
-	assert.Equal(time.Duration(30)*time.Second, api.GetTimeout(""))
-	assert.Equal(time.Duration(100)*time.Second, api.GetTimeout("upload"))
 }
