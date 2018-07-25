@@ -33,7 +33,7 @@ func main() {
 }
 ```
 
-V2 Video [JSON](https://github.com/SYNQfm/SYNQ-Golang/blob/master/sample/41101458-bc49-40db-badc-1b480831b79b.json)
+Video [JSON](https://github.com/SYNQfm/SYNQ-Golang/blob/master/sample/41101458-bc49-40db-badc-1b480831b79b.json)
 ```javascript
 {
     "data": {
