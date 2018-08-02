@@ -37,7 +37,6 @@ type ApiSetting struct {
 }
 
 type ApiSet struct {
-	V1    ApiSetting `json:"v1"`
 	V2    ApiSetting `json:"v2"`
 	ApiV2 synq.ApiV2 `json:"-"`
 }
