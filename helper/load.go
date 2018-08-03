@@ -9,20 +9,6 @@ import (
 	"github.com/SYNQfm/helpers/common"
 )
 
-func LoadVideosByQuery(query, name string, c common.Cacheable, api synq.Api) (videos []synq.Video, err error) {
-	ok := common.LoadFromCache(name, c, &videos)
-	if ok {
-		return videos, nil
-	}
-	log.Printf("querying '%s'\n", query)
-	videos, err = api.Query(query)
-	if err != nil {
-		return videos, err
-	}
-	common.SaveToCache(name, c, videos)
-	return videos, err
-}
-
 // fow now, the query will be the account id
 func LoadVideosByAccount(accountId, name string, c common.Cacheable, api synq.ApiV2) (videos []synq.VideoV2, err error) {
 	ok := common.LoadFromCache(name, c, &videos)
@@ -51,22 +37,6 @@ func LoadRawVideosByAccount(accountId, name string, c common.Cacheable, api synq
 	}
 	common.SaveToCache(name, c, videos)
 	return videos, err
-}
-
-func LoadVideo(id string, c common.Cacheable, api synq.Api) (video synq.Video, err error) {
-	ok := common.LoadFromCache(id, c, &video)
-	if ok {
-		video.Api = &api
-		return video, nil
-	}
-	// need to use the v1 api to get the raw video data
-	log.Printf("Getting video v1 %s", id)
-	video, e := api.GetVideo(id)
-	if e != nil {
-		return video, e
-	}
-	common.SaveToCache(id, c, &video)
-	return video, nil
 }
 
 func LoadVideoV2(id string, c common.Cacheable, api synq.ApiV2) (video synq.VideoV2, err error) {

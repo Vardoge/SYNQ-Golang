@@ -37,9 +37,7 @@ type ApiSetting struct {
 }
 
 type ApiSet struct {
-	V1    ApiSetting `json:"v1"`
 	V2    ApiSetting `json:"v2"`
-	ApiV1 synq.Api   `json:"-"`
 	ApiV2 synq.ApiV2 `json:"-"`
 }
 
@@ -53,12 +51,6 @@ func (a ApiSetting) Configure(api synq.ApiF) {
 	if a.Url != "" {
 		api.SetUrl(a.Url)
 	}
-}
-
-func (a ApiSetting) SetupV1() synq.Api {
-	api := synq.NewV1(a.ApiKey)
-	a.Configure(api)
-	return api
 }
 
 func (a ApiSetting) SetupV2() synq.ApiV2 {
@@ -84,9 +76,6 @@ func (a ApiSetting) Valid() bool {
 }
 
 func (a *ApiSet) Setup() {
-	if a.V1.Valid() {
-		a.ApiV1 = a.V1.SetupV1()
-	}
 	if a.V2.Valid() {
 		a.ApiV2 = a.V2.SetupV2()
 	}
@@ -108,11 +97,6 @@ func LoadFromFile(file ...string) (*ApiSet, error) {
 		set.Setup()
 	}
 	return set, nil
-}
-
-func SetupSynq() synq.Api {
-	api := SetupSynqApi()
-	return api.(synq.Api)
 }
 
 func SetupSynqV2() synq.ApiV2 {
@@ -143,20 +127,10 @@ func SetupSynqApi(setup ...ApiSetup) (api synq.ApiF) {
 	}
 	if strings.Contains(config.Key, ".") || config.Version == SYNQ_VERSION {
 		api = synq.NewV2(config.Key)
-	} else {
-		api = synq.NewV1(config.Key)
+		if config.Url != "" {
+			api.SetUrl(config.Url)
+		}
 	}
-	if config.Url != "" {
-		api.SetUrl(config.Url)
-	}
-	return api
-}
-
-func SetupForTestV1() synq.Api {
-	server := test_server.SetupServer(SYNQ_LEGACY_VERSION)
-	url := server.GetUrl()
-	api := synq.NewV1(test_server.API_KEY)
-	api.SetUrl(url)
 	return api
 }
 
