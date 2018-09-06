@@ -16,7 +16,7 @@ type VideoResp struct {
 	Video VideoV2 `json:"data"`
 }
 
-type Account struct {
+type VideoAccount struct {
 	Id string `json:"account_id"`
 }
 
@@ -96,11 +96,11 @@ func (v *VideoV2) Update() error {
 
 func (v *VideoV2) AddAccount(accountId string) error {
 	url := v.GetBaseUrl() + "/videos/" + v.Id
-	account := Account{Id: accountId}
+	account := VideoAccount{Id: accountId}
 	update := struct {
-		Accounts []Account `json:"video_accounts"`
+		VideoAccounts []VideoAccount `json:"video_accounts"`
 	}{}
-	update.Accounts = append(update.Accounts, account)
+	update.VideoAccounts = append(update.VideoAccounts, account)
 	b, _ := json.Marshal(update)
 	body := bytes.NewBuffer(b)
 	req, err := v.Api.makeRequest("PUT", url, body)

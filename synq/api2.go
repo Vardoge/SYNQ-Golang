@@ -33,6 +33,19 @@ type ApiV2 struct {
 	PageSize    int
 }
 
+type AccountResp struct {
+	Account Account `json:"data"`
+}
+
+type Account struct {
+	Id      string `json:"id"`
+	Name    string `json:"name"`
+	Type    string `json:"type"`
+	Status  string `json:"status"`
+	Domain  string `json:"domain"`
+	Contact string `json:"contact_person"`
+}
+
 type VideoList struct {
 	Videos     []json.RawMessage `json:"data"`
 	PageSize   int               `json:"page_size"`
@@ -74,6 +87,20 @@ func (a ApiV2) getBaseUrl() string {
 
 func (a *ApiV2) CreateAccount(name string, type_ string) string {
 	return ""
+}
+
+func (a *ApiV2) GetAccount(id string) (account Account, err error) {
+	var resp AccountResp
+	url := a.getBaseUrl() + "/accounts/" + id
+	req, err := a.makeRequest("GET", url, nil)
+	if err != nil {
+		return account, err
+	}
+	err = handleReq(a, req, &resp)
+	if err != nil {
+		return account, err
+	}
+	return resp.Account, nil
 }
 
 func (a *ApiV2) makeRequest(method string, url string, body io.Reader) (req *http.Request, err error) {
@@ -315,21 +342,21 @@ func (a *ApiV2) GetUploadParams(vid string, params upload.UploadRequest) (up upl
 }
 
 func (a *ApiV2) UpdateAssetMetadata(id string, metadata json.RawMessage) (asset Asset, err error) {
-  var resp AssetResponse
-  if !common.ValidUUID(id) {
-    return asset, common.NewError("asset id '%s' is invalid", id)
-  }
-  uuid := common.ConvertToUUIDFormat(id)
-  url := a.getBaseUrl() + "/assets/" + uuid
-  req, err := a.makeRequest("PUT", url, strings.NewReader("{\"metadata\": " + string(metadata) + "}"))
-  if err != nil {
-    return asset, err
-  }
-  err = handleReq(a, req, &resp)
-  if err != nil {
-    return asset, err
-  }
-  asset = *resp.Asset
-  asset.Api = *a
-  return asset, nil
+	var resp AssetResponse
+	if !common.ValidUUID(id) {
+		return asset, common.NewError("asset id '%s' is invalid", id)
+	}
+	uuid := common.ConvertToUUIDFormat(id)
+	url := a.getBaseUrl() + "/assets/" + uuid
+	req, err := a.makeRequest("PUT", url, strings.NewReader("{\"metadata\": "+string(metadata)+"}"))
+	if err != nil {
+		return asset, err
+	}
+	err = handleReq(a, req, &resp)
+	if err != nil {
+		return asset, err
+	}
+	asset = *resp.Asset
+	asset.Api = *a
+	return asset, nil
 }
