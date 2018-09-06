@@ -312,6 +312,12 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
+		case route + "/accounts/" + ACCOUNT_ID:
+			if r.Method == "GET" {
+				resp = s.LoadSample("account")
+			} else {
+				w.WriteHeader(http.StatusNotFound)
+			}
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
