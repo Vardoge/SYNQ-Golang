@@ -99,7 +99,7 @@ func TestAddAccount(t *testing.T) {
 	val := vals[0]
 	body := val.Get("body")
 	obj := struct {
-		Accounts []Account `json:"video_accounts"`
+		Accounts []VideoAccount `json:"video_accounts"`
 	}{}
 	json.Unmarshal([]byte(body), &obj)
 	assert.Len(obj.Accounts, 1)
@@ -156,6 +156,7 @@ func TestFindAssetByType(t *testing.T) {
 	assert.True(found)
 	assert.Equal(len(type2Assets), 2)
 }
+
 // Test misc video functions
 func TestMisc(t *testing.T) {
 	assert := require.New(t)
