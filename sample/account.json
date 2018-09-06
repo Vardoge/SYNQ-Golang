@@ -1,0 +1,17 @@
+{
+    "data": {
+        "updated_at": "2018-08-20T06:16:23.494790Z",
+        "type": "licensor",
+        "status": "active",
+        "name": "SYNQ Test",
+        "id": "425b6b3b-f272-4a33-da4c-19d846685211",
+        "domain": "synq.fm",
+        "distributor_accounts": [
+            {
+                "distributor_id": "12f77766-abcd-4ec1-8c83-cf92f0fb304d"
+            }
+        ],
+        "created_at": "2018-08-20T06:16:23.494774Z",
+        "contact_person": "Drift"
+    }
+}
