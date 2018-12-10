@@ -38,12 +38,21 @@ type AccountResp struct {
 }
 
 type Account struct {
-	Id      string `json:"id"`
-	Name    string `json:"name"`
-	Type    string `json:"type"`
-	Status  string `json:"status"`
-	Domain  string `json:"domain"`
-	Contact string `json:"contact_person"`
+	Id              string        `json:"id"`
+	Name            string        `json:"name"`
+	Type            string        `json:"type"`
+	Status          string        `json:"status"`
+	Domain          string        `json:"domain"`
+	Contact         string        `json:"contact_person"`
+	CreatedAt       string        `json:"created_at"`
+	UpdatedAt       string        `json:"updated_at"`
+	PartneredOn     string        `json:"partnered_on"`
+	AccountSettings []string      `json:"account_settings"`
+	Distributors    []Distributor `json:"distributor_accounts"`
+}
+
+type Distributor struct {
+	DistributorId string `json:"distributor_id"`
 }
 
 type VideoList struct {
