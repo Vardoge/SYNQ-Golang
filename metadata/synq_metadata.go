@@ -5,6 +5,7 @@ type MetaData struct {
 	Title            LanguageList `json:"title"`
 	Description      LanguageList `json:"description"`
 	Year             int          `json:"production_year"`
+	ReleaseYear      int          `json:"release_year"`
 	Type             string       `json:"type"`
 	Series           Series       `json:"series,omitempty"`
 	Genres           []string     `json:"genres"`
