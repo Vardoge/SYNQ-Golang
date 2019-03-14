@@ -4,11 +4,9 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/SYNQfm/helpers/common"
@@ -150,10 +148,6 @@ func (b *BaseApi) SetKey(key string) {
 func handleReq(a ApiF, req *http.Request, v interface{}) error {
 	httpClient := &http.Client{Timeout: a.GetTimeout("")}
 	resp, err := httpClient.Do(req)
-	if strings.HasSuffix(req.URL.Path, "/settings") && resp.StatusCode == http.StatusNotFound {
-		fmt.Printf("%+v\n", req)
-		fmt.Printf("%+v\n", resp)
-	}
 	return parseSynqResp(a, resp, err, v)
 }
 
