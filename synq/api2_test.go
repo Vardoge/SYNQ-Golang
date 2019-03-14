@@ -126,3 +126,11 @@ func TestUpdateAssetMetadata(t *testing.T) {
 	assert.Nil(err)
 	assert.Contains(string(asset.Metadata), string("\"test\": true"))
 }
+
+func TestCreateAssetSettings(t *testing.T) {
+	assert := require.New(t)
+	api := setupTestApiV2("Bearer " + testAuth)
+	err := api.CreateAssetSettings("bad asset id", []string{})
+	assert.Equal("404 Item not found", err.Error())
+	assert.Nil(api.CreateAssetSettings(test_server.ASSET_ID, []string{}))
+}

@@ -318,6 +318,12 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
+		case route + "/assets/" + ASSET_ID + "/settings":
+			if r.Method == "POST" {
+				w.WriteHeader(http.StatusNoContent)
+			} else {
+				w.WriteHeader(http.StatusNotFound)
+			}
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}

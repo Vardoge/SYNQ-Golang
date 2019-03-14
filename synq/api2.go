@@ -377,3 +377,14 @@ func (a *ApiV2) UpdateAssetMetadata(id string, metadata json.RawMessage) (asset 
 	asset.Api = *a
 	return asset, nil
 }
+
+func (a *ApiV2) CreateAssetSettings(assetId string, settingIds []string) error {
+	url := fmt.Sprintf("%s/assets/%s/settings", a.getBaseUrl(), assetId)
+	data, _ := json.Marshal(map[string][]string{"settings_ids": settingIds})
+	body := bytes.NewBuffer(data)
+	req, err := a.makeRequest("POST", url, body)
+	if err != nil {
+		return err
+	}
+	return handleReq(a, req, new(map[string]interface{}))
+}
