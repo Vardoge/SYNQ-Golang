@@ -166,116 +166,11 @@ func handleV2(api synq.ApiV2) {
 	log.Println(ret.String())
 }
 
-func handleV1(api synq.Api) {
-	var video synq.Video
-	var err error
-	vid := cli.GetString("video_id")
-	file := cli.GetString("file")
-	switch cli.Command {
-	case "details":
-		if vid == "" {
-			log.Println("missing video id")
-			os.Exit(1)
-		}
-		log.Printf("getting video %s\n", vid)
-		video, err = api.GetVideo(vid)
-	case "upload_info":
-		log.Printf("Getting upload info for %s\n", vid)
-		video.Api = &api
-		video.Id = vid
-		err = video.GetUploadInfo()
-	case "query":
-		q := cli.GetString("query")
-		videos, err := api.Query(q)
-		handleError(err)
-		log.Printf("Found %d videos\n", len(videos))
-		for _, video := range videos {
-			log.Println(video.Display())
-		}
-		os.Exit(0)
-	case "upload":
-		if file == "" {
-			log.Println("missing 'file'")
-			os.Exit(1)
-		}
-		log.Printf("uploading file '%s'\n", file)
-		video.Api = &api
-		video.Id = vid
-		err = video.UploadFile(file)
-	case "create":
-		log.Printf("Creating new video")
-		if file != "" {
-			log.Printf("loading userdata file from %s\n", file)
-			bytes, err := ioutil.ReadFile(file)
-			if err == nil {
-				userdata := make(map[string]interface{})
-				json.Unmarshal(bytes, &userdata)
-				video, err = api.Create(userdata)
-			}
-		} else {
-			video, err = api.Create()
-		}
-	case "uploader_info":
-		if vid == "" {
-			log.Println("missing video id")
-			os.Exit(1)
-		}
-		video.Api = &api
-		video.Id = vid
-		err = video.GetUploaderInfo()
-		if err != nil {
-			log.Println(err)
-			os.Exit(1)
-		}
-		log.Println("uploader_url:", video.UploaderInfo["uploader_url"])
-		os.Exit(0)
-	case "uploader":
-		if file == "" {
-			log.Println("missing 'file'")
-			os.Exit(1)
-		}
-		if vid == "" {
-			log.Println("missing video id")
-			os.Exit(1)
-		}
-		video.Api = &api
-		video.Id = vid
-
-		log.Printf("uploading file '%s'\n", file)
-		err = video.MultipartUpload(file)
-		handleError(err)
-
-		video, err = api.GetVideo(video.Id)
-	case "create_and_then_multipart_upload":
-		if file == "" {
-			log.Println("missing 'file'")
-			os.Exit(1)
-		}
-
-		log.Printf("Creating new video")
-		video, err = api.Create()
-		handleError(err)
-
-		log.Printf("uploading file '%s'\n", file)
-		err = video.MultipartUpload(file)
-		handleError(err)
-
-		video, err = api.GetVideo(video.Id)
-	default:
-		err = errors.New("unknown command '" + cli.Command + "'")
-	}
-	handleError(err)
-	log.Println(video.Display())
-}
-
 func main() {
 	set, err := helper.LoadFromFile(cli.GetString("cred_file"))
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
-	if cli.GetString("version") == "v1" {
-		handleV1(set.ApiV1)
-	} else {
-		handleV2(set.ApiV2)
-	}
+
+	handleV2(set.ApiV2)
 }

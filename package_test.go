@@ -8,6 +8,6 @@ import (
 )
 
 func TestImport(t *testing.T) {
-	assert.NotNil(t, new(synq.Api))
-	assert.NotNil(t, new(synq.Video))
+	assert.NotNil(t, new(synq.ApiV2))
+	assert.NotNil(t, new(synq.VideoV2))
 }
