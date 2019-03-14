@@ -3,34 +3,34 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "/abEiTO0vexiV8eu8oCYqCr8GSw=",
+			"checksumSHA1": "o6liephB73R2R1j/LndaUWcHZhI=",
 			"path": "github.com/SYNQfm/SYNQ-Golang/helper",
-			"revision": "6ab2d3de78a6b1af0fc6762fc4f67fcd6c35e615",
-			"revisionTime": "2018-04-04T16:48:11Z"
+			"revision": "862ff37f7ad9c047683d338c4b6ff0b017c88efa",
+			"revisionTime": "2019-03-14T04:41:32Z"
 		},
 		{
-			"checksumSHA1": "9UrP/i+UkuAA/FRNIcRWzva2lPc=",
+			"checksumSHA1": "4YvmGb3A9wfimKNViLnjgiRbTn0=",
 			"path": "github.com/SYNQfm/SYNQ-Golang/synq",
-			"revision": "6ab2d3de78a6b1af0fc6762fc4f67fcd6c35e615",
-			"revisionTime": "2018-04-04T16:48:11Z"
+			"revision": "862ff37f7ad9c047683d338c4b6ff0b017c88efa",
+			"revisionTime": "2019-03-14T04:41:32Z"
 		},
 		{
-			"checksumSHA1": "C69qND3SjLWd09E82/uHW0wV/b0=",
+			"checksumSHA1": "G0CatT0AgKJsALWl9zzHsvcGNf4=",
 			"path": "github.com/SYNQfm/SYNQ-Golang/test_server",
-			"revision": "6ab2d3de78a6b1af0fc6762fc4f67fcd6c35e615",
-			"revisionTime": "2018-04-04T16:48:11Z"
+			"revision": "862ff37f7ad9c047683d338c4b6ff0b017c88efa",
+			"revisionTime": "2019-03-14T04:41:32Z"
 		},
 		{
-			"checksumSHA1": "H9WS2JqLagQS6/Ka1oeZcv5+dCU=",
+			"checksumSHA1": "U0ARWrI89/H+ZkbPtaiX1KJLlLg=",
 			"path": "github.com/SYNQfm/SYNQ-Golang/upload",
-			"revision": "6ab2d3de78a6b1af0fc6762fc4f67fcd6c35e615",
-			"revisionTime": "2018-04-04T16:48:11Z"
+			"revision": "862ff37f7ad9c047683d338c4b6ff0b017c88efa",
+			"revisionTime": "2019-03-14T04:41:32Z"
 		},
 		{
-			"checksumSHA1": "FUn1J/xNBPh/pIVUwVefn0vFiOE=",
+			"checksumSHA1": "7WleWJoGZDuO5cIYP99k4OYcik4=",
 			"path": "github.com/SYNQfm/helpers/common",
-			"revision": "968ffe5e6558833f2567dd05a407da750d6005f2",
-			"revisionTime": "2018-03-01T22:23:17Z"
+			"revision": "60368e7e9fe59c0f7e8f267de301ceade6971c51",
+			"revisionTime": "2018-10-08T12:25:04Z"
 		},
 		{
 			"checksumSHA1": "co2DcdLC7L9lUt8ECpIMgvYbJ0E=",
