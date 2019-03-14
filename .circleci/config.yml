@@ -16,8 +16,7 @@ jobs:
           name: Download Dependencies
           command: |
             sudo chown  -R circleci:circleci "${SYNQ_DIR}"
-            go get github.com/kardianos/govendor
-            govendor sync
+            dep ensure
       - run:
           name: Run Golang Tests
           command: |

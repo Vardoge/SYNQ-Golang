@@ -236,6 +236,9 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 		v.Add("body", body_str)
 		s.Values = append(s.Values, v)
 		route := "/" + SYNQ_ROUTE
+		log.Println(route)
+		log.Println(r.URL.Path)
+		log.Println(route + "/assets/" + ASSET_ID + "/settings")
 		switch r.URL.Path {
 		case route + "/videos/" + V2_VIDEO_ID,
 			route + "/videos/" + V2_VIDEO_ID2,
@@ -319,8 +322,14 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusNotFound)
 			}
 		case route + "/assets/" + ASSET_ID + "/settings":
+			log.Println(r.URL.Path)
+			log.Println(ASSET_ID)
+			log.Println(strings.Contains(r.URL.Path, ASSET_ID))
+			log.Println(r.Method)
+			log.Println(r.Method == "POST")
 			if r.Method == "POST" {
 				w.WriteHeader(http.StatusNoContent)
+				log.Printf("%+v\n", w.Header())
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
