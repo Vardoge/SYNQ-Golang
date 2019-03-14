@@ -3,16 +3,16 @@
 	"ignore": "test",
 	"package": [
 		{
-			"checksumSHA1": "o6liephB73R2R1j/LndaUWcHZhI=",
+			"checksumSHA1": "/abEiTO0vexiV8eu8oCYqCr8GSw=",
 			"path": "github.com/SYNQfm/SYNQ-Golang/helper",
-			"revision": "280c804fd1a673be98d888b91fd6dc1d9f6b363d",
-			"revisionTime": "2019-03-11T03:47:14Z"
+			"revision": "6ab2d3de78a6b1af0fc6762fc4f67fcd6c35e615",
+			"revisionTime": "2018-04-04T16:48:11Z"
 		},
 		{
-			"checksumSHA1": "4YvmGb3A9wfimKNViLnjgiRbTn0=",
+			"checksumSHA1": "9UrP/i+UkuAA/FRNIcRWzva2lPc=",
 			"path": "github.com/SYNQfm/SYNQ-Golang/synq",
-			"revision": "280c804fd1a673be98d888b91fd6dc1d9f6b363d",
-			"revisionTime": "2019-03-11T03:47:14Z"
+			"revision": "6ab2d3de78a6b1af0fc6762fc4f67fcd6c35e615",
+			"revisionTime": "2018-04-04T16:48:11Z"
 		},
 		{
 			"checksumSHA1": "r7ozhEY3JZ3jr/Q93u4JPVpiXr0=",
@@ -21,10 +21,10 @@
 			"revisionTime": "2019-03-11T03:47:14Z"
 		},
 		{
-			"checksumSHA1": "U0ARWrI89/H+ZkbPtaiX1KJLlLg=",
+			"checksumSHA1": "H9WS2JqLagQS6/Ka1oeZcv5+dCU=",
 			"path": "github.com/SYNQfm/SYNQ-Golang/upload",
-			"revision": "280c804fd1a673be98d888b91fd6dc1d9f6b363d",
-			"revisionTime": "2019-03-11T03:47:14Z"
+			"revision": "6ab2d3de78a6b1af0fc6762fc4f67fcd6c35e615",
+			"revisionTime": "2018-04-04T16:48:11Z"
 		},
 		{
 			"checksumSHA1": "7WleWJoGZDuO5cIYP99k4OYcik4=",
