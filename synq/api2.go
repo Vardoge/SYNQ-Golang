@@ -51,18 +51,6 @@ type Account struct {
 	Distributors    []Distributor    `json:"distributor_accounts"`
 }
 
-type SettingsResp struct {
-	Settings Settings `json:"data"`
-}
-
-type Settings struct {
-	Id        string `json:"id"`
-	Name      string `json:"name"`
-	Type      string `json:"type"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
-}
-
 type AccountSetting struct {
 	Id        string `json:"id"`
 	Name      string `json:"name"`
@@ -399,18 +387,4 @@ func (a *ApiV2) CreateAssetSettings(assetId string, settingIds []string) error {
 		return err
 	}
 	return handleReq(a, req, new(map[string]interface{}))
-}
-
-func (a *ApiV2) GetSettingsByName(settingsName string) (settings Settings, err error) {
-	var resp SettingsResp
-	url := fmt.Sprintf("%s/settings?name=%s", a.getBaseUrl(), settingsName)
-	req, err := a.makeRequest("GET", url, nil)
-	if err != nil {
-		return settings, err
-	}
-	err = handleReq(a, req, &resp)
-	if err != nil {
-		return settings, err
-	}
-	return resp.Settings, nil
 }
