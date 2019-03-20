@@ -29,6 +29,7 @@ const (
 	TEST_AUTH           = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3Rlc3QuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDU3MjE4MjFiM2ExYWFmYmUxNTlkZGE2NSIsImF1ZCI6InRESzZBdUF0QVc0ckFySzhOSTltMXdJRW5WQU9RcjUxIiwiZXhwIjoxNDkzNDM5NTExLCJpYXQiOjE0NjE4MTcxMTF9.29JkFxoHqCRPIH2wVbT-ZNIMBK8xXLwkjbLmyWxpquE"
 	DEFAULT_AWS_SECRET  = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
 	ACCOUNT_ID          = "425b6b3b-f272-4a33-da4c-19d846685211"
+	SETTINGS_NAME       = "widevine"
 	DEFAULT_SAMPLE_DIR  = "sample"
 	SYNQ_VERSION        = "v2"
 	SYNQ_ROUTE          = "v1"
@@ -321,6 +322,17 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 		case route + "/assets/" + ASSET_ID + "/settings":
 			if r.Method == "POST" {
 				w.WriteHeader(http.StatusNoContent)
+			} else {
+				w.WriteHeader(http.StatusNotFound)
+			}
+		case route + "/settings":
+			if r.Method == "GET" {
+				name := r.URL.Query().Get("name")
+				if name == SETTINGS_NAME {
+					resp = s.LoadSampleV2("settings")
+				} else {
+					w.WriteHeader(http.StatusNotFound)
+				}
 			} else {
 				w.WriteHeader(http.StatusNotFound)
 			}
