@@ -329,7 +329,7 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 			if r.Method == "GET" {
 				name := r.URL.Query().Get("name")
 				if name == SETTINGS_NAME {
-					resp = s.LoadSample("settings")
+					resp = s.LoadSampleV2("settings")
 				} else {
 					w.WriteHeader(http.StatusNotFound)
 				}
