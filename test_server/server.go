@@ -328,7 +328,7 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 		case route + "/settings":
 			if r.Method == "GET" {
 				name := r.URL.Query().Get("name")
-				if name == "widevine" {
+				if name == SETTINGS_NAME {
 					resp = s.LoadSample("settings")
 				} else {
 					w.WriteHeader(http.StatusNotFound)
