@@ -13,6 +13,7 @@ var testAssetId string
 var testVideoIdV2 string
 var testVideoId2V2 string
 var testAuth string
+var testSettingsName string
 var testServer *test_server.TestServer
 
 const (
@@ -24,6 +25,7 @@ func init() {
 	testVideoIdV2 = test_server.V2_VIDEO_ID
 	testVideoId2V2 = test_server.V2_VIDEO_ID2
 	testAuth = test_server.TEST_AUTH
+	testSettingsName = test_server.SETTINGS_NAME
 }
 
 func setupTestApiV2(key string) ApiV2 {
@@ -133,4 +135,16 @@ func TestCreateAssetSettings(t *testing.T) {
 	err := api.CreateAssetSettings("bad asset id", []string{})
 	assert.Equal("404 Item not found", err.Error())
 	assert.Nil(api.CreateAssetSettings(test_server.ASSET_ID, []string{}))
+}
+
+func TestGetSettingsByName(t *testing.T) {
+	assert := require.New(t)
+	api := setupTestApiV2(testAuth)
+	_, err := api.GetSettingsByName("")
+	assert.NotNil(err)
+	assert.Equal("404 Item not found", err.Error())
+	settings, err := api.GetSettingsByName(testSettingsName)
+	assert.Nil(err)
+	assert.Equal(testSettingsName, settings.Name)
+	assert.NotNil(settings.Type)
 }
