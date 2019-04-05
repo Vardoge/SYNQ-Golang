@@ -15,7 +15,7 @@ type MetaData struct {
 	Ratio            string       `json:"aspect_ratio,omitempty"`
 	Duration         string       `json:"expected_duration,omitempty"`
 	Countries        []string     `json:"country_of_origin"`
-	ReleaseDate      string       `json:"release_date,omitempty"`
+	ReleaseDate      string       `json:"first_release_date,omitempty"`
 	OriginalLanguage string       `json:"original_language,omitempty"`
 	Studio           string       `json:"studio,omitempty"`
 	ImdbUrl          string       `json:"imdb_url,omitempty"`
