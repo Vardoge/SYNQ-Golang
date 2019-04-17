@@ -1,0 +1,25 @@
+{
+  "data":
+    {
+        "video_id": "9e9dc8c8-f705-41db-88da-b3034894deb9",
+        "url": "https://multicdn-eu.synq.fm/videos/9e/9d/9e9dc8c8-f705-41db-88da-b3034894deb9/40669c19-85aa-4c0d-9b88-ea3c3b20e514.mov",
+        "upload_info": {
+            "started": "2018-11-13T15:02:41.000000Z",
+            "size": 469971649,
+            "finished": "2018-11-13T15:02:41.000000Z",
+            "filename": "fine_temp/jessica-trailer.mov",
+            "checksum_size": 5000000,
+            "checksum": "6240e06f9df6ece6f7f7c1d037fc13b6"
+        },
+        "updated_at": "2018-11-13T16:06:18.798824Z",
+        "type": "trailer",
+        "state": "uploaded",
+        "metadata": {
+            "trailer_id": "34ddf480-b8a5-46dc-a708-2753dd1d07e8"
+        },
+        "location": "s3://synq-frankfurt/videos/9e/9d/9e9dc8c8-f705-41db-88da-b3034894deb9/40669c19-85aa-4c0d-9b88-ea3c3b20e514.mov",
+        "id": "40669c19-85aa-4c0d-9b88-ea3c3b20e514",
+        "created_at": "2018-11-13T15:06:42.852251Z",
+        "account_id": null
+     }
+}

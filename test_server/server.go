@@ -26,6 +26,7 @@ const (
 	V2_VIDEO_ID2        = "eee2bc43-e973-4f73-857d-7c0bb111a834"
 	ASSET_ID            = "01823629-bcf2-4c34-b714-ae21e1a4647f"
 	ASSET_ID2           = "fc3e5d9a-a90e-49cc-0c67-224372a59cee"
+	TRAILER_ID          = "40669c19-85aa-4c0d-9b88-ea3c3b20e514"
 	TEST_AUTH           = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL3Rlc3QuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDU3MjE4MjFiM2ExYWFmYmUxNTlkZGE2NSIsImF1ZCI6InRESzZBdUF0QVc0ckFySzhOSTltMXdJRW5WQU9RcjUxIiwiZXhwIjoxNDkzNDM5NTExLCJpYXQiOjE0NjE4MTcxMTF9.29JkFxoHqCRPIH2wVbT-ZNIMBK8xXLwkjbLmyWxpquE"
 	DEFAULT_AWS_SECRET  = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYzEXAMPLEKEY"
 	ACCOUNT_ID          = "425b6b3b-f272-4a33-da4c-19d846685211"
@@ -240,13 +241,20 @@ func (s *TestServer) handleV2(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case route + "/videos/" + V2_VIDEO_ID,
 			route + "/videos/" + V2_VIDEO_ID2,
-			route + "/assets/" + ASSET_ID:
+			route + "/assets/" + ASSET_ID,
+			route + "/assets/" + TRAILER_ID:
 			if r.Method == "GET" || r.Method == "PUT" {
 				if type_ == "asset" {
+					updatedFile := "asset_updated"
+					uploadedFile := "asset_uploaded"
+					if strings.Contains(r.URL.Path, TRAILER_ID) {
+						updatedFile = "trailer_updated"
+						uploadedFile = "trailer_uploaded"
+					}
 					if r.Method == "PUT" {
-						resp = s.LoadSample("asset_updated")
+						resp = s.LoadSample(updatedFile)
 					} else {
-						resp = s.LoadSample("asset_uploaded")
+						resp = s.LoadSample(uploadedFile)
 					}
 				} else {
 					if r.Method == "PUT" {
