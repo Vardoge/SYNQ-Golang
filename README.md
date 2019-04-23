@@ -10,6 +10,17 @@ This is the Golang SDK for the SYNQ [API](https://docs.synq.fm)
 go get -u github.com/SYNQfm/SYNQ-Golang
 ```
 
+For package management, install [dep](https://github.com/golang/dep).
+
+Run `dep ensure` for the following scenarios:
+```
+- To add a new dependency
+- To update an existing dependency
+- To catch up after importing a package for the first time in your project, 
+  or removing the last import of a package in your project
+- To catch up to a change to a rule in Gopkg.toml
+```
+
 ## Usage
 
 Here's an example of a simple main script that uses our SDK
