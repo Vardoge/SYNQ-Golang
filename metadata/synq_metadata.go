@@ -6,15 +6,15 @@ type MetaData struct {
 	Description      LanguageList `json:"description"`
 	Year             int          `json:"production_year,omitempty"`
 	ReleaseYear      int          `json:"release_year,omitempty"`
-	Type             string       `json:"type,omitempty"`
+	Type             string       `json:"type"`
 	Series           Series       `json:"series,omitempty"`
-	Genres           []string     `json:"genres,omitempty"`
-	Credits          []Credit     `json:"credits,omitempty"`
+	Genres           []string     `json:"genres"`
+	Credits          []Credit     `json:"credits"`
 	Regional         bool         `json:"regional_content"`
-	Rating           string       `json:"parental_rating,omitempty"`
+	Rating           string       `json:"parental_rating"`
 	Ratio            string       `json:"aspect_ratio,omitempty"`
 	Duration         string       `json:"expected_duration,omitempty"`
-	Countries        []string     `json:"country_of_origin,omitempty"`
+	Countries        []string     `json:"country_of_origin"`
 	ReleaseDate      string       `json:"first_release_date,omitempty"`
 	OriginalLanguage string       `json:"original_language,omitempty"`
 	Studio           string       `json:"studio,omitempty"`
