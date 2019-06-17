@@ -65,8 +65,9 @@ type VideoRights struct {
 }
 
 type Rating struct {
-	Country string `json:"country"`
+	Country string `json:"country,omitempty"`
 	Content string `json:"content"`
+	System  string `json:"system,omitempty"`
 }
 
 type MultiformData struct {
