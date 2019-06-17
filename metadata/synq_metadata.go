@@ -33,8 +33,9 @@ type Series struct {
 }
 
 type Credit struct {
-	Name     string `json:"name"`
-	Function string `json:"role"`
+	Name      string `json:"name"`
+	Function  string `json:"role"`
+	Character string `json:"character,omitempty"`
 }
 
 type Language map[string]string
