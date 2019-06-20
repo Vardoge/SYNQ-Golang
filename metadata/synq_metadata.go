@@ -67,10 +67,9 @@ type VideoRights struct {
 type Rating struct {
 	Country string `json:"country,omitempty"`
 	Content string `json:"content"`
-	System  string `json:"system,omitempty"`
 }
 
 type MultiformData struct {
-	OtherInformation LanguageList `json:"other_information,omitempty"`
-	Tags             []string     `json:"tags,omitempty"`
+	OtherInformation map[string]interface{} `json:"other_information,omitempty"`
+	Tags             []string               `json:"tags,omitempty"`
 }
