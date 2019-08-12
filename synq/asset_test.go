@@ -13,10 +13,11 @@ import (
 )
 
 const (
-	ASSET_TYPE     = "mp4"
-	ASSET_CREATED  = "created"
-	ASSET_UPLOADED = "uploaded"
-	ASSET_LOCATION = "https://s3.amazonaws.com/synq-jessica/uploads/01/82/01823629bcf24c34b714ae21e1a4647f/01823629bcf24c34b714ae21e1a4647f.mp4"
+	ASSET_TYPE       = "mp4"
+	ASSET_CREATED    = "created"
+	ASSET_UPLOADED   = "uploaded"
+	ASSET_LOCATION   = "https://s3.amazonaws.com/synq-jessica/uploads/01/82/01823629bcf24c34b714ae21e1a4647f/01823629bcf24c34b714ae21e1a4647f.mp4"
+	ASSET_ACCOUNT_ID = "good"
 )
 
 func init() {

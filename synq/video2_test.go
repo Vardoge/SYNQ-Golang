@@ -50,6 +50,17 @@ func TestCreateAsset(t *testing.T) {
 	assert.Equal(testAssetId, asset.Id)
 }
 
+func TestCreateAssetWithAccount(t *testing.T) {
+	log.Println("Testing CreateAsset")
+	assert := require.New(t)
+	video := setupTestVideoV2()
+	asset, err := video.CreateAsset(ASSET_CREATED, ASSET_TYPE, ASSET_LOCATION, ASSET_ACCOUNT_ID)
+	assert.Nil(err)
+	assert.NotNil(asset.Id)
+	assert.NotNil(asset.AccountId)
+	assert.Equal(testAssetId, asset.Id)
+}
+
 func TestCreateOrUpdateAsset(t *testing.T) {
 	log.Println("Testing CreateAsset")
 	assert := require.New(t)

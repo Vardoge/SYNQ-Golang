@@ -210,6 +210,17 @@ func (v *VideoV2) CreateAsset(state, fileType, location string) (Asset, error) {
 	return asset, err
 }
 
+func (v *VideoV2) CreateAssetWithAccount(state, fileType, location, accountID string) (Asset, error) {
+	var asset Asset
+	asset.VideoId = v.Id
+	asset.State = state
+	asset.Type = fileType
+	asset.Location = location
+	asset.AccountId = accountID
+	err := v.CreateOrUpdateAsset(&asset)
+	return asset, err
+}
+
 // Helper function to display information about a file
 func (v *VideoV2) Display() (str string) {
 	if v.Id == "" {

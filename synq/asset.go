@@ -24,7 +24,7 @@ type AssetList struct {
 }
 
 type Asset struct {
-	AccountId        string                  `json:"account_id"`
+	AccountId        string                  `json:"account_id,omitempty"`
 	VideoId          string                  `json:"video_id"`
 	Id               string                  `json:"id"`
 	Location         string                  `json:"location"`
