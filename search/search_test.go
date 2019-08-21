@@ -38,7 +38,7 @@ func createRequestBody() SearchRequestBody {
 			"hits_per_page":  100,
 			"page":           1,
 		},
-		Options: SearchOptions{false, true, false},
+		Options: SearchOptions{false, true, false, false},
 	}
 }
 
