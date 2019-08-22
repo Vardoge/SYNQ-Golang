@@ -29,6 +29,7 @@ type SearchOptions struct {
 	IgnoreHits          bool `json:"ignore_hits"`
 	IgnoreHighlightHits bool `json:"ignore_highlight_hits"`
 	IgnoreIDList        bool `json:"ignore_id_list"`
+	WithThumbnails      bool `json:"with_thumbnails"`
 }
 
 type SearchResponse struct {
